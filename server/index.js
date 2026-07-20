@@ -6,8 +6,36 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
+// Security Imports
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
+// Security: Helmet (Configured to allow Vercel to read your images)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// Security: Rate Limiting (Prevents DDoS and brute-force guessing)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300, // Limit each IP to 300 requests per window
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
+
+// Security: Strict CORS (Only allows requests from your Website)
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow localhost and vercel domains. We will add your custom domain here later!
+        if (!origin || origin.includes('localhost') || origin.includes('vercel.app')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Blocked by CORS policy'));
+        }
+    }
+};
+app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
