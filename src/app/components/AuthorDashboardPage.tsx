@@ -441,7 +441,7 @@ export function AuthorDashboardPage() {
       <aside className={`w-64 flex flex-col shrink-0 h-screen fixed md:sticky top-0 bg-paa-cream z-50 transform transition-transform duration-300 border-r border-paa-navy/5 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-4 md:p-6 h-20 flex items-center justify-between shrink-0 border-b border-paa-navy/5">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="PAA Logo" className="h-8 w-auto object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
+            <img src="/logo.webp" alt="PAA Logo" className="h-8 w-auto object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
             <div className="hidden w-8 h-8 rounded-full bg-[#b44d28] flex items-center justify-center text-white text-sm font-bold">P</div>
             <span className="font-serif font-bold text-lg tracking-tight text-paa-navy ml-1">Author Portal</span>
           </div>
@@ -481,7 +481,7 @@ export function AuthorDashboardPage() {
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-2 text-paa-navy rounded-lg hover:bg-black/5 transition-colors mr-1">
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <img src="/logo.png" alt="PAA Logo" className="h-6 w-auto object-contain md:hidden mr-1" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
+            <img src="/logo.webp" alt="PAA Logo" className="h-6 w-auto object-contain md:hidden mr-1" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
             <div className="hidden md:hidden w-6 h-6 rounded-full bg-[#b44d28] items-center justify-center text-white text-[10px] font-bold mr-1">P</div>
             <div className="flex items-center gap-2 text-xs font-medium">
               <span className="text-paa-gray-text">Author Portal</span>

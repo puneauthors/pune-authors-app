@@ -3,12 +3,12 @@ import { Plane, MapPin, BookOpen, Clock } from 'lucide-react';
 import axios from 'axios';
 
 const airports = [
-  { name: 'Kolkata Airport', location: 'Netaji Subhash Chandra Bose International Airport, Kolkata', books: '278', defaultImage: '/kolkata_airport_flybrary.jpg' },
-  { name: 'Chennai Airport', location: 'Chennai International Airport, Chennai', books: '403', defaultImage: '/chennai_airport_flybrary.jpg' },
-  { name: 'Pune Airport', location: 'Pune International Airport, Pune', books: '380', defaultImage: '/pune_airport_flybrary.jpg' },
-  { name: 'Thiruvananthapuram Airport', location: 'Trivandrum International Airport', books: '59', defaultImage: '/trivandrum_airport_flybrary.jpg' },
-  { name: 'Mangaluru Airport', location: 'Mangaluru International Airport', books: '136', defaultImage: '/mangalore_airport_flybrary.jpg' },
-  { name: 'Bhubaneshwar Airport', location: 'Biju Patnaik International Airport, Bhubaneshwar', books: '185', defaultImage: '/bhubaneshwar_airport_flybrary.jpg' },
+  { name: 'Kolkata Airport', location: 'Netaji Subhash Chandra Bose International Airport, Kolkata', books: '278', defaultImage: '/kolkata_airport_flybrary.webp' },
+  { name: 'Chennai Airport', location: 'Chennai International Airport, Chennai', books: '403', defaultImage: '/chennai_airport_flybrary.webp' },
+  { name: 'Pune Airport', location: 'Pune International Airport, Pune', books: '380', defaultImage: '/pune_airport_flybrary.webp' },
+  { name: 'Thiruvananthapuram Airport', location: 'Trivandrum International Airport', books: '59', defaultImage: '/trivandrum_airport_flybrary.webp' },
+  { name: 'Mangaluru Airport', location: 'Mangaluru International Airport', books: '136', defaultImage: '/mangalore_airport_flybrary.webp' },
+  { name: 'Bhubaneshwar Airport', location: 'Biju Patnaik International Airport, Bhubaneshwar', books: '185', defaultImage: '/bhubaneshwar_airport_flybrary.webp' },
 ];
 
 

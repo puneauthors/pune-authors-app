@@ -7023,7 +7023,7 @@ export function OperationsDashboardPage() {
         <div className="p-4 md:p-6 h-20 flex items-center justify-between shrink-0 border-b border-paa-navy/5">
           <div className="flex items-center gap-2">
             <img
-              src="/logo.png"
+              src="/logo.webp"
               alt="PAA Logo"
               className="h-8 w-auto object-contain"
               onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }}
@@ -7095,7 +7095,7 @@ export function OperationsDashboardPage() {
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden p-2 text-paa-navy rounded-lg hover:bg-black/5 transition-colors mr-1">
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <img src="/logo.png" alt="PAA Logo" className="h-6 w-auto object-contain md:hidden mr-1" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
+            <img src="/logo.webp" alt="PAA Logo" className="h-6 w-auto object-contain md:hidden mr-1" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
             <div className="hidden md:hidden w-6 h-6 rounded-full bg-[#b44d28] items-center justify-center text-white text-[10px] font-bold mr-1">P</div>
             <div className="flex items-center gap-2 text-xs font-medium">
               <span className="text-paa-gray-text">Admin Portal</span>

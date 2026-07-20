@@ -230,7 +230,7 @@ export function NavBar() {
           >
             {!logoError ? (
               <img
-                src="/logo.png"
+                src="/logo.webp"
                 alt="Pune Authors' Association Logo"
                 className="navbar-logo-img"
                 style={{ height: 70, objectFit: "contain", transition: "transform 0.3s ease", borderRadius: "50%" }}

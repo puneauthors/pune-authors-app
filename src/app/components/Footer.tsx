@@ -6,7 +6,7 @@ export function Footer() {
       <div style={{ maxWidth: 1280, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "3rem" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", marginBottom: "1.5rem" }}>
-            <img src="/logo.png" alt="Pune Authors' Association Logo" style={{ height: 40, objectFit: "contain" }} />
+            <img src="/logo.webp" alt="Pune Authors' Association Logo" style={{ height: 40, objectFit: "contain" }} />
             <span style={{ fontSize: 13, fontWeight: 900, color: "#111", letterSpacing: "0.05em", fontFamily: "'Playfair Display', serif", textTransform: "uppercase" }}>Pune Authors' Association</span>
           </div>
           <p style={{ lineHeight: 1.6, fontWeight: 500 }}>A dedicated, self-governing independent collective system built to publish, distribute, promote, and establish high visibility for modern Indian writers.</p>

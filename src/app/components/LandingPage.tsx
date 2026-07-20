@@ -346,7 +346,7 @@ export function LandingPage() {
           display: "flex", 
           alignItems: "center", 
           overflow: "hidden", 
-          backgroundImage: "url('/hero-bg.jpg'), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2000&auto=format&fit=crop')",
+          backgroundImage: "url('/hero-bg.webp'), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2000&auto=format&fit=crop')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat"
@@ -372,7 +372,7 @@ export function LandingPage() {
                 BUY BOOKS
                 <img 
                   className="hero-emoji"
-                  src="/buy-books-emoji.png" 
+                  src="/buy-books-emoji.webp" 
                   alt="icon" 
                   style={{ height: "1em", width: "1.2em", display: "inline-block", verticalAlign: "bottom", marginLeft: "0.25em", borderRadius: "0.15em", objectFit: "cover", paddingBottom: "0.1em" }} 
                 />

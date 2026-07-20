@@ -299,7 +299,7 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
         const authorPageHtml = `
            <div class="pdf-page" style="width: 802px; height: 1120px; position: relative; background: ${bgColor}; color: ${textColor}; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: 60px;">
              <div style="position: absolute; top: 40px; right: 40px;">
-                <img src="${window.location.origin}/logo.png" crossorigin="anonymous" style="height: 60px; ${invertedFilter}" />
+                <img src="${window.location.origin}/logo.webp" crossorigin="anonymous" style="height: 60px; ${invertedFilter}" />
              </div>
              
              <div style="position: absolute; right: -50px; top: -50px; font-size: 400px; color: rgba(255,255,255,0.03); font-family: 'Playfair Display', serif; font-weight: 900; line-height: 1; pointer-events: none;">${author.name.charAt(0)}</div>
@@ -379,7 +379,7 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
            <div class="pdf-page" style="width: 802px; height: 1120px; position: relative; background: #f0f9ff; color: #0f172a; box-sizing: border-box; padding: 45px 50px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-start;">
               <!-- Branding Header -->
               <div style="position: absolute; top: 28px; right: 32px;">
-                <img src="${window.location.origin}/logo.png" crossorigin="anonymous" style="height: 48px;" />
+                <img src="${window.location.origin}/logo.webp" crossorigin="anonymous" style="height: 48px;" />
               </div>
               
               <div style="margin-bottom: 25px; border-bottom: 2px solid #0f172a; padding-bottom: 8px; width: calc(100% - 110px);">
@@ -420,7 +420,7 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
             <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=1000&auto=format&fit=crop" crossorigin="anonymous" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; filter: grayscale(100%);" />
             <div style="position: relative; z-index: 10; padding: 80px; width: 80%; background: ${isPrintable ? 'rgba(186, 230, 253, 0.9)' : 'rgba(15, 23, 42, 0.85)'}; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); box-shadow: 0 30px 60px rgba(0,0,0,0.5); box-sizing: border-box;">
               <div style="margin-bottom: 40px;">
-                <img src="${window.location.origin}/logo.png" crossorigin="anonymous" style="height: 250px; ${invertedFilter} display: block; margin: 0 auto;" />
+                <img src="${window.location.origin}/logo.webp" crossorigin="anonymous" style="height: 250px; ${invertedFilter} display: block; margin: 0 auto;" />
               </div>
               <div style="font-size: 14px; text-transform: uppercase; letter-spacing: 6px; color: #b44d28; margin-bottom: 30px; font-weight: 800; font-family: system-ui, sans-serif;">Exclusive Collection</div>
               <h1 style="color: ${textColor}; font-family: 'Playfair Display', serif; font-size: 64px; font-weight: 900; line-height: 1.1; margin: 0 0 20px; letter-spacing: -1px;">Pune Authors' Association</h1>
@@ -437,7 +437,7 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
           <!-- Introduction Page 1 -->
           <div class="pdf-page" style="width: 802px; height: 1120px; position: relative; background: ${bgColor}; color: ${mutedColor}; box-sizing: border-box; padding: 60px 80px; display: flex; flex-direction: column;">
             <div style="position: absolute; top: 40px; right: 40px;">
-                <img src="${window.location.origin}/logo.png" crossorigin="anonymous" style="height: 60px; ${invertedFilter}" />
+                <img src="${window.location.origin}/logo.webp" crossorigin="anonymous" style="height: 60px; ${invertedFilter}" />
             </div>
             <h2 style="margin: 40px 0 30px; font-size: 40px; color: ${textColor}; font-family: 'Playfair Display', Georgia, serif; line-height: 1.1; letter-spacing: -0.5px;">Introduction & Vision</h2>
             
@@ -469,7 +469,7 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
           <!-- Introduction Page 2 -->
           <div class="pdf-page" style="width: 802px; height: 1120px; position: relative; background: ${bgColor}; color: ${mutedColor}; box-sizing: border-box; padding: 60px 80px; display: flex; flex-direction: column;">
             <div style="position: absolute; top: 40px; right: 40px;">
-                <img src="${window.location.origin}/logo.png" crossorigin="anonymous" style="height: 60px; ${invertedFilter}" />
+                <img src="${window.location.origin}/logo.webp" crossorigin="anonymous" style="height: 60px; ${invertedFilter}" />
             </div>
             <h2 style="margin: 40px 0 30px; font-size: 40px; color: ${textColor}; font-family: 'Playfair Display', Georgia, serif; line-height: 1.1; letter-spacing: -0.5px;">Progress & Future</h2>
             

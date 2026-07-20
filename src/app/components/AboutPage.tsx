@@ -35,32 +35,32 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 
 const goals = [
   {
-    img: "/goal_reading.png",
+    img: "/goal_reading.webp",
     title: "Revive Reading Culture",
     desc: "Promote and revive book reading as a habit . An effort to keep book reading alive.",
   },
   {
-    img: "/goal_creativity.png",
+    img: "/goal_creativity.webp",
     title: "Showcase Creativity",
     desc: "Showcase the value of knowledge and creativity through books.",
   },
   {
-    img: "/goal_community.png",
+    img: "/goal_community.webp",
     title: "Community Literary Events",
     desc: "Provide an avenue in form of a literary activity within the housing societies, educational institutions, and organisations, taking them out of their digital world.",
   },
   {
-    img: "/goal_author_signing.png",
+    img: "/goal_author_signing.webp",
     title: "Direct Author Interaction",
     desc: " A literary activity at the door step, Residents can meet authors live, interact and purchase inked, signed copies directly.",
   },
   {
-    img: "/goal_indian_lit.png",
+    img: "/goal_indian_lit.webp",
     title: "Promote Indian Literature",
     desc: " Promote Indian Authors, Indian culture and literature.",
   },
   {
-    img: "/goal_mentoring.png",
+    img: "/goal_mentoring.webp",
     title: "Guide Aspiring Authors",
     desc: " Help and guide those who are keen to write and publish a book.",
   },
@@ -267,7 +267,7 @@ export function AboutPage() {
                   }}
                 >
                   <img
-                    src="/pune_authors_hcl_event.jpg"
+                    src="/pune_authors_hcl_event.webp"
                     alt="Pune Authors Association event at HCL Technologies"
                     style={{ width: "100%", height: 480, objectFit: "cover", display: "block" }}
                   />

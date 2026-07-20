@@ -106,7 +106,7 @@ export function BrowseAuthorsPage() {
         <div style={{ 
           position: "absolute", 
           inset: 0, 
-          backgroundImage: "url('/panel-discussion.jpg')", 
+          backgroundImage: "url('/panel-discussion.webp')", 
           backgroundSize: "cover", 
           backgroundPosition: "center 15%",
           filter: "grayscale(100%)",

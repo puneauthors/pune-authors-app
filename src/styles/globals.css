@@ -148,7 +148,7 @@ body {
 }
 
 .hero-section-bg {
-  background: url(/bridge_bg.png) no-repeat 10% center / 60% auto, linear-gradient(to right, #e3f1f8, #eef7fc);
+  background: url(/bridge_bg.webp) no-repeat 10% center / 60% auto, linear-gradient(to right, #e3f1f8, #eef7fc);
 }
 
 .hero-slider-container {
