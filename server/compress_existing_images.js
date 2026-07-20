@@ -18,15 +18,28 @@ async function compressExistingImages() {
   let skippedCount = 0;
   let errorCount = 0;
   let totalBytesSaved = 0;
+  let fileIndex = 0;
 
   for (const file of files) {
+    fileIndex++;
+    
     const ext = path.extname(file).toLowerCase();
     const filePath = path.join(uploadDir, file);
     
     // Only compress raw image files
     if (ext === '.jpg' || ext === '.jpeg' || ext === '.png') {
+      console.log(`Working on: ${file}...`);
       try {
         const originalSize = fs.statSync(filePath).size;
+        
+        // For the first 400 files (from the previous run), skip them if they are under 1MB
+        // For everything after 400, compress unconditionally!
+        if (fileIndex <= 400 && originalSize < 1000000) {
+            console.log(`Skipping ${file} (Already compressed in previous run)`);
+            skippedCount++;
+            continue;
+        }
+
         const tempPath = path.join(uploadDir, 'temp-' + file);
         
         let pipeline = sharp(filePath).resize({ width: 1920, withoutEnlargement: true });
