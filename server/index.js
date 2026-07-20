@@ -18,7 +18,7 @@ app.use(helmet({
 // Security: Rate Limiting (Prevents DDoS and brute-force guessing)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Increased limit
+  max: 5, // TEMPORARY for testing!
   message: 'Too many requests from this IP, please try again later.'
 });
 
@@ -33,6 +33,7 @@ const corsOptions = {
         }
     }
 };
+app.set('trust proxy', 1); // Trust Nginx reverse proxy to get real user IPs
 app.use(cors(corsOptions)); // CORS MUST BE ABOVE LIMITER
 app.use(limiter);
 
