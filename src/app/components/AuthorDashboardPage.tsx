@@ -840,7 +840,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
   const underDeliveryOrders = authorOrders.filter((o: any) => o.status === 'Dispatched').length;
 
   const donationRegistrations = data?.authorProfile?.donationRegistrations || [];
-  const pendingRegistrations = donationRegistrations.filter((dr: any) => dr.status === 'Pending' || dr.status === 'Registered').length;
+  const pendingRegistrations = donationRegistrations.filter((dr: any) => (dr.status === 'Pending' || dr.status === 'Registered') && dr.announcement?.visibility === 'Published').length;
   const approvedDonations = donationRegistrations.filter((dr: any) => dr.status === 'Approved').length;
   const uniqueLibraries = new Set(donationRegistrations.filter((dr: any) => dr.announcement?.libraryId).map((dr: any) => dr.announcement.libraryId)).size;
   const totalBooksDonated = donationRegistrations.reduce((acc: number, curr: any) => 
