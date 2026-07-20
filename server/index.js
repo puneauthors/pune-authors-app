@@ -18,7 +18,7 @@ app.use(helmet({
 // Security: Rate Limiting (Prevents DDoS and brute-force guessing)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // TEMPORARY for testing!
+  max: 1000, // Increased limit
   message: 'Too many requests from this IP, please try again later.'
 });
 
