@@ -91,19 +91,19 @@ setInterval(async () => {
         createdAt: { lt: twentyFourHoursAgo },
         authorWarnedAt: null
       },
-      include: { author: true, order: true, book: true }
+      include: { order: true, book: { include: { author: true } } }
     });
 
     if (lateAuthorsToWarn.length > 0) {
       console.log(`Sending late warning emails to ${lateAuthorsToWarn.length} unaccepted orders...`);
       for (const item of lateAuthorsToWarn) {
-        if (!item.author || !item.author.email) continue;
-        const authorEmail = item.author.email;
+        if (!item.book || !item.book.author || !item.book.author.email) continue;
+        const authorEmail = item.book.author.email;
         const bookTitle = item.book ? item.book.title : 'Unknown Book';
         const orderId = item.orderId || (item.order && item.order.id);
         
         const emailContent = `
-          <p>Dear ${item.author.name},</p>
+          <p>Dear ${item.book.author.name},</p>
           <p>You have a pending order for <strong>${bookTitle}</strong> (Order #${orderId}) that has been waiting for your acceptance for over 24 hours.</p>
           <p>Please log in to your Author Dashboard immediately to accept and fulfill this order.</p>
           <p>Failure to accept orders in a timely manner will result in a penalty fine and temporary suspension of your account for receiving new orders.</p>
@@ -128,19 +128,19 @@ setInterval(async () => {
         createdAt: { lt: fortyEightHoursAgo },
         authorDispatchWarnedAt: null
       },
-      include: { author: true, order: true, book: true }
+      include: { order: true, book: { include: { author: true } } }
     });
 
     if (lateDispatchToWarn.length > 0) {
       console.log(`Sending late dispatch warning emails for ${lateDispatchToWarn.length} un-dispatched orders...`);
       for (const item of lateDispatchToWarn) {
-        if (!item.author || !item.author.email) continue;
-        const authorEmail = item.author.email;
+        if (!item.book || !item.book.author || !item.book.author.email) continue;
+        const authorEmail = item.book.author.email;
         const bookTitle = item.book ? item.book.title : 'Unknown Book';
         const orderId = item.orderId || (item.order && item.order.id);
         
         const emailContent = `
-          <p>Dear ${item.author.name},</p>
+          <p>Dear ${item.book.author.name},</p>
           <p>You have an accepted order for <strong>${bookTitle}</strong> (Order #${orderId}) that has been waiting for you to dispatch it for over 48 hours.</p>
           <p>Please log in to your Author Dashboard immediately, dispatch the book, and update the tracking details.</p>
           <p>Failure to dispatch orders in a timely manner will result in a penalty fine and temporary suspension of your account for receiving new orders.</p>
