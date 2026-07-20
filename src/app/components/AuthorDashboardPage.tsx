@@ -2196,7 +2196,7 @@ function InventoryPage({ onRefresh, dashboardData }: { onRefresh: () => void, da
     });
     
     inventory.forEach((b, i) => {
-      sheet.addRow([
+      const addedRow = sheet.addRow([
         i + 1,
         b.title,
         b.authorName,
@@ -2206,6 +2206,18 @@ function InventoryPage({ onRefresh, dashboardData }: { onRefresh: () => void, da
         b.eventQty || 0,
         b.currentStock || 0
       ]);
+      addedRow.eachCell((cell, colNumber) => {
+        cell.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+        cell.font = { name: 'Arial', size: 10, color: { argb: '000000' } };
+        let colBgColor = 'FFFFFF';
+        if (colNumber === 1 || colNumber === 2) colBgColor = 'FF8B8B'; // Red
+        else if (colNumber === 3) colBgColor = 'FFD2A3'; // Orange
+        else if (colNumber === 4 || colNumber === 5) colBgColor = 'D4D8DD'; // Gray
+        else if (colNumber === 6) colBgColor = 'B3E5FC'; // Cyan
+        else if (colNumber === 7) colBgColor = 'DDA0DD'; // Lavender
+        else if (colNumber === 8) colBgColor = 'C8E6C9'; // Green
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colBgColor } };
+      });
     });
     
     // Auto-fit columns
@@ -3541,7 +3553,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
           
           // Add data
           filteredOrders.forEach((o: any) => {
-            sheet.addRow([
+            const addedRow = sheet.addRow([
               o.orderId,
               o.date,
               o.title,
@@ -3553,6 +3565,18 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
               o.quantity,
               o.total || o.amount
             ]);
+            addedRow.eachCell((cell, colNumber) => {
+              cell.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+              cell.font = { name: 'Arial', size: 10, color: { argb: '000000' } };
+              let colBgColor = 'FFFFFF';
+              if (colNumber <= 2) colBgColor = 'FF8B8B'; // Red
+              else if (colNumber <= 4) colBgColor = 'FFD2A3'; // Orange
+              else if (colNumber <= 6) colBgColor = 'D4D8DD'; // Gray
+              else if (colNumber <= 8) colBgColor = 'B3E5FC'; // Cyan
+              else if (colNumber === 9) colBgColor = 'DDA0DD'; // Lavender
+              else colBgColor = 'C8E6C9'; // Green
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colBgColor } };
+            });
           });
           
           // Auto-fit columns
@@ -4521,33 +4545,18 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
           revenue: getRev(evt),
         });
         
-        addedRow.eachCell((cell) => {
+        addedRow.eachCell((cell, colNumber) => {
           cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+          cell.font = { name: 'Arial', size: 10, color: { argb: '000000' } };
+          let colBgColor = 'FFFFFF';
+          if (colNumber <= 2) colBgColor = 'FF8B8B'; // Red
+          else if (colNumber <= 4) colBgColor = 'FFD2A3'; // Orange
+          else if (colNumber <= 6) colBgColor = 'D4D8DD'; // Gray
+          else if (colNumber <= 8) colBgColor = 'B3E5FC'; // Cyan
+          else if (colNumber === 9) colBgColor = 'DDA0DD'; // Lavender
+          else colBgColor = 'C8E6C9'; // Green
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colBgColor } };
         });
-
-        // Coloring Event Name (consistent light Goldenrod Yellow)
-        addedRow.getCell('name').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFAFAD2' } };
-        
-        // Coloring Type
-        let typeColor = 'FFFFFFFF';
-        if (typeStr.toLowerCase().includes('book fair') || typeStr.toLowerCase().includes('fair')) typeColor = 'FF90EE90'; // Light Green
-        else if (typeStr.toLowerCase().includes('literary') || typeStr.toLowerCase().includes('meet')) typeColor = 'FFB0C4DE'; // Light Blue-Grey
-        addedRow.getCell('type').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: typeColor } };
-
-        // Coloring Status
-        let statusColor = 'FFFFFFFF';
-        if (statusStr === 'Upcoming') statusColor = 'FF00FFFF'; // Cyan
-        else if (statusStr === 'Past') statusColor = 'FFFFFF00'; // Yellow
-        else if (statusStr === 'Legacy Archive') statusColor = 'FFE5E7EB'; // Light Gray
-        addedRow.getCell('status').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: statusColor } };
-
-        // Coloring Participation
-        let partColor = 'FFFFFFFF';
-        if (partStr === 'Registered' || partStr === 'Approved') partColor = 'FF86EFAC'; // Light Green
-        else if (partStr === 'Pending Approval' || partStr === 'Pending') partColor = 'FFFEF08A'; // Yellow
-        else if (partStr === 'Declined') partColor = 'FFFCA5A5'; // Light Red
-        else if (partStr === 'Not Participated') partColor = 'FFD1D5DB'; // Gray
-        addedRow.getCell('participation').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: partColor } };
 
         // Coloring Payment Status
         let payColor = 'FFFFFFFF';
@@ -6246,7 +6255,7 @@ function AuthorSalesReport({ data }: { data: any }) {
     });
     
     tableData.forEach(tx => {
-      sheet.addRow([
+      const addedRow = sheet.addRow([
         tx.date,
         tx.channel,
         tx.orderId,
@@ -6256,6 +6265,17 @@ function AuthorSalesReport({ data }: { data: any }) {
         tx.revenue,
         tx.status
       ]);
+      addedRow.eachCell((cell, colNumber) => {
+        cell.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+        cell.font = { name: 'Arial', size: 10, color: { argb: '000000' } };
+        let colBgColor = 'FFFFFF';
+        if (colNumber <= 2) colBgColor = 'FF8B8B'; // Red
+        else if (colNumber <= 4) colBgColor = 'FFD2A3'; // Orange
+        else if (colNumber <= 6) colBgColor = 'D4D8DD'; // Gray
+        else if (colNumber === 7) colBgColor = 'B3E5FC'; // Cyan
+        else if (colNumber === 8) colBgColor = 'DDA0DD'; // Lavender
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colBgColor } };
+      });
     });
     
     // Auto-fit columns

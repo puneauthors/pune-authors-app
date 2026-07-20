@@ -6521,8 +6521,21 @@ router.get('/api/admin/inventory', verifyToken, isAdmin, async (req, res) => {
           lastActivity: new Date(b.lastActivity).toLocaleDateString('en-GB')
         });
 
-        addedRow.eachCell((cell) => {
+        addedRow.eachCell((cell, colNumber) => {
           cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+          cell.font = { name: 'Arial', size: 10, color: { argb: '000000' } };
+          
+          let colBgColor = 'FFFFFF';
+          if (colNumber === 2) colBgColor = 'FF8B8B'; // Light red (Title)
+          else if (colNumber === 3) colBgColor = 'FFD2A3'; // Light orange (Author)
+          else if (colNumber === 4) colBgColor = 'D4D8DD'; // Light gray (Master Stock)
+          else if (colNumber === 5) colBgColor = 'B3E5FC'; // Light cyan (Web Sold)
+          else if (colNumber === 6 || colNumber === 7) colBgColor = 'DDA0DD'; // Lavender (Event/Airport Qty)
+          else if (colNumber === 9) colBgColor = 'C8E6C9'; // Light green (Last Activity)
+          
+          if (colNumber !== 8) { // 8 is Current Stock, colored dynamically below
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colBgColor } };
+          }
         });
 
         let stockColor = 'FFFFFFFF';

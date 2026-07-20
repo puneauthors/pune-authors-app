@@ -3783,8 +3783,19 @@ export function OperationsDashboardPage() {
         });
         
         const addedRow = sheet.addRow(rowData);
-        addedRow.eachCell((cell) => {
+        addedRow.eachCell((cell, colNumber) => {
           cell.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+          cell.font = { name: 'Arial', size: 10, color: { argb: '000000' } };
+          
+          let colBgColor = 'FFFFFF';
+          if (colNumber === 1) colBgColor = 'FF8B8B'; // Light red
+          else if (colNumber === 2) colBgColor = 'FFD2A3'; // Light orange
+          else if (colNumber === 3) colBgColor = 'D4D8DD'; // Light gray
+          else if (colNumber === 4) colBgColor = 'B3E5FC'; // Light cyan
+          else if (colNumber === allHeaders.length) colBgColor = 'C8E6C9'; // Light green
+          else colBgColor = 'DDA0DD'; // Lavender/Plum
+          
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colBgColor } };
         });
       });
       
@@ -4426,8 +4437,18 @@ export function OperationsDashboardPage() {
         rowData.push(numEventsParticipated, literaryParticipated, bookFairs, 'No');
         
         const addedRow = sheet.addRow(rowData);
-        addedRow.eachCell((cell) => {
+        addedRow.eachCell((cell, colNumber) => {
           cell.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+          cell.font = { name: 'Arial', size: 10, color: { argb: '000000' } };
+          
+          let colBgColor = 'FFFFFF';
+          if (colNumber === 2) colBgColor = 'FF8B8B'; // Light red (Author Name)
+          else if (colNumber === 3) colBgColor = 'FFD2A3'; // Light orange (City)
+          else if (colNumber === 4) colBgColor = 'D4D8DD'; // Light gray (Registration Date)
+          else if (colNumber >= 9 && colNumber <= 8 + events.length) colBgColor = 'DDA0DD'; // Lavender (Events Participated)
+          else if (colNumber > 8 + events.length) colBgColor = 'B3E5FC'; // Cyan for final columns
+          
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colBgColor } };
         });
       });
 
