@@ -549,7 +549,7 @@ export function LibraryDonationsTab() {
     link.click();
   };
  
-  const downloadAirportReport = (airportId: number) => {
+  const downloadAirportReport = async (airportId: number) => {
     const lib = libraries.find(l => l.id === airportId);
     if (!lib) return;
 
@@ -560,7 +560,8 @@ export function LibraryDonationsTab() {
     const bookDataMap = new Map<number, any>();
 
     libLogs.forEach((log: any) => {
-      const dateObj = new Date(log.createdAt);
+      const driveDate = log.announcement?.expectedDispatchDate || log.announcement?.eventDate || log.createdAt;
+      const dateObj = new Date(typeof driveDate === 'string' && !driveDate.includes('T') ? `${driveDate}T00:00:00` : driveDate);
       const monthName = dateObj.toLocaleDateString('en-US', { month: 'short' });
       const yearTwoDigits = dateObj.getFullYear().toString().slice(-2);
       const monthKey = `${monthName} ${yearTwoDigits}`; // e.g. "Mar 26"
@@ -618,36 +619,124 @@ export function LibraryDonationsTab() {
       return parseDate(a).getTime() - parseDate(b).getTime();
     });
 
-    const airportLabel = (lib.name || 'AIRPORT').toUpperCase();
-    let csvContent = `LIST OF BOOKS FOR ${airportLabel} LIBRARY` + ','.repeat(4 + monthsArray.length + 1) + '\n';
-    
-    // Header Row
-    csvContent += 'S.No,Book Title,Children\'s,Genre,Author Name,';
-    monthsArray.forEach(m => {
-      csvContent += `Quantity Sent in ${m},`;
-    });
-    csvContent += 'Total No of Books Donated\n';
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Airport Report');
 
-    // Data Rows
+    const totalCols = 6 + monthsArray.length;
+    const getColLetter = (n: number) => {
+      let result = '';
+      while (n > 0) {
+        let m = (n - 1) % 26;
+        result = String.fromCharCode(65 + m) + result;
+        n = Math.floor((n - m) / 26);
+      }
+      return result;
+    };
+    const lastColLetter = getColLetter(totalCols);
+
+    // Title Row (Merged)
+    sheet.mergeCells(`A1:${lastColLetter}1`);
+    const titleCell = sheet.getCell('A1');
+    const airportLabel = (lib.name || 'AIRPORT').toUpperCase();
+    titleCell.value = `LIST OF BOOKS FOR ${airportLabel} LIBRARY`;
+    titleCell.font = { name: 'Arial', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '2A4B6B' } }; // Deep Steel Blue
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    sheet.getRow(1).height = 30;
+
+    // Table Headers
+    const headers = [
+      'S.No',
+      'Book Title',
+      'Children\'s',
+      'Genre',
+      'Author Name',
+      ...monthsArray.map(m => `Quantity Sent in ${m}`),
+      'Total No of Books Donated'
+    ];
+    const headerRow = sheet.addRow(headers);
+    headerRow.height = 24;
+    headerRow.eachCell((cell) => {
+      cell.font = { name: 'Arial', bold: true, color: { argb: '000000' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF00' } }; // Bright Yellow
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    // Populate data
     let sNo = 1;
     bookDataMap.forEach((data) => {
-      let row = `${sNo},"${data.title.replace(/"/g, '""')}",${data.childrens},${data.genre},"${data.authorName.replace(/"/g, '""')}",`;
-      monthsArray.forEach(m => {
-        row += `${data.monthlyQuantities[m] || ''},`;
+      const rowData = [
+        sNo,
+        data.title,
+        data.childrens,
+        data.genre,
+        data.authorName,
+        ...monthsArray.map(m => data.monthlyQuantities[m] || ''),
+        data.totalQuantity
+      ];
+      const newRow = sheet.addRow(rowData);
+      newRow.height = 20;
+
+      newRow.eachCell((cell, colNumber) => {
+        // Border (Thin Black)
+        cell.border = {
+          top: { style: 'thin', color: { argb: '000000' } },
+          left: { style: 'thin', color: { argb: '000000' } },
+          bottom: { style: 'thin', color: { argb: '000000' } },
+          right: { style: 'thin', color: { argb: '000000' } }
+        };
+
+        cell.font = { name: 'Arial', size: 10, color: { argb: '000000' } };
+
+        // Alignments
+        if (colNumber === 1) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        } else if (colNumber === 2) {
+          cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+        } else if (colNumber === 3 || colNumber === 4) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        } else if (colNumber === 5) {
+          cell.alignment = { horizontal: 'left', vertical: 'middle' };
+        } else {
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+        }
+
+        // Distinct solid colors based on the reference:
+        let colBgColor = 'FFFFFF';
+        if (colNumber === 1) colBgColor = 'FF8B8B'; // Solid light red
+        else if (colNumber === 2) colBgColor = 'FFD2A3'; // Solid light orange
+        else if (colNumber === 3) colBgColor = 'FFFFFF'; // White
+        else if (colNumber === 4) colBgColor = 'D4D8DD'; // Solid light gray/slate
+        else if (colNumber === 5) colBgColor = 'B3E5FC'; // Solid light cyan
+        else if (colNumber >= 6) colBgColor = 'C8E6C9';  // Solid light green for quantities & total
+
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colBgColor } };
       });
-      row += `${data.totalQuantity}\n`;
-      csvContent += row;
+
       sNo++;
     });
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${lib.name.toLowerCase().replace(/\s+/g, '_')}_donation_report.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Auto-fit Columns (avoiding title length)
+    sheet.columns.forEach((column, colIndex) => {
+      let maxLen = 10;
+      column.eachCell({ includeEmpty: true }, (cell, rowNumber) => {
+        if (rowNumber > 1 && cell.value) { // Skip title row
+          const len = cell.value.toString().length;
+          if (len > maxLen) maxLen = len;
+        }
+      });
+      // Cap book title column so wrapping makes it neat
+      if (colIndex === 2) {
+        column.width = Math.min(maxLen + 4, 35);
+      } else {
+        column.width = Math.min(maxLen + 4, 45);
+      }
+    });
+
+    // Buffer and Save
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, `${lib.name.toLowerCase().replace(/\s+/g, '_')}_donation_report.xlsx`);
   };
 
   const handleExportAuthorDonationReport = async () => {
