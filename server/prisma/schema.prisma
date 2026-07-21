@@ -301,6 +301,8 @@ model Event {
   name              String
   location          String
   date              String
+  dateType          String?       @default("exact")
+  tentativeDate     String?
   duration          String
   status            String        @default("Upcoming")
   createdAt         DateTime      @default(now())
