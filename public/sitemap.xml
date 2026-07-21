@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://puneauthors.com/</loc>
+    <loc>https://puneauthors.vercel.app/</loc>
     <priority>1.0</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://puneauthors.com/about</loc>
+    <loc>https://puneauthors.vercel.app/about</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://puneauthors.com/catalogue</loc>
+    <loc>https://puneauthors.vercel.app/catalogue</loc>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://puneauthors.com/events</loc>
+    <loc>https://puneauthors.vercel.app/events</loc>
     <priority>0.8</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://puneauthors.com/flybraries</loc>
+    <loc>https://puneauthors.vercel.app/flybraries</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://puneauthors.com/services</loc>
+    <loc>https://puneauthors.vercel.app/services</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://puneauthors.com/authors</loc>
+    <loc>https://puneauthors.vercel.app/authors</loc>
     <priority>0.8</priority>
     <changefreq>weekly</changefreq>
   </url>
