@@ -38,6 +38,8 @@ app.use(cors(corsOptions)); // CORS MUST BE ABOVE LIMITER
 
 // Serve static images BEFORE the rate limiter so images don't count towards the limit!
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// If an image doesn't exist (e.g. on local environments), immediately return 404 so it doesn't hit the rate limiter!
+app.use('/uploads', (req, res) => res.status(404).send('Image not found locally'));
 
 app.use(limiter);
 app.use(express.json());
