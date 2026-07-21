@@ -1269,6 +1269,8 @@ export function OperationsDashboardPage() {
   const [expandedEventIndex, setExpandedEventIndex] = useState<number | null>(null);
   const [eventSearch, setEventSearch] = useState('');
   const [createEventDate, setCreateEventDate] = useState('');
+  const [createDateType, setCreateDateType] = useState<'exact' | 'tentative'>('exact');
+  const [createTentativeDate, setCreateTentativeDate] = useState('');
   const [createEventStatus, setCreateEventStatus] = useState('Upcoming');
   const [manageAuthorBooks, setManageAuthorBooks] = useState<any[]>([]);
   const [manageRegStatus, setManageRegStatus] = useState('Registered');
@@ -1524,18 +1526,27 @@ export function OperationsDashboardPage() {
   };
 
   const handleEditEventClick = (event: any) => {
+    let dt = event.dateType;
+    if (!dt) {
+      dt = (event.date && isNaN(Date.parse(event.date))) ? 'tentative' : 'exact';
+    }
     setEditingEvent({
       id: event.id,
       name: event.name,
       date: event.date,
+      dateType: dt,
+      tentativeDate: event.tentativeDate || (dt === 'tentative' ? event.date : ''),
       duration: event.duration,
       location: event.location,
       status: event.status,
       eventType: event.eventType || 'Book Fair',
+      category: event.category || '',
+      description: event.description || '',
       registrationFee: event.registrationFee || 0,
       feeType: event.feeType || 'Per Author',
       startTime: event.startTime || '',
-      endTime: event.endTime || ''
+      endTime: event.endTime || '',
+      livePosEnabled: event.livePosEnabled
     });
     setIsEditEventModalOpen(true);
   };
@@ -1548,7 +1559,13 @@ export function OperationsDashboardPage() {
 
       const fd = new FormData();
       fd.append('name', editingEvent.name);
-      fd.append('date', editingEvent.date);
+      const editDateTypeVal = editingEvent.dateType || 'exact';
+      const editDateVal = editDateTypeVal === 'exact' ? editingEvent.date : (editingEvent.tentativeDate || editingEvent.date);
+      fd.append('dateType', editDateTypeVal);
+      fd.append('date', editDateVal);
+      if (editDateTypeVal === 'tentative') {
+        fd.append('tentativeDate', editDateVal);
+      }
       fd.append('location', editingEvent.location);
       fd.append('duration', editingEvent.duration);
       fd.append('startTime', editingEvent.startTime || '');
@@ -4582,7 +4599,13 @@ export function OperationsDashboardPage() {
                 try {
                   const fd = new FormData();
                   fd.append('name', target.name.value);
-                  fd.append('date', target.date.value);
+                  const createDateTypeVal = createDateType;
+                  const createDateVal = createDateTypeVal === 'exact' ? target.date.value : (target.tentativeDateInput?.value || createTentativeDate);
+                  fd.append('dateType', createDateTypeVal);
+                  fd.append('date', createDateVal);
+                  if (createDateTypeVal === 'tentative') {
+                    fd.append('tentativeDate', createDateVal);
+                  }
                   fd.append('location', target.location.value);
 
                   const days = target.durationDays.value;
@@ -4693,12 +4716,40 @@ export function OperationsDashboardPage() {
                     </div>
                     <div><label className="dash-label">Location (Venue)</label><input required name="location" type="text" className="dash-input" /></div>
                     <div>
-                      <label className="dash-label">Date</label>
-                      <input required name="date" type="date" className="dash-input" value={createEventDate || ''} onChange={(e) => setCreateEventDate(e.target.value)} />
-                      {createEventDate && (
-                        <div className={`text-[10px] mt-1 font-bold ${isPastEvent ? 'text-orange-500' : 'text-emerald-500'}`}>
-                          {isPastEvent ? '— Past Event' : '— Upcoming Event'}
-                        </div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="dash-label !mb-0">Date</label>
+                        <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-gray-600 hover:text-paa-navy transition-colors select-none">
+                          <input
+                            type="checkbox"
+                            checked={createDateType === 'tentative'}
+                            onChange={(e) => setCreateDateType(e.target.checked ? 'tentative' : 'exact')}
+                            className="w-3.5 h-3.5 accent-paa-navy rounded cursor-pointer"
+                          />
+                          Tentative Date
+                        </label>
+                      </div>
+                      {createDateType === 'exact' ? (
+                        <>
+                          <input required={createDateType === 'exact'} name="date" type="date" className="dash-input" value={createEventDate || ''} onChange={(e) => setCreateEventDate(e.target.value)} />
+                          {createEventDate && (
+                            <div className={`text-[10px] mt-1 font-bold ${isPastEvent ? 'text-orange-500' : 'text-emerald-500'}`}>
+                              {isPastEvent ? '— Past Event' : '— Upcoming Event'}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            required={createDateType === 'tentative'}
+                            name="tentativeDateInput"
+                            type="text"
+                            className="dash-input"
+                            placeholder="e.g. August 2026, Coming Soon, Q4 2026"
+                            value={createTentativeDate || ''}
+                            onChange={(e) => setCreateTentativeDate(e.target.value)}
+                          />
+                          <span className="text-[10px] text-gray-500 mt-1 block font-medium">Freeform tentative date text</span>
+                        </>
                       )}
                     </div>
                     <div>
@@ -6233,7 +6284,7 @@ export function OperationsDashboardPage() {
                         </td>
                         <td className="px-1 py-3">
                           <div className="flex flex-col gap-1.5 items-start">
-                            <span className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-widest shadow-sm ${evt.isLegacy ? 'bg-slate-500 text-white' : (evt.status === 'Pending Approval' ? 'bg-orange-500 text-white' : (evt.status === 'Upcoming' || evt.status === 'Live') ? 'bg-cyan-500 text-white' : evt.status === 'Past' ? 'bg-purple-500 text-white' : 'bg-gray-300 text-black')}`}>
+                            <span className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-widest shadow-sm ${evt.isLegacy ? 'bg-slate-500 text-white' : (evt.status === 'Pending Approval' ? 'bg-orange-500 text-white' : (evt.status === 'Live' || evt.status === 'Ongoing') ? 'bg-emerald-500 text-white shadow-emerald-500/20 animate-pulse' : evt.status === 'Upcoming' ? 'bg-cyan-500 text-white' : evt.status === 'Past' ? 'bg-purple-500 text-white' : 'bg-gray-300 text-black')}`}>
                               {evt.isLegacy ? 'Legacy Archive' : evt.status}
                             </span>
                             <div className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
@@ -7731,7 +7782,38 @@ export function OperationsDashboardPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div><label className="dash-label">Date</label><input required type="date" className="dash-input" value={safeDate} onChange={e => setEditingEvent({ ...editingEvent, date: e.target.value })} /></div>
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="dash-label !mb-0">Date</label>
+                          <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-gray-600 hover:text-paa-navy transition-colors select-none">
+                            <input
+                              type="checkbox"
+                              checked={editingEvent.dateType === 'tentative'}
+                              onChange={(e) => setEditingEvent({ ...editingEvent, dateType: e.target.checked ? 'tentative' : 'exact' })}
+                              className="w-3.5 h-3.5 accent-paa-navy rounded cursor-pointer"
+                            />
+                            Tentative Date
+                          </label>
+                        </div>
+                        {editingEvent.dateType === 'tentative' ? (
+                          <input
+                            required
+                            type="text"
+                            className="dash-input"
+                            placeholder="e.g. August 2026, Coming Soon, Q4 2026"
+                            value={editingEvent.tentativeDate ?? editingEvent.date ?? ''}
+                            onChange={e => setEditingEvent({ ...editingEvent, tentativeDate: e.target.value, date: e.target.value })}
+                          />
+                        ) : (
+                          <input
+                            required
+                            type="date"
+                            className="dash-input"
+                            value={safeDate}
+                            onChange={e => setEditingEvent({ ...editingEvent, date: e.target.value })}
+                          />
+                        )}
+                      </div>
                       <div className="flex gap-2">
                         <div className="flex-1">
                           <label className="dash-label">No. of Days</label>

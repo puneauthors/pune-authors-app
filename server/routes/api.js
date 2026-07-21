@@ -4572,6 +4572,45 @@ router.post('/api/author/events/:eventId/opt-out', verifyToken, async (req, res)
 
 
 
+const isEventLiveToday = (evt) => {
+  if (!evt || evt.dateType === 'tentative' || !evt.date) return false;
+
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${year}-${month}-${day}`;
+
+  if (evt.date === todayStr) return true;
+
+  const parseDt = (dStr) => {
+    if (!dStr) return null;
+    const dt = new Date(String(dStr).replace(/-/g, ' '));
+    return isNaN(dt.getTime()) ? null : dt;
+  };
+
+  const startDate = parseDt(evt.date);
+  if (!startDate) return false;
+
+  startDate.setHours(0, 0, 0, 0);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  let durationDays = 1;
+  if (typeof evt.duration === 'string') {
+    const match = evt.duration.match(/(\d+)\s*Days?/i);
+    if (match && parseInt(match[1]) > 0) {
+      durationDays = parseInt(match[1]);
+    }
+  }
+
+  const endDate = new Date(startDate.getTime());
+  endDate.setDate(endDate.getDate() + Math.max(1, durationDays) - 1);
+  endDate.setHours(23, 59, 59, 999);
+
+  return now.getTime() >= startDate.getTime() && now.getTime() <= endDate.getTime();
+};
+
 // PUBLIC EVENTS ENDPOINT
 router.get('/api/public/events', async (req, res) => {
   try {
@@ -4587,7 +4626,8 @@ router.get('/api/public/events', async (req, res) => {
       },
       orderBy: { id: 'desc' }
     });
-    res.json(events);
+    const processed = events.map(e => (e.status === 'Upcoming' && isEventLiveToday(e)) ? { ...e, status: 'Live' } : e);
+    res.json(processed);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch public events', detail: error.message, stack: error.stack });
   }
@@ -4620,7 +4660,7 @@ router.get('/api/events/:eventId/catalogue', async (req, res) => {
 
 router.post('/api/admin/events', verifyToken, isAdmin, upload.single('banner'), validate(eventSchema), async (req, res) => {
   try {
-    const { name, location, date, duration, startTime, endTime, eventType, category, registrationFee, feeType, description, livePosEnabled, notifyAllAuthors } = req.body;
+    const { name, location, date, dateType, tentativeDate, duration, startTime, endTime, eventType, category, registrationFee, feeType, description, livePosEnabled, notifyAllAuthors } = req.body;
 
     const existingEvent = await prisma.event.findFirst({
       where: { name, location, date }
@@ -4639,12 +4679,14 @@ router.post('/api/admin/events', verifyToken, isAdmin, upload.single('banner'), 
         name,
         location,
         date,
+        dateType: dateType || 'exact',
+        tentativeDate: tentativeDate || (dateType === 'tentative' ? date : null),
         duration,
         startTime: startTime || null,
         endTime: endTime || null,
         description: description || null,
         bannerUrl,
-        status: req.body.status || (new Date(date) < new Date() ? 'Past' : 'Upcoming'),
+        status: req.body.status || (dateType === 'exact' && new Date(date) < new Date() ? 'Past' : 'Upcoming'),
         broadcastStatus: notifyAllAuthors === 'false' ? 'Draft' : 'CustomersAlso',
         eventType: eventType || 'Book Fair',
         category: category || null,
@@ -4875,7 +4917,8 @@ router.get('/api/admin/events', verifyToken, isAdmin, async (req, res) => {
         galleryEvent: { include: { images: true } }
       }
     });
-    res.json(events);
+    const processed = events.map(e => (e.status === 'Upcoming' && isEventLiveToday(e)) ? { ...e, status: 'Live' } : e);
+    res.json(processed);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch events' });
   }
@@ -4884,9 +4927,11 @@ router.get('/api/admin/events', verifyToken, isAdmin, async (req, res) => {
 router.put('/api/admin/events/:id', verifyToken, isAdmin, upload.single('banner'), async (req, res) => {
   try {
     const eventId = parseInt(req.params.id);
-    const { name, location, date, duration, startTime, endTime, status, eventType, category, registrationFee, feeType, description, livePosEnabled, aggAuthors, aggTitles, aggSent, aggSold, aggRevenue, aggEligibleAuthors } = req.body;
+    const { name, location, date, dateType, tentativeDate, duration, startTime, endTime, status, eventType, category, registrationFee, feeType, description, livePosEnabled, aggAuthors, aggTitles, aggSent, aggSold, aggRevenue, aggEligibleAuthors } = req.body;
 
     let updateData = { name, location, date, duration, status };
+    if (dateType !== undefined) updateData.dateType = dateType;
+    if (tentativeDate !== undefined) updateData.tentativeDate = tentativeDate;
     if (startTime !== undefined) updateData.startTime = startTime || null;
     if (endTime !== undefined) updateData.endTime = endTime || null;
     if (description !== undefined) updateData.description = description;
