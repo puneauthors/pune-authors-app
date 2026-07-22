@@ -9815,6 +9815,7 @@ const totalAuthorsBase = eventRegistrations.length;
         <header className="dash-header h-[68px] flex items-center justify-between px-6 md:px-8 shrink-0 relative z-50">
           <div className="flex items-center gap-2">
             <button
+              aria-label="Toggle menu"
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="md:hidden p-2 text-paa-navy rounded-lg hover:bg-black/5 transition-colors mr-1"
             >
