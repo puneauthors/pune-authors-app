@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
+// exceljs and file-saver are dynamically imported inside export handlers
 import { Download, Edit, Trash2, Megaphone, MapPin, Search, Calendar, Package, Plus, X, List, CheckCircle, CheckCircle2, XCircle, FileDown, BookOpen, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, LabelList } from 'recharts';
 import FocusTrap from 'focus-trap-react';
@@ -437,6 +436,8 @@ export function LibraryDonationsTab() {
       return;
     }
 
+    const ExcelJS = (await import('exceljs')).default;
+    const { saveAs } = await import('file-saver');
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Global Registry');
 
@@ -728,6 +729,8 @@ export function LibraryDonationsTab() {
       return parseDate(a).getTime() - parseDate(b).getTime();
     });
 
+    const ExcelJS = (await import('exceljs')).default;
+    const { saveAs } = await import('file-saver');
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Airport Report');
 
@@ -885,6 +888,8 @@ export function LibraryDonationsTab() {
       return;
     }
 
+    const ExcelJS = (await import('exceljs')).default;
+    const { saveAs } = await import('file-saver');
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Author Donations Report');
 

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Megaphone, MapPin, Calendar, Clock, BookOpen, CheckCircle2, Package, Upload, Download, FileText, Landmark, FileSpreadsheet, ShieldCheck, BadgeAlert, Sparkles, ChevronRight, X, User, Phone, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
+// exceljs and file-saver are dynamically imported inside export handlers
 import qrCode from "./data/qr_code.jpeg";
 
 export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData?: any, onRefresh?: () => void }) {
@@ -188,6 +187,8 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
     }
 
     const authorName = dashboardData?.authorProfile?.name || dashboardData?.name || 'Author';
+    const ExcelJS = (await import('exceljs')).default;
+    const { saveAs } = await import('file-saver');
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('My Donations');
 

@@ -4,8 +4,7 @@ import { Routes, Route, Link, useLocation, useNavigate } from 'react-router';
 import { Home, Check, AlertCircle, Upload, Download, Loader2, LogOut, User, Bell, Search, ShoppingCart, BookOpen, CalendarIcon, BarChart3, Package, TrendingUp, TrendingDown, X, MapPin, Menu, ChevronDown, ChevronUp, DollarSign, CheckCircle2, FileText, Image as ImageIcon, Star, Plus, Minus, Eye, Edit2, Mail, Phone, Clock, Trash2, MessageSquare, ExternalLink, Send, ChevronLeft, ChevronRight, RefreshCw, Users, Megaphone } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell , AreaChart, Area, LabelList } from 'recharts';
 import axios from 'axios';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
+// exceljs and file-saver are dynamically imported inside export handlers to reduce initial bundle size
 import { toast } from 'sonner';
 import { bookCategories } from '../data/categories';
 import qrCode from './data/qr_code.jpeg';
@@ -1044,10 +1043,11 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
     try {
       const formData = new FormData();
       Object.entries(editProfileForm).forEach(([key, val]) => {
-        if (key === 'age') formData.append('dob', val);
-        else if (key === 'skills') formData.append('skills', JSON.stringify(val.split(',').map((s: any) => s.trim()).filter(Boolean)));
-        else if (key === 'hobbies') formData.append('hobbies', JSON.stringify(val.split(',').map((s: any) => s.trim()).filter(Boolean)));
-        else formData.append(key, val);
+        const valStr = val as string;
+        if (key === 'age') formData.append('dob', valStr);
+        else if (key === 'skills') formData.append('skills', JSON.stringify(valStr.split(',').map((s: any) => s.trim()).filter(Boolean)));
+        else if (key === 'hobbies') formData.append('hobbies', JSON.stringify(valStr.split(',').map((s: any) => s.trim()).filter(Boolean)));
+        else formData.append(key, valStr);
       });
       if (editPhoto) formData.append('photo', editPhoto);
       const token = localStorage.getItem('token');
@@ -2175,6 +2175,8 @@ function InventoryPage({ onRefresh, dashboardData }: { onRefresh: () => void, da
   };
 
   const exportCsv = async () => {
+    const ExcelJS = (await import('exceljs')).default;
+    const { saveAs } = await import('file-saver');
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Inventory');
     
@@ -3531,6 +3533,8 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
           <p className="text-sm text-paa-gray-text mt-1">Manage pending orders and track dispatched shipments.</p>
         </div>
         <button onClick={async () => {
+          const ExcelJS = (await import('exceljs')).default;
+          const { saveAs } = await import('file-saver');
           const workbook = new ExcelJS.Workbook();
           const sheet = workbook.addWorksheet('Web Orders');
           
@@ -4467,6 +4471,8 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
 
   const handleExportEventsExcel = async () => {
     try {
+      const ExcelJS = (await import('exceljs')).default;
+      const { saveAs } = await import('file-saver');
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Event Ecosystem');
 
@@ -6248,6 +6254,8 @@ function AuthorSalesReport({ data }: { data: any }) {
   const totalFeesPaid = platformFeePaid + totalEventFees;
 
   const exportCSV = async () => {
+    const ExcelJS = (await import('exceljs')).default;
+    const { saveAs } = await import('file-saver');
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Transactions');
     
@@ -6849,9 +6857,9 @@ function BundleOffersTab({ data }: { data: any }) {
 
 
 class GalleryErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
+  state = { hasError: false, error: null };
   constructor(props: any) {
     super(props);
-    this.state = { hasError: false, error: null };
   }
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
@@ -6865,10 +6873,12 @@ class GalleryErrorBoundary extends React.Component<{children: React.ReactNode}, 
         <div className="p-8 m-4 bg-red-50 border border-red-200 rounded-xl">
           <h2 className="text-xl font-bold text-red-700 mb-2">Gallery Component Crashed</h2>
           <p className="text-red-600 font-mono text-sm whitespace-pre-wrap">{this.state.error?.toString()}</p>
+          {/* @ts-ignore */}
           <button onClick={() => this.setState({ hasError: false, error: null })} className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg">Try Again</button>
         </div>
       );
     }
+    // @ts-ignore
     return this.props.children;
   }
 }
