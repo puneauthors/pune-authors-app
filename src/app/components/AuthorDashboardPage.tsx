@@ -510,7 +510,7 @@ export function AuthorDashboardPage() {
               <div className="animate-pulse" style={{ position: 'absolute', top: '100%', right: '100%', marginRight: 12, marginTop: -8, width: 280, background: '#1a1a2e', borderRadius: 12, padding: '12px 16px', color: '#fff', zIndex: 9999, display: 'flex', gap: 12, alignItems: 'flex-start', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
                 <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => { setShowNotifications(true); const latestId = String(notifications[0]?.id || unreadEventInvites[0]?.id || 'toast'); setDismissedToastId(latestId); localStorage.setItem('paa_dismissed_toast', latestId); }}>
                   <p style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#3b82f6', marginBottom: 2 }}>New Message</p>
-                  <p style={{ fontSize: 12, color: '#f3f4f6', lineHeight: 1.4 }}>{notifications[0]?.message || (unreadEventInvites.length > 0 ? `New Event: ${unreadEventInvites[0].event.name}` : 'You have unread notifications.')}</p>
+                  <p style={{ fontSize: 12, color: '#f3f4f6', lineHeight: 1.4 }}>{notifications[0]?.message?.replace(/\[LOW_STOCK:\d+\]\s*/g, '') || (unreadEventInvites.length > 0 ? `New Event: ${unreadEventInvites[0].event.name}` : 'You have unread notifications.')}</p>
                 </div>
                 <button onClick={(e) => { e.stopPropagation(); const latestId = String(notifications[0]?.id || unreadEventInvites[0]?.id || 'toast'); setDismissedToastId(latestId); localStorage.setItem('paa_dismissed_toast', latestId); }} style={{ color: '#9ca3af', background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}><X size={14} /></button>
                 <div style={{ position: 'absolute', top: 12, right: -6, width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '6px solid #1a1a2e' }}></div>
@@ -543,7 +543,7 @@ export function AuthorDashboardPage() {
                         <div key={`notif-${notif.id}`} style={{ width: '100%', textAlign: 'left', padding: '16px 20px', background: 'transparent', borderBottom: '1px solid rgba(0,0,0,0.04)', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6', marginTop: 6, flexShrink: 0 }}></div>
                           <div>
-                            <p style={{ fontSize: 13, fontWeight: 600, color: '#1a1a2e', lineHeight: 1.4 }}>{notif.message}</p>
+                            <p style={{ fontSize: 13, fontWeight: 600, color: '#1a1a2e', lineHeight: 1.4 }}>{notif.message?.replace(/\[LOW_STOCK:\d+\]\s*/g, '')}</p>
                             <p style={{ fontSize: 10, color: '#9ca3af', marginTop: 4 }}>{new Date(notif.createdAt).toLocaleString()}</p>
                           </div>
                         </div>
@@ -667,7 +667,7 @@ function AuthorBroadcasts({ notifications }: { notifications: any[] }) {
         <div className="space-y-4">
           {broadcasts.map((n: any) => (
             <div key={n.id} className="bg-white p-5 border border-paa-navy/5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-              <p className="text-[15px] font-medium text-paa-navy leading-relaxed mb-4">{n.message}</p>
+              <p className="text-[15px] font-medium text-paa-navy leading-relaxed mb-4">{n.message?.replace(/\[LOW_STOCK:\d+\]\s*/g, '')}</p>
               <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-gray-500">
                 <span className="font-bold uppercase tracking-widest text-paa-gold flex items-center gap-1.5"><CalendarIcon className="w-3.5 h-3.5 text-gray-400"/> {new Date(n.createdAt).toLocaleDateString()} at {new Date(n.createdAt).toLocaleTimeString()}</span>
               </div>
@@ -4991,11 +4991,6 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                       </td>
                       <td className="px-4 py-3">
                          <div className="text-sm font-semibold text-paa-navy">{evt.name}</div>
-                         {evt.livePosEnabled && !evt.isPast && (evt.registration === 'Registered' || evt.registration === 'Approved') && (
-                           <button onClick={(e) => { e.stopPropagation(); window.open('/dashboard/pos/' + evt.id, '_blank'); }} className="mt-2 flex items-center justify-center gap-2 px-4 py-2 bg-white0 text-white hover:bg-emerald-600 rounded text-sm font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 w-max">
-                             <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> Launch POS
-                           </button>
-                         )}
                       </td>
                       <td className="px-4 py-3 text-sm font-medium text-paa-gray-text">{new Date(evt.startDate || evt.date).toLocaleDateString()}</td>
                       <td className="px-4 py-3 text-sm font-semibold">
@@ -5107,10 +5102,15 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                               }
                               
                               return (
-                                <div className="flex flex-col items-center justify-center gap-1.5">
+                                <div className="flex flex-col items-center justify-center gap-2">
                                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${statusColors}`}>
                                     {statusText}
                                   </span>
+                                  {evt.livePosEnabled && !evt.isPast && (evt.registration === 'Registered' || evt.registration === 'Approved') && (
+                                    <button onClick={(e) => { e.stopPropagation(); window.open('/dashboard/pos/' + evt.id, '_blank'); }} className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white hover:bg-emerald-600 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap" title="Launch Point of Sale System">
+                                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span> Launch POS
+                                    </button>
+                                  )}
                                   {(evt.registration === 'Rejected' || evt.registration === 'Declined') && (
                                     <>
                                       {evt.rejectionReason && (

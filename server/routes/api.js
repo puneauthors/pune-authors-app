@@ -5924,14 +5924,28 @@ router.get('/api/pos/events/:eventId/pos-inventory', optionalVerifyToken, async 
 router.get('/api/pos/events/:eventId/pos-sales-summary', optionalVerifyToken, async (req, res) => {
   try {
     const eventId = parseInt(req.params.eventId);
+    let authorIdFilter;
+    if (req.user && req.user.role !== 'Admin') {
+      const author = await prisma.author.findUnique({ where: { email: req.user.email } });
+      if (author) {
+        authorIdFilter = author.id;
+      }
+    }
+
+    const orderWhere = { eventId, paymentStatus: 'CONFIRMED' };
+    if (authorIdFilter) orderWhere.authorId = authorIdFilter;
+
     const orders = await prisma.posOrder.findMany({
-      where: { eventId, paymentStatus: 'CONFIRMED' },
+      where: orderWhere,
       include: { items: { include: { book: true } } },
       orderBy: { createdAt: 'desc' }
     });
 
+    const bookWhere = { eventId };
+    if (authorIdFilter) bookWhere.authorId = authorIdFilter;
+
     const eventBooks = await prisma.eventBook.findMany({
-      where: { eventId },
+      where: bookWhere,
       include: { book: true }
     });
 
