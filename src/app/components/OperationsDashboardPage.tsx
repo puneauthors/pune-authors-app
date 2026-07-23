@@ -13468,8 +13468,15 @@ const HelpdeskTab = ({ refreshTrigger }: any) => {
     }
   };
 
+  const countWords = (text: string) => text ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+
   const handleReply = async (id: string | number) => {
     if (!replyText[id]) return;
+    const wordCount = countWords(replyText[id]);
+    if (wordCount > 100) {
+      toast.error(`Reply message cannot exceed 100 words per message (Current: ${wordCount} words).`);
+      return;
+    }
     setIsReplying({ ...isReplying, [id]: true });
     try {
       await axios.put(
@@ -13482,8 +13489,8 @@ const HelpdeskTab = ({ refreshTrigger }: any) => {
       toast.success("Reply sent successfully!");
       setReplyText({ ...replyText, [id]: "" });
       fetchQueries();
-    } catch (err) {
-      toast.error("Failed to send reply");
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to send reply");
     } finally {
       setIsReplying({ ...isReplying, [id]: false });
     }

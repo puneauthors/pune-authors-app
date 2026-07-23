@@ -7576,8 +7576,15 @@ function AuthorQueries() {
     }
   };
 
+  const countWords = (text: string) => text ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+
   const handleReply = async (id: number) => {
     if (!replyText[id]?.trim()) return;
+    const wordCount = countWords(replyText[id]);
+    if (wordCount > 100) {
+      toast.error(`Reply message cannot exceed 100 words per message (Current: ${wordCount} words).`);
+      return;
+    }
     setIsReplying({ ...isReplying, [id]: true });
     try {
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/author/queries/${id}/reply`, { reply: replyText[id] }, {
@@ -7586,8 +7593,8 @@ function AuthorQueries() {
       toast.success('Reply sent!');
       setReplyText({ ...replyText, [id]: '' });
       fetchQueries();
-    } catch (err) {
-      toast.error('Failed to send reply');
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to send reply');
     } finally {
       setIsReplying({ ...isReplying, [id]: false });
     }
