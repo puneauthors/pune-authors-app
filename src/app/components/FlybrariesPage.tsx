@@ -79,8 +79,8 @@ export function FlybrariesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const getEventBanner = (event: any) => {
-    let url = event.bannerUrl;
-    if (!url && event.galleryEvent) {
+    let url = event?.bannerUrl;
+    if (!url && event?.galleryEvent) {
       if (event.galleryEvent.images && event.galleryEvent.images.length > 0) {
         url = event.galleryEvent.images[0].url;
       } else if (event.galleryEvent.photoUrl) {
@@ -88,7 +88,14 @@ export function FlybrariesPage() {
       }
     }
     if (url) {
-      return url.startsWith('http') ? url : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${url}`;
+      if (url.startsWith('http')) return url;
+      if (url.startsWith('/uploads/') || url.startsWith('uploads/')) {
+        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        return `${apiBase}${url.startsWith('/') ? '' : '/'}${url}`;
+      }
+      if (url.startsWith('/')) return url;
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      return `${apiBase}/${url}`;
     }
     return null;
   };
@@ -111,11 +118,13 @@ export function FlybrariesPage() {
              (dbNameNorm.includes('bhubaneshwar') && codeNameNorm.includes('bhubaneshwar'));
     });
 
+    const bannerUrl = (dbLib && getEventBanner(dbLib)) || airport.defaultImage;
+
     return {
       ...airport,
       dbId: dbLib ? dbLib.id : null,
       createdAt: dbLib ? dbLib.createdAt : new Date().toISOString(),
-      bannerUrl: dbLib ? getEventBanner(dbLib) : null,
+      bannerUrl,
     };
   });
 
@@ -190,14 +199,24 @@ export function FlybrariesPage() {
             {displayedLibraries.map((lib, index) => {
               const bgColors = [C.white, C.white];
               const cardBg = bgColors[index % bgColors.length];
+              const imgSrc = lib.bannerUrl || lib.defaultImage;
               return (
                 <FadeIn key={index} delay={index * 50}>
                   <div className="event-card" style={{ display: "flex", flexDirection: "column", height: "100%", border: `2px solid ${C.dark}`, background: cardBg, borderRadius: 24, padding: "2rem", boxShadow: "4px 4px 0px #000", transition: "transform 0.2s ease, box-shadow 0.2s ease", cursor: "pointer" }}
                        onMouseEnter={e => { e.currentTarget.style.transform = "translate(-2px, -2px)"; e.currentTarget.style.boxShadow = "6px 6px 0px #000"; }}
                        onMouseLeave={e => { e.currentTarget.style.transform = "translate(0px, 0px)"; e.currentTarget.style.boxShadow = "4px 4px 0px #000"; }}>
                     <div style={{ height: 200, overflow: "hidden", marginBottom: "1.5rem", border: `2px solid ${C.dark}`, borderRadius: 16, background: C.light }}>
-                      {lib.bannerUrl ? (
-                         <img src={lib.bannerUrl} alt={lib.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      {imgSrc ? (
+                         <img 
+                           src={imgSrc} 
+                           alt={lib.name} 
+                           onError={(e) => {
+                             if (lib.defaultImage && e.currentTarget.src !== window.location.origin + lib.defaultImage) {
+                               e.currentTarget.src = lib.defaultImage;
+                             }
+                           }}
+                           style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                         />
                       ) : (
                          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", textAlign: "center" }}>
                             <Plane size={48} color={C.dark} style={{ marginBottom: "0.5rem", opacity: 0.2 }} />
