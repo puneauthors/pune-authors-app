@@ -60,6 +60,7 @@ import {
   Key,
   Globe,
   Mail,
+  Phone,
   PieChart,
   Activity,
   Printer,
@@ -72,7 +73,6 @@ import {
   UserCircle,
   Send,
   User,
-  Phone,
   Library,
   Upload,
   Truck,
@@ -4138,11 +4138,43 @@ const totalAuthorsBase = eventRegistrations.length;
         if (!posterRef.current) return;
         try {
           toast.loading("Generating poster...", { id: "poster-toast" });
-          // @ts-ignore
-          const html2canvas = (await import("html2canvas")).default;
-          const canvas = await html2canvas(posterRef.current, {
+
+          let h2c = (window as any).html2canvas;
+          if (!h2c) {
+            await new Promise<void>((resolve, reject) => {
+              if (document.querySelector('script[src*="html2canvas"]')) { resolve(); return; }
+              const script = document.createElement('script');
+              script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+              script.onload = () => resolve();
+              script.onerror = () => reject(new Error('Failed to load html2canvas'));
+              document.head.appendChild(script);
+            });
+            h2c = (window as any).html2canvas;
+          }
+
+          if (!h2c) throw new Error('html2canvas library unavailable');
+
+          const canvas = await h2c(posterRef.current, {
             scale: 2,
             useCORS: true,
+            onclone: (clonedDoc: Document) => {
+              const target = clonedDoc.querySelector('[data-poster-root]') as HTMLElement;
+              if (!target) return;
+              const allElems = target.getElementsByTagName('*');
+              for (let i = 0; i < allElems.length; i++) {
+                const el = allElems[i] as HTMLElement;
+                if (!el.style) continue;
+                const comp = clonedDoc.defaultView?.getComputedStyle(el);
+                if (comp) {
+                  ['color', 'backgroundColor', 'borderColor', 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor', 'fill', 'stroke'].forEach(prop => {
+                    const val = (comp as any)[prop];
+                    if (val && (val.includes('oklab') || val.includes('oklch'))) {
+                      (el.style as any)[prop] = 'transparent';
+                    }
+                  });
+                }
+              }
+            }
           });
           canvas.toBlob((blob) => {
             if (blob) {
@@ -13421,8 +13453,15 @@ const HelpdeskTab = ({ refreshTrigger }: any) => {
     }
   };
 
+  const countWords = (text: string) => text ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+
   const handleReply = async (id: string | number) => {
     if (!replyText[id]) return;
+    const wordCount = countWords(replyText[id]);
+    if (wordCount > 100) {
+      toast.error(`Reply message cannot exceed 100 words per message (Current: ${wordCount} words).`);
+      return;
+    }
     setIsReplying({ ...isReplying, [id]: true });
     try {
       await axios.put(
@@ -13435,8 +13474,8 @@ const HelpdeskTab = ({ refreshTrigger }: any) => {
       toast.success("Reply sent successfully!");
       setReplyText({ ...replyText, [id]: "" });
       fetchQueries();
-    } catch (err) {
-      toast.error("Failed to send reply");
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to send reply");
     } finally {
       setIsReplying({ ...isReplying, [id]: false });
     }
@@ -13765,6 +13804,7 @@ const parseEventMessage = (messageText: string) => {
     proposer: "N/A",
     designation: "N/A",
     type: "N/A",
+    category: "N/A",
     audience: "N/A",
     proposedDate: "N/A",
     proposedTime: "N/A",
@@ -13778,7 +13818,10 @@ const parseEventMessage = (messageText: string) => {
   const orgMatch = messageText.match(/Organisation:\s*(.*)/i);
   const propMatch = messageText.match(/Proposer:\s*(.*)/i);
   const desMatch = messageText.match(/Designation:\s*(.*)/i);
+  const actMatch = messageText.match(/Event Activities:\s*(.*)/i);
+  const fmtMatch = messageText.match(/Format:\s*(.*)/i);
   const typeMatch = messageText.match(/Type:\s*(.*)/i);
+  const catMatch = messageText.match(/Category:\s*(.*)/i);
   const audienceMatch = messageText.match(/Audience:\s*(.*)/i);
   const dateMatch = messageText.match(/Date:\s*(.*)/i);
   const timeMatch = messageText.match(/Time:\s*(.*)/i);
@@ -13788,7 +13831,16 @@ const parseEventMessage = (messageText: string) => {
   if (orgMatch) info.organisation = orgMatch[1].trim();
   if (propMatch) info.proposer = propMatch[1].trim();
   if (desMatch) info.designation = desMatch[1].trim();
-  if (typeMatch) info.type = typeMatch[1].trim();
+
+  if (actMatch) {
+    info.type = actMatch[1].trim();
+  } else if (fmtMatch) {
+    info.type = fmtMatch[1].trim();
+  } else if (typeMatch) {
+    info.type = typeMatch[1].trim();
+  }
+
+  if (catMatch) info.category = catMatch[1].trim();
   if (audienceMatch) info.audience = audienceMatch[1].trim();
   if (dateMatch) info.proposedDate = dateMatch[1].trim();
   if (timeMatch) info.proposedTime = timeMatch[1].trim();
@@ -14176,7 +14228,48 @@ const EventRequestsTab = ({ refreshTrigger }: any) => {
               Details
             </h3>
 
-            <div className="grid grid-cols-2 gap-4 text-sm mt-2">
+            {/* HIGHLIGHTED CONTACT DETAILS CARD */}
+            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-amber-50 p-4 rounded-xl border border-blue-200/80 shadow-sm flex flex-col gap-2.5 my-1">
+              <div className="flex items-center justify-between border-b border-blue-200/60 pb-1.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
+                  <Phone size={14} className="text-blue-600" /> Highlighted Contact Details
+                </span>
+                <span className="text-[10px] font-bold uppercase bg-blue-600 text-white px-2 py-0.5 rounded-full">
+                  Primary Organizer
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                <div className="bg-white/90 p-2.5 rounded-lg border border-blue-100 shadow-2xs">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Contact Person</p>
+                  <p className="font-extrabold text-gray-900 text-sm mt-0.5">
+                    {selectedRequest.author?.name || selectedRequest.name || "N/A"}
+                  </p>
+                </div>
+                <div className="bg-white/90 p-2.5 rounded-lg border border-blue-100 shadow-2xs">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Contact Phone</p>
+                  <a
+                    href={`tel:${selectedRequest.parsed?.phone || selectedRequest.phone}`}
+                    className="font-extrabold text-blue-700 hover:underline text-sm flex items-center gap-1.5 mt-0.5"
+                  >
+                    <Phone size={13} className="shrink-0 text-blue-600" />
+                    <span>{selectedRequest.parsed?.phone || selectedRequest.phone || "N/A"}</span>
+                  </a>
+                </div>
+                <div className="bg-white/90 p-2.5 rounded-lg border border-blue-100 shadow-2xs">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Contact Email</p>
+                  <a
+                    href={`mailto:${selectedRequest.author?.email || selectedRequest.email}`}
+                    className="font-extrabold text-blue-700 hover:underline text-sm flex items-center gap-1.5 mt-0.5 truncate"
+                    title={selectedRequest.author?.email || selectedRequest.email}
+                  >
+                    <Mail size={13} className="shrink-0 text-blue-600" />
+                    <span className="truncate">{selectedRequest.author?.email || selectedRequest.email || "N/A"}</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-sm mt-1">
               <div>
                 <p className="text-xs text-gray-400 uppercase font-bold">
                   Proposer Name
@@ -14203,33 +14296,13 @@ const EventRequestsTab = ({ refreshTrigger }: any) => {
               </div>
               <div>
                 <p className="text-xs text-gray-400 uppercase font-bold">
-                  Contact Person
+                  Category
                 </p>
                 <p className="font-semibold text-gray-800">
-                  {selectedRequest.author?.name ||
-                    selectedRequest.name ||
-                    "N/A"}
+                  {selectedRequest.parsed?.category || "N/A"}
                 </p>
               </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase font-bold">
-                  Contact Email
-                </p>
-                <p className="font-semibold text-gray-800">
-                  {selectedRequest.author?.email ||
-                    selectedRequest.email ||
-                    "N/A"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase font-bold">
-                  Contact Phone
-                </p>
-                <p className="font-semibold text-gray-800">
-                  {selectedRequest.parsed?.phone || "N/A"}
-                </p>
-              </div>
-              <div>
+              <div className="col-span-2">
                 <p className="text-xs text-gray-400 uppercase font-bold">
                   Event Activities
                 </p>

@@ -6,6 +6,11 @@ const { isAdmin, verifyToken } = require('../middleware/auth');
 const { sendNotificationEmail, emailWrap } = require('../utils/email');
 const { upload } = require('../config/upload');
 
+const countWords = (str) => {
+  if (!str) return 0;
+  return str.trim().split(/\s+/).filter(Boolean).length;
+};
+
 // --- QUERIES (SUPPORT) ---
 
 // Author: Get their own queries
@@ -32,6 +37,10 @@ router.get('/api/author/queries', verifyToken, async (req, res) => {
 router.post('/api/author/queries', verifyToken, async (req, res) => {
   try {
     const { subject, message } = req.body;
+    const wordCount = countWords(message);
+    if (wordCount > 100) {
+      return res.status(400).json({ error: `Query message cannot exceed 100 words (Current: ${wordCount} words).` });
+    }
     const author = await prisma.author.findUnique({ where: { email: req.user.email } });
     if (!author) return res.status(403).json({ error: 'Not an author' });
     const query = await prisma.query.create({
@@ -86,6 +95,10 @@ router.get('/api/admin/queries', verifyToken, isAdmin, async (req, res) => {
 router.put('/api/admin/queries/:id/reply', verifyToken, isAdmin, async (req, res) => {
   try {
     const { reply } = req.body;
+    const wordCount = countWords(reply);
+    if (wordCount > 100) {
+      return res.status(400).json({ error: `Reply message cannot exceed 100 words (Current: ${wordCount} words).` });
+    }
     const id = parseInt(req.params.id);
     const queryToUpdate = await prisma.query.findUnique({ where: { id } });
     const updatedReply = queryToUpdate.reply ? `${queryToUpdate.reply}\n\n---\n\nAdmin: ${reply}` : `Admin: ${reply}`;
@@ -144,6 +157,10 @@ router.put('/api/admin/queries/:id/resolve', verifyToken, isAdmin, async (req, r
 router.put('/api/author/queries/:id/reply', verifyToken, async (req, res) => {
   try {
     const { reply } = req.body;
+    const wordCount = countWords(reply);
+    if (wordCount > 100) {
+      return res.status(400).json({ error: `Reply message cannot exceed 100 words (Current: ${wordCount} words).` });
+    }
     const id = parseInt(req.params.id);
     const author = await prisma.author.findUnique({ where: { email: req.user.email } });
     if (!author) return res.status(403).json({ error: 'Not an author' });
@@ -195,6 +212,10 @@ router.get('/api/customer/queries', verifyToken, async (req, res) => {
 router.post('/api/customer/queries', verifyToken, async (req, res) => {
   try {
     const { subject, message, authorId } = req.body;
+    const wordCount = countWords(message);
+    if (wordCount > 100) {
+      return res.status(400).json({ error: `Query message cannot exceed 100 words (Current: ${wordCount} words).` });
+    }
     const user = await prisma.user.findUnique({ where: { email: req.user.email } });
     if (!user) return res.status(404).json({ error: 'Not found' });
     const query = await prisma.query.create({
@@ -216,6 +237,10 @@ router.post('/api/customer/queries', verifyToken, async (req, res) => {
 router.put('/api/customer/queries/:id/reply', verifyToken, async (req, res) => {
   try {
     const { reply } = req.body;
+    const wordCount = countWords(reply);
+    if (wordCount > 100) {
+      return res.status(400).json({ error: `Reply message cannot exceed 100 words (Current: ${wordCount} words).` });
+    }
     const id = parseInt(req.params.id);
     const user = await prisma.user.findUnique({ where: { email: req.user.email } });
     if (!user) return res.status(404).json({ error: 'Not found' });

@@ -19,14 +19,17 @@ const fs = require('fs');
 // Author Event Request (from Author Landing Page)
 router.post('/api/author-event-request', async (req, res) => {
   try {
-    const { name, email, phone, format, category, audience, proposedDate, proposedTime, location, description, organisationName, proposerName, designation } = req.body;
+    const { name, email, phone, format, category, audience, proposedDate, proposedTime, location, description, organisationName, proposerName, designation, activities } = req.body;
+
+    const eventActivitiesStr = activities || format || "N/A";
 
     // Save to existing ContactInquiry table to avoid requiring AWS database migrations
     const formattedMessage = `[EVENT REQUEST]
 Organisation: ${organisationName || "N/A"}
 Proposer: ${proposerName || "N/A"}
 Designation: ${designation || "N/A"}
-Format: ${format}
+Event Activities: ${eventActivitiesStr}
+Format: ${eventActivitiesStr}
 Category: ${category}
 Audience: ${audience || "N/A"}
 Date: ${proposedDate}
@@ -2408,9 +2411,12 @@ router.put('/api/orders/:id/cancel', verifyToken, async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Not found' });
     if (order.customerEmail !== req.user.email) return res.status(403).json({ error: 'Forbidden' });
 
-    // Only allow cancel if not dispatched
-    const cannotCancel = order.items.some(i => i.status === 'Dispatched' || i.status === 'Completed');
-    if (cannotCancel) return res.status(400).json({ error: 'Cannot cancel dispatched orders' });
+    // Only allow cancel if not dispatched or delivered
+    const cannotCancel = order.items.some(i => {
+      const s = (i.status || '').trim().toLowerCase();
+      return ['dispatched', 'shipped', 'completed', 'delivered', 'cancelled', 'rejected'].includes(s);
+    });
+    if (cannotCancel) return res.status(400).json({ error: 'Cannot cancel order once it has been dispatched or delivered.' });
 
     if (order.status === 'Cancelled') {
       return res.json({ message: 'Order is already cancelled' });

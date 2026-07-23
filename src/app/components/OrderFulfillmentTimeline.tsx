@@ -17,9 +17,28 @@ export function OrderFulfillmentTimeline({ currentStatus, trackingNumber }: { cu
 
   const getActiveIndex = () => {
     if (isRejected) return 1;
-    const exactMatch = stages.findIndex(s => s.id === currentStatus);
+
+    const statusNorm = (currentStatus || '').trim().toLowerCase();
+
+    if (['completed', 'delivered'].includes(statusNorm)) {
+      return 4; // Delivered
+    }
+    if (['dispatched', 'shipped'].includes(statusNorm)) {
+      return 3; // Dispatched
+    }
+    if (['accepted', 'author accepted', 'accepted by author'].includes(statusNorm)) {
+      return 2; // Accepted by Author
+    }
+    if (['approved', 'payment verified', 'verified'].includes(statusNorm)) {
+      return 1; // Payment Verified
+    }
+    if (['pending', 'pending verification', 'order placed'].includes(statusNorm)) {
+      return 0; // Order Placed
+    }
+
+    const exactMatch = stages.findIndex(s => s.id.toLowerCase() === statusNorm);
     if (exactMatch !== -1) return exactMatch;
-    if (currentStatus === 'Pending') return 0;
+
     return 0;
   };
 

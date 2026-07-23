@@ -174,9 +174,16 @@ export function CustomerProfilePage() {
     }
   };
 
+  const countWords = (text: string) => text ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+
   const handleCreateQuery = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!querySubject || !queryMessage) return;
+    const wordCount = countWords(queryMessage);
+    if (wordCount > 100) {
+      alert(`Query message cannot exceed 100 words per message (Current: ${wordCount} words).`);
+      return;
+    }
     setIsSubmittingQuery(true);
     try {
       const token = localStorage.getItem("token");
@@ -190,8 +197,8 @@ export function CustomerProfilePage() {
       setQueryMessage('');
       fetchQueries();
       alert("Query submitted successfully!");
-    } catch (err) {
-      alert("Failed to submit query");
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Failed to submit query");
     } finally {
       setIsSubmittingQuery(false);
     }
@@ -199,6 +206,11 @@ export function CustomerProfilePage() {
 
   const handleCustomerReply = async (queryId: number) => {
     if (!replyText[queryId]?.trim()) return;
+    const wordCount = countWords(replyText[queryId]);
+    if (wordCount > 100) {
+      alert(`Reply message cannot exceed 100 words per message (Current: ${wordCount} words).`);
+      return;
+    }
     setIsReplying({ ...isReplying, [queryId]: true });
     try {
       const token = localStorage.getItem("token");
@@ -209,8 +221,8 @@ export function CustomerProfilePage() {
       });
       setReplyText({ ...replyText, [queryId]: '' });
       fetchQueries();
-    } catch (err) {
-      alert("Failed to send reply");
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Failed to send reply");
     } finally {
       setIsReplying({ ...isReplying, [queryId]: false });
     }
@@ -637,61 +649,117 @@ export function CustomerProfilePage() {
 
                   {/* Mobile View (Cards) */}
                   <div className="lg:hidden flex flex-col gap-4 p-4 bg-gray-50/30">
-                    {orders.map((o) => (
-                      <div key={o.id} className="bg-white border border-gray-200 p-4 rounded flex flex-col gap-3 shadow-sm">
-                        <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-                          <div>
-                            <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Order ID</div>
-                            <div className="font-mono text-sm font-bold text-paa-navy">#PAA-{o.id.toString().padStart(4, '0')}</div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Date</div>
-                            <div className="text-sm font-bold text-paa-navy">{new Date(o.createdAt).toLocaleDateString()}</div>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-3">
-                          {o.items?.map((item: any, idx: number) => (
-                            <div key={item.id} className="flex justify-between items-start gap-2 bg-gray-50 p-3 rounded border border-gray-100">
-                              <span className="text-xs font-medium text-paa-navy leading-tight flex-1">
-                                {idx + 1}. {item.book?.title}
-                              </span>
-                              <div className="flex flex-col items-end">
-                                <span style={{ 
-                                  color: item.status.includes('Pending') ? '#b44d28' : item.status === 'Completed' ? '#2e7d32' : item.status === 'Rejected' ? '#c62828' : '#1565c0', 
-                                }} className="text-[10px] font-bold uppercase tracking-widest text-right">
-                                  {item.status}
-                                </span>
-                                {item.status === 'Rejected' && item.rejectionReason && (
-                                  <div className="text-[9px] text-red-600 italic text-right mt-1">Reason: {item.rejectionReason}</div>
-                                )}
-                              </div>
+                    {orders.map((o) => {
+                      const orderQueries = queries.filter(q => q.subject.includes(o.id.toString()));
+                      const isQueriesExpanded = expandedQueriesOrder === o.id;
+
+                      return (
+                        <div key={o.id} className="bg-white border border-gray-200 p-4 rounded-xl flex flex-col gap-3 shadow-sm">
+                          <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                            <div>
+                              <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Order ID</div>
+                              <div className="font-mono text-sm font-bold text-paa-navy">#PAA-{o.id.toString().padStart(4, '0')}</div>
                             </div>
-                          ))}
-                        </div>
-                        <div className="flex justify-between items-center mt-2 pt-3 border-t border-gray-100">
-                          <div className="text-sm font-bold text-paa-navy flex-1">Total: ₹{o.amount}</div>
-                          <div className="flex gap-2">
-                            {o.items?.some((i: any) => i.status === 'Dispatched') && (
-                              <button onClick={() => {
-                                const item = o.items.find((i: any) => i.status === 'Dispatched');
-                                setFeedbackModalOpen({ itemId: item.id, title: `Package from ${item.book?.author?.name || 'Author'}` });
-                              }} className="bg-green-700 text-white px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors hover:bg-green-800">
-                                <Check size={12} className="inline mr-1 -mt-0.5" /> Received
-                              </button>
-                            )}
-                            {o.items?.some((i: any) => i.status === 'Delivered') && (
-                              <button onClick={() => {
-                                const item = o.items.find((i: any) => i.status === 'Delivered');
-                                window.location.href = `/book/${item.bookId}#reviews`;
-                              }} className="bg-amber-600 text-white px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors hover:bg-amber-700">
-                                <Star size={12} className="inline mr-1 -mt-0.5" /> Review
-                              </button>
-                            )}
-                            <button onClick={() => setSelectedOrder(o)} className="bg-transparent border border-paa-navy text-paa-navy px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors hover:bg-paa-navy hover:text-white">View Details</button>
+                            <div className="text-right">
+                              <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Date</div>
+                              <div className="text-sm font-bold text-paa-navy">{new Date(o.createdAt).toLocaleDateString()}</div>
+                            </div>
                           </div>
+                          <div className="flex flex-col gap-3">
+                            {o.items?.map((item: any, idx: number) => (
+                              <div key={item.id} className="flex justify-between items-start gap-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                <span className="text-xs font-medium text-paa-navy leading-tight flex-1">
+                                  {idx + 1}. {item.book?.title}
+                                </span>
+                                <div className="flex flex-col items-end">
+                                  <span style={{ 
+                                    color: item.status.includes('Pending') ? '#b44d28' : item.status === 'Completed' ? '#2e7d32' : item.status === 'Rejected' ? '#c62828' : '#1565c0', 
+                                  }} className="text-[10px] font-bold uppercase tracking-widest text-right">
+                                    {item.status}
+                                  </span>
+                                  {item.status === 'Rejected' && item.rejectionReason && (
+                                    <div className="text-[9px] text-red-600 italic text-right mt-1">Reason: {item.rejectionReason}</div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex flex-wrap justify-between items-center gap-2 mt-2 pt-3 border-t border-gray-100">
+                            <div className="text-sm font-bold text-paa-navy">Total: ₹{o.amount}</div>
+                            <div className="flex flex-wrap gap-2 justify-end w-full sm:w-auto">
+                              {orderQueries.length > 0 && (
+                                <button
+                                  onClick={() => setExpandedQueriesOrder(isQueriesExpanded ? null : o.id)}
+                                  className="bg-white border border-gray-300 text-gray-900 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors hover:bg-gray-100"
+                                >
+                                  {isQueriesExpanded ? 'Hide Query' : 'View Query'}
+                                </button>
+                              )}
+                              {o.items?.some((i: any) => i.status === 'Dispatched') && (
+                                <button onClick={() => {
+                                  const item = o.items.find((i: any) => i.status === 'Dispatched');
+                                  setFeedbackModalOpen({ itemId: item.id, title: `Package from ${item.book?.author?.name || 'Author'}` });
+                                }} className="bg-green-700 text-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors hover:bg-green-800">
+                                  <Check size={12} className="inline mr-1 -mt-0.5" /> Received
+                                </button>
+                              )}
+                              {o.items?.some((i: any) => i.status === 'Delivered') && (
+                                <button onClick={() => {
+                                  const item = o.items.find((i: any) => i.status === 'Delivered');
+                                  window.location.href = `/book/${item.bookId}#reviews`;
+                                }} className="bg-amber-600 text-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors hover:bg-amber-700">
+                                  <Star size={12} className="inline mr-1 -mt-0.5" /> Review
+                                </button>
+                              )}
+                              <button onClick={() => setSelectedOrder(o)} className="bg-transparent border border-paa-navy text-paa-navy px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors hover:bg-paa-navy hover:text-white">View Details</button>
+                            </div>
+                          </div>
+
+                          {/* Expanded Mobile Query Threads */}
+                          {isQueriesExpanded && orderQueries.length > 0 && (
+                            <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs flex flex-col gap-3">
+                              {orderQueries.map((q, idx) => (
+                                <div key={idx} className="p-3 bg-white border border-gray-200 rounded-lg shadow-2xs">
+                                  <div className="flex justify-between items-start mb-2 gap-2">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${q.status === 'Resolved' ? 'bg-green-100 text-green-800' : q.status === 'Answered' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'}`}>
+                                        #TKT-{q.id.toString().padStart(4, '0')}
+                                      </span>
+                                      <h4 className="font-bold text-gray-900 text-xs">{q.subject}</h4>
+                                    </div>
+                                    <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full shrink-0 ${q.status === 'Resolved' ? 'bg-green-100 text-green-800' : q.status === 'Answered' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'}`}>
+                                      {q.status === 'Resolved' ? 'Closed' : q.status === 'Answered' ? 'Opened' : 'New'}
+                                    </span>
+                                  </div>
+
+                                  <QueryThreadDisplay query={q} currentUserType="Customer" />
+
+                                  {q.status !== 'Resolved' && (
+                                    <div className="mt-3 flex flex-col gap-2">
+                                      <textarea
+                                        value={replyText[q.id] || ''}
+                                        onChange={e => setReplyText({ ...replyText, [q.id]: e.target.value })}
+                                        placeholder="Add a reply..."
+                                        className="w-full border p-2 text-xs outline-none rounded resize-y"
+                                        rows={2}
+                                      />
+                                      <button
+                                        onClick={() => handleCustomerReply(q.id)}
+                                        disabled={isReplying[q.id]}
+                                        className="bg-paa-navy text-white px-3 py-1.5 text-xs font-bold uppercase tracking-widest hover:bg-paa-gold hover:text-paa-navy transition-colors rounded disabled:opacity-50 self-end"
+                                      >
+                                        {isReplying[q.id] ? 'Sending...' : 'Reply'}
+                                      </button>
+                                    </div>
+                                  )}
+                                  <div className="text-[10px] text-gray-400 mt-2 text-right">{new Date(q.createdAt).toLocaleString()}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </>
               )}
@@ -707,28 +775,35 @@ export function CustomerProfilePage() {
             <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", borderBottom: "1px solid #eaeaea", paddingBottom: "1rem" }}>
               <h2 style={{ fontSize: 20, fontWeight: 400, color: "#111", fontFamily: "var(--font-display)" }}>Order Details</h2>
               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "1rem" }}>
-                {!selectedOrder.items?.some((i: any) => i.status === 'Dispatched' || i.status === 'Completed' || i.status === 'Cancelled') && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                     <span style={{ fontSize: 10, color: "#777", fontStyle: "italic", maxWidth: 120, lineHeight: 1.2, textAlign: "right" }}>Cannot cancel once dispatched.</span>
-                     <button 
-                       onClick={() => handleCancelOrder(selectedOrder.id)} 
-                       disabled={cancellingOrderId === selectedOrder.id}
-                       style={{ 
-                         background: "transparent", 
-                         color: "#c62828", 
-                         border: "1px solid #c62828", 
-                         padding: "0.4rem 0.8rem", 
-                         fontSize: 11, 
-                         fontWeight: 500, 
-                         cursor: cancellingOrderId === selectedOrder.id ? "not-allowed" : "pointer", 
-                         textTransform: "uppercase", 
-                         letterSpacing: "0.05em",
-                         opacity: cancellingOrderId === selectedOrder.id ? 0.5 : 1
-                       }}>
-                         {cancellingOrderId === selectedOrder.id ? "Cancelling..." : "Cancel Order"}
-                     </button>
-                  </div>
-                )}
+                {(() => {
+                  const canCancel = selectedOrder.items?.length > 0 && !selectedOrder.items.some((i: any) => {
+                    const s = (i.status || '').trim().toLowerCase();
+                    return ['dispatched', 'shipped', 'completed', 'delivered', 'cancelled', 'rejected'].includes(s);
+                  });
+                  if (!canCancel) return null;
+                  return (
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                       <span style={{ fontSize: 10, color: "#777", fontStyle: "italic", maxWidth: 120, lineHeight: 1.2, textAlign: "right" }}>Cannot cancel once dispatched.</span>
+                       <button 
+                         onClick={() => handleCancelOrder(selectedOrder.id)} 
+                         disabled={cancellingOrderId === selectedOrder.id}
+                         style={{ 
+                           background: "transparent", 
+                           color: "#c62828", 
+                           border: "1px solid #c62828", 
+                           padding: "0.4rem 0.8rem", 
+                           fontSize: 11, 
+                           fontWeight: 500, 
+                           cursor: cancellingOrderId === selectedOrder.id ? "not-allowed" : "pointer", 
+                           textTransform: "uppercase", 
+                           letterSpacing: "0.05em",
+                           opacity: cancellingOrderId === selectedOrder.id ? 0.5 : 1
+                         }}>
+                           {cancellingOrderId === selectedOrder.id ? "Cancelling..." : "Cancel Order"}
+                       </button>
+                    </div>
+                  );
+                })()}
                 <button onClick={() => setSelectedOrder(null)} style={{ background: "none", border: "none", fontSize: 28, cursor: "pointer", color: "#777", padding: "0 0.5rem" }}>&times;</button>
               </div>
             </div>
