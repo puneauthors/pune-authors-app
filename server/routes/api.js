@@ -5014,6 +5014,7 @@ router.put('/api/admin/events/:id', verifyToken, isAdmin, upload.single('banner'
     if (aggSent !== undefined) updateData.aggSent = parseInt(aggSent) || 0;
     if (aggSold !== undefined) updateData.aggSold = parseInt(aggSold) || 0;
     if (aggRevenue !== undefined) updateData.aggRevenue = parseFloat(aggRevenue) || 0;
+    if (aggEligibleAuthors !== undefined) updateData.aggEligibleAuthors = parseInt(aggEligibleAuthors) || 0;
 
     if (req.file) {
       updateData.bannerUrl = `/uploads/${req.file.filename}`;

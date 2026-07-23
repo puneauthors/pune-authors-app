@@ -3149,7 +3149,8 @@ export function OperationsDashboardPage() {
 
     const handleExportBookCatalogue = async () => {
       try {
-        const workbook = new ExcelJS.Workbook();
+      const ExcelJS = (await import("exceljs")).default;
+      const workbook = new ExcelJS.Workbook();
         const sheet = workbook.addWorksheet("Book Catalogue");
 
         const authorsMap: Record<string, any[]> = {};
@@ -4227,6 +4228,7 @@ const totalAuthorsBase = eventRegistrations.length;
                     if (target.endTime?.value)
                       fd.append("endTime", target.endTime.value);
                     fd.append("eventType", target.eventType.value);
+                    fd.append("status", createEventStatus);
                     fd.append("category", target.category.value);
                     fd.append("registrationFee", target.registrationFee.value);
                     fd.append("feeType", target.feeType.value);
@@ -4268,6 +4270,7 @@ const totalAuthorsBase = eventRegistrations.length;
                     );
                     toast.success("Event Created Successfully!");
                     setIsEventModalOpen(false);
+                    fetchEvents();
                   } catch (err: any) {
                     toast.error(err.response?.data?.error || err.message);
                   } finally {
@@ -5301,9 +5304,17 @@ const totalAuthorsBase = eventRegistrations.length;
         totalPaymentsBase = 0, maxSold = -1, bestSellingBook = "-"
       } = eventBreakdownKPIs || {};
 
+      const totalAuthors = isPastOrArchive ? "NA" : totalAuthorsBase;
+      const totalRegistered = isPastOrArchive ? "NA" : (selectedEventBreakdown.eventAuthors ? selectedEventBreakdown.eventAuthors.length : 0);
+      const totalTitles = isPastOrArchive ? "NA" : totalTitlesBase;
+      const totalListed = isPastOrArchive ? "NA" : totalListedBase;
+      const totalSold = isPastOrArchive ? "NA" : totalSoldBase;
+      const totalSale = isPastOrArchive ? "NA" : totalSaleBase;
+      const totalPayments = isPastOrArchive ? "NA" : totalPaymentsBase;
+
       return (
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex items-center justify-between mb-6 border-b pb-4">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-x-hidden">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 border-b pb-4 gap-4">
             <div>
               <h3 className="text-2xl font-serif text-paa-navy mb-1">
                 {selectedEventBreakdown.name}
@@ -5319,7 +5330,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 </p>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {!selectedAuthorForData && (
                 <>
                   {selectedEventBreakdown.broadcastStatus !== "Published" ? (
@@ -5418,7 +5429,7 @@ const totalAuthorsBase = eventRegistrations.length;
             </div>
           </div>
           {/* KPI Cards */}
-          <div className="mb-2 flex justify-between items-center">
+          <div className="mb-2 flex flex-wrap justify-between items-center gap-2">
             <span className="text-xs text-gray-400">Event Summary</span>
             {(selectedEventBreakdown.isLegacy ||
               selectedEventBreakdown.status === "Past" ||
@@ -7211,14 +7222,18 @@ const totalAuthorsBase = eventRegistrations.length;
                 </p>
                 <div className="text-2xl font-serif">
                   {allCombinedEvents.reduce(
-                    (acc, evt) =>
-                      acc +
-                      ((evt.isLegacy
-                        ? evt.aggSold
-                        : evt.eventBooks?.reduce(
-                            (s: number, eb: any) => s + (eb.soldStock || 0),
-                            0,
-                          )) || 0),
+                    (acc, evt) => {
+                      const books =
+                        evt.aggSold != null
+                          ? evt.aggSold
+                          : evt.isLegacy
+                            ? 0
+                            : evt.eventBooks?.reduce(
+                                (s: number, eb: any) => s + (eb.soldStock || 0),
+                                0,
+                              ) || 0;
+                      return acc + (Number(books) || 0);
+                    },
                     0,
                   )}
                 </div>
@@ -7244,17 +7259,21 @@ const totalAuthorsBase = eventRegistrations.length;
                   ₹
                   {allCombinedEvents
                     .reduce(
-                      (acc, evt) =>
-                        acc +
-                        ((evt.isLegacy
-                          ? evt.aggRevenue || (evt.aggSold || 0) * 200 || 0
-                          : evt.eventBooks?.reduce(
-                              (s: number, eb: any) =>
-                                s +
-                                (eb.soldStock || 0) *
-                                  (parseFloat(eb.book?.mrp) || 0),
-                              0,
-                            )) || 0),
+                      (acc, evt) => {
+                        const revenue =
+                          evt.aggRevenue != null
+                            ? evt.aggRevenue
+                            : evt.isLegacy
+                              ? 0
+                              : evt.eventBooks?.reduce(
+                                  (s: number, eb: any) =>
+                                    s +
+                                    (eb.soldStock || 0) *
+                                      (parseFloat(eb.book?.mrp) || 0),
+                                  0,
+                                ) || 0;
+                        return acc + (Number(revenue) || 0);
+                      },
                       0,
                     )
                     .toLocaleString()}

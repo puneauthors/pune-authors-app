@@ -81,16 +81,16 @@ model Author {
   groupJoiningDate      DateTime?
   aggParticipatedEvents Int?
   aggEligibleEvents     Int?
+  invitations           AuthorInvitation[]
   books                 Book[]
+  donationLogs          DonationLog[]
+  donationRegistrations DonationRegistration[]
   eventAuthors          EventAuthor[]
   eventBooks            EventBook[]
   eventRegistrations    EventRegistration[]
   formResponses         FormResponse[]
   posOrders             PosOrder[]
   queries               Query[]
-  donationRegistrations DonationRegistration[]
-  donationLogs          DonationLog[]
-  invitations           AuthorInvitation[]
 }
 
 model Query {
@@ -136,11 +136,11 @@ model Book {
   purpose         String?
   author          Author         @relation(fields: [authorId], references: [id], onDelete: Cascade)
   reviews         BookReview[]
+  donationBooks   DonationBook[]
+  donationLogs    DonationLog[]
   eventBooks      EventBook[]
   orderItems      OrderItem[]
   posOrderItems   PosOrderItem[]
-  donationBooks   DonationBook[]
-  donationLogs    DonationLog[]
   stockHistory    StockHistory[]
 }
 
@@ -160,43 +160,43 @@ model Order {
   customerPhone     String?
   address           String?
   amount            Float
-  subtotal          Float       @default(0)
-  bundleDiscount    Float       @default(0)
-  deliveryCharges   Float       @default(0)
   paymentScreenshot String?
   createdAt         DateTime    @default(now())
   status            String      @default("Pending Verification")
   transactionId     String?
+  bundleDiscount    Float       @default(0)
   customerId        Int?
+  deliveryCharges   Float       @default(0)
+  subtotal          Float       @default(0)
   isBulk            Boolean     @default(false)
-  customer          Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customer          Customer?   @relation(fields: [customerId], references: [id])
   items             OrderItem[]
 }
 
 model OrderItem {
-  id                   Int       @id @default(autoincrement())
-  orderId              Int
-  bookId               Int
-  quantity             Int       @default(1)
-  status               String    @default("Pending Verification")
-  createdAt            DateTime  @default(now())
-  trackingNumber       String?
-  rejectionReason      String?
-  deliveredAt          DateTime?
-  dispatchedAt         DateTime?
-  acceptedAt           DateTime?
-  expectedDeliveryDate DateTime?
-  autoDelivered        Boolean   @default(false)
-  authorWarnedAt       DateTime?
+  id                     Int       @id @default(autoincrement())
+  orderId                Int
+  bookId                 Int
+  quantity               Int       @default(1)
+  status                 String    @default("Pending Verification")
+  createdAt              DateTime  @default(now())
+  trackingNumber         String?
+  rejectionReason        String?
+  deliveredAt            DateTime?
+  dispatchedAt           DateTime?
+  acceptedAt             DateTime?
+  feedbackComments       String?
+  feedbackCondition      String?
+  feedbackRating         Int?
+  autoDelivered          Boolean   @default(false)
+  expectedDeliveryDate   DateTime?
+  feedbackAsExpected     String?
+  feedbackBuyAgain       String?
+  feedbackPackaging      String?
+  authorWarnedAt         DateTime?
   authorDispatchWarnedAt DateTime?
-  feedbackComments     String?
-  feedbackCondition    String?
-  feedbackRating       Int?
-  feedbackPackaging    String?
-  feedbackAsExpected   String?
-  feedbackBuyAgain     String?
-  book                 Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  order                Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  book                   Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order                  Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model ContactInquiry {
@@ -222,8 +222,8 @@ model GalleryEvent {
   createdAt   DateTime       @default(now())
   eventId     Int?           @unique
   libraryId   Int?           @unique
-  library     Library?       @relation(fields: [libraryId], references: [id], onDelete: Cascade)
   event       Event?         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  library     Library?       @relation(fields: [libraryId], references: [id], onDelete: Cascade)
   images      GalleryImage[]
 }
 
@@ -289,46 +289,46 @@ model BookReview {
   reviewerName         String
   rating               Int
   comment              String
-  writingStyleRating   Int?
+  createdAt            DateTime @default(now())
   contentQualityRating Int?
   enjoyedMost          String?
-  createdAt            DateTime @default(now())
+  writingStyleRating   Int?
   book                 Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
 
 model Event {
-  id                Int           @id @default(autoincrement())
-  name              String
-  location          String
-  date              String
-  dateType          String?       @default("exact")
-  tentativeDate     String?
-  duration          String
-  status            String        @default("Upcoming")
-  createdAt         DateTime      @default(now())
-  broadcastStatus   String        @default("None")
-  brochureUrl       String?
-  description       String?
-  commissionFlat    Float?
-  commissionPercent Float?
-  eventType         String        @default("Book Fair")
-  category          String?
-  feeType           String        @default("Per Author")
-  registrationFee   Float         @default(0)
-  bannerUrl         String?
-  livePosEnabled    Boolean       @default(true)
-  endTime           String?
-  startTime         String?
-  aggAuthors        Int?
-  aggTitles         Int?
-  aggSent           Int?
-  aggSold           Int?
-  aggRevenue        Float?
+  id                 Int           @id @default(autoincrement())
+  name               String
+  location           String
+  date               String
+  duration           String
+  status             String        @default("Upcoming")
+  createdAt          DateTime      @default(now())
+  broadcastStatus    String        @default("None")
+  brochureUrl        String?
+  description        String?
+  commissionFlat     Float?
+  commissionPercent  Float?
+  eventType          String        @default("Book Fair")
+  feeType            String        @default("Per Author")
+  registrationFee    Float         @default(0)
+  bannerUrl          String?
+  livePosEnabled     Boolean       @default(true)
+  endTime            String?
+  startTime          String?
+  aggAuthors         Int?
+  aggRevenue         Float?
+  aggSent            Int?
+  aggSold            Int?
+  aggTitles          Int?
   aggEligibleAuthors Int?
-  eventAuthors      EventAuthor[]
-  eventBooks        EventBook[]
-  galleryEvent      GalleryEvent?
-  posOrders         PosOrder[]
+  category           String?
+  dateType           String?       @default("exact")
+  tentativeDate      String?
+  eventAuthors       EventAuthor[]
+  eventBooks         EventBook[]
+  galleryEvent       GalleryEvent?
+  posOrders          PosOrder[]
 }
 
 model EventAuthor {
@@ -338,12 +338,12 @@ model EventAuthor {
   optInStatus        String   @default("Pending")
   createdAt          DateTime @default(now())
   paymentScreenshot  String?
-  transactionId      String?
-  manualTotalSold    Int?
   manualTotalRevenue Float?
+  manualTotalSold    Int?
+  transactionId      String?
   amountPaid         Float?
-  investment         Float?   @default(0)
   paymentStatus      String?  @default("Unpaid")
+  investment         Float?   @default(0)
   rejectionReason    String?
   author             Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   event              Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -357,8 +357,8 @@ model EventBook {
   listedStock   Int      @default(0)
   soldStock     Int      @default(0)
   returnedStock Int      @default(0)
-  overrideMrp   Float?
   createdAt     DateTime @default(now())
+  overrideMrp   Float?
   author        Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   book          Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -393,15 +393,15 @@ model Notification {
   id           Int      @id @default(autoincrement())
   message      String
   target       String   @default("ALL")
-  documentUrl  String?
-  documentName String?
   createdAt    DateTime @default(now())
+  documentName String?
+  documentUrl  String?
 }
 
 model Library {
-  id              Int      @id @default(autoincrement())
+  id              Int                    @id @default(autoincrement())
   name            String
-  type            String // Airport Library, Public Library, etc.
+  type            String
   airportCode     String?
   airportName     String?
   city            String
@@ -411,21 +411,19 @@ model Library {
   contactNumber   String
   email           String?
   shippingAddress String
-  status          String   @default("Active") // Active / Inactive
+  status          String                 @default("Active")
+  createdAt       DateTime               @default(now())
   bannerUrl       String?
-  createdAt       DateTime @default(now())
-
-  announcements DonationAnnouncement[]
-  logs          DonationLog[]
-  galleryEvent  GalleryEvent?
+  announcements   DonationAnnouncement[]
+  logs            DonationLog[]
+  galleryEvent    GalleryEvent?
 }
 
 model DonationAnnouncement {
-  id                     Int      @id @default(autoincrement())
+  id                     Int                    @id @default(autoincrement())
   title                  String
   description            String
   libraryId              Int
-  library                Library  @relation(fields: [libraryId], references: [id], onDelete: Cascade)
   eventDate              String?
   announcementDate       String
   registrationStartDate  String
@@ -436,68 +434,61 @@ model DonationAnnouncement {
   dispatchAddress        String
   contactPerson          String
   contactNumber          String
-  feeType                String   @default("Free")
+  feeType                String                 @default("Free")
   feeAmount              Int?
   additionalInstructions String?
-  visibility             String   @default("Draft") // Draft, Published, Closed
-  createdAt              DateTime @default(now())
-
-  registrations DonationRegistration[]
+  visibility             String                 @default("Draft")
+  createdAt              DateTime               @default(now())
+  library                Library                @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+  registrations          DonationRegistration[]
 }
 
 model DonationRegistration {
-  id                 Int    @id @default(autoincrement())
-  announcementId     Int
-  authorId           Int
-  status             String @default("Registered") // Registered, Approved, Rejected, Changes Requested
-  verificationStatus String @default("Pending")
-  dispatchStatus     String @default("Pending")
-  receivedStatus     String @default("Pending")
-
-  feePaid           Int?
-  paymentStatus     String? @default("Pending") // Pending, Completed, Failed
-  paymentScreenshot String?
-  transactionId     String?
-
-  dispatchDate    String?
-  courierPartner  String?
-  trackingNumber  String?
-  collectionPoint String?
-  packedBy        String?
-
+  id                  Int                  @id @default(autoincrement())
+  announcementId      Int
+  authorId            Int
+  status              String               @default("Registered")
+  verificationStatus  String               @default("Pending")
+  dispatchStatus      String               @default("Pending")
+  receivedStatus      String               @default("Pending")
+  feePaid             Int?
+  paymentStatus       String?              @default("Pending")
+  paymentScreenshot   String?
+  transactionId       String?
+  dispatchDate        String?
+  courierPartner      String?
+  trackingNumber      String?
+  collectionPoint     String?
+  packedBy            String?
   receivedDate        String?
   receivedBy          String?
-  libraryConfirmation Boolean @default(false)
+  libraryConfirmation Boolean              @default(false)
   proofImageUrl       String?
   remarks             String?
-
-  useGlobalOverride   Boolean @default(false)
-  globalBooksDonated  Int?    @default(0)
-  globalDonationValue Float?  @default(0)
+  useGlobalOverride   Boolean              @default(false)
+  globalBooksDonated  Int?                 @default(0)
+  globalDonationValue Float?               @default(0)
   globalRemarks       String?
-  broadcastStatus     String  @default("Draft")
-
-  createdAt DateTime @default(now())
-
-  announcement DonationAnnouncement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  author       Author               @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  books        DonationBook[]
+  broadcastStatus     String               @default("Draft")
+  createdAt           DateTime             @default(now())
+  books               DonationBook[]
+  announcement        DonationAnnouncement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  author              Author               @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model DonationBook {
-  id                  Int      @id @default(autoincrement())
+  id                  Int                  @id @default(autoincrement())
   registrationId      Int
   bookId              Int
   quantityDonated     Int
-  qtyCollected        Int      @default(0)
-  qtyDispatched       Int      @default(0)
-  qtyReceived         Int      @default(0)
-  libraryConfirmation String   @default("Pending")
+  qtyCollected        Int                  @default(0)
+  qtyDispatched       Int                  @default(0)
+  qtyReceived         Int                  @default(0)
+  libraryConfirmation String               @default("Pending")
   remarks             String?
-  createdAt           DateTime @default(now())
-
-  registration DonationRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  book         Book                 @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt           DateTime             @default(now())
+  book                Book                 @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  registration        DonationRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
 }
 
 model DonationLog {
@@ -511,21 +502,20 @@ model DonationLog {
   deliveryDate String?
   status       String
   remarks      String?
-
-  library Library @relation(fields: [libraryId], references: [id], onDelete: Cascade)
-  author  Author  @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  book    Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  author       Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  book         Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  library      Library  @relation(fields: [libraryId], references: [id], onDelete: Cascade)
 }
 
 model StockHistory {
   id           Int      @id @default(autoincrement())
   bookId       Int
-  book         Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   changeQty    Int
   lastStock    Int
   currentStock Int
-  status       String   @default("Approved")
   updatedAt    DateTime @default(now())
+  status       String   @default("Approved")
+  book         Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
 
 model SystemSetting {
@@ -534,15 +524,11 @@ model SystemSetting {
 }
 
 model AuthorInvitation {
-  id Int @id @default(autoincrement())
-
-  // Customer details
+  id               Int      @id @default(autoincrement())
   customerName     String
   organizationName String?
   customerEmail    String
   customerPhone    String
-
-  // Event details
   eventTitle       String
   eventDescription String
   reasonForInvite  String
@@ -552,15 +538,10 @@ model AuthorInvitation {
   venue            String
   expectedAudience String?
   additionalNotes  String?
-
-  // Author being invited
-  authorId Int
-  author   Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  // Admin workflow
-  status       String  @default("Pending")
-  adminRemarks String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  authorId         Int
+  status           String   @default("Pending")
+  adminRemarks     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  author           Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
