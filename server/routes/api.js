@@ -2411,9 +2411,12 @@ router.put('/api/orders/:id/cancel', verifyToken, async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Not found' });
     if (order.customerEmail !== req.user.email) return res.status(403).json({ error: 'Forbidden' });
 
-    // Only allow cancel if not dispatched
-    const cannotCancel = order.items.some(i => i.status === 'Dispatched' || i.status === 'Completed');
-    if (cannotCancel) return res.status(400).json({ error: 'Cannot cancel dispatched orders' });
+    // Only allow cancel if not dispatched or delivered
+    const cannotCancel = order.items.some(i => {
+      const s = (i.status || '').trim().toLowerCase();
+      return ['dispatched', 'shipped', 'completed', 'delivered', 'cancelled', 'rejected'].includes(s);
+    });
+    if (cannotCancel) return res.status(400).json({ error: 'Cannot cancel order once it has been dispatched or delivered.' });
 
     if (order.status === 'Cancelled') {
       return res.json({ message: 'Order is already cancelled' });

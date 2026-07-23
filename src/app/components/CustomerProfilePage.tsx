@@ -775,28 +775,35 @@ export function CustomerProfilePage() {
             <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", borderBottom: "1px solid #eaeaea", paddingBottom: "1rem" }}>
               <h2 style={{ fontSize: 20, fontWeight: 400, color: "#111", fontFamily: "var(--font-display)" }}>Order Details</h2>
               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "1rem" }}>
-                {!selectedOrder.items?.some((i: any) => i.status === 'Dispatched' || i.status === 'Completed' || i.status === 'Cancelled') && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                     <span style={{ fontSize: 10, color: "#777", fontStyle: "italic", maxWidth: 120, lineHeight: 1.2, textAlign: "right" }}>Cannot cancel once dispatched.</span>
-                     <button 
-                       onClick={() => handleCancelOrder(selectedOrder.id)} 
-                       disabled={cancellingOrderId === selectedOrder.id}
-                       style={{ 
-                         background: "transparent", 
-                         color: "#c62828", 
-                         border: "1px solid #c62828", 
-                         padding: "0.4rem 0.8rem", 
-                         fontSize: 11, 
-                         fontWeight: 500, 
-                         cursor: cancellingOrderId === selectedOrder.id ? "not-allowed" : "pointer", 
-                         textTransform: "uppercase", 
-                         letterSpacing: "0.05em",
-                         opacity: cancellingOrderId === selectedOrder.id ? 0.5 : 1
-                       }}>
-                         {cancellingOrderId === selectedOrder.id ? "Cancelling..." : "Cancel Order"}
-                     </button>
-                  </div>
-                )}
+                {(() => {
+                  const canCancel = selectedOrder.items?.length > 0 && !selectedOrder.items.some((i: any) => {
+                    const s = (i.status || '').trim().toLowerCase();
+                    return ['dispatched', 'shipped', 'completed', 'delivered', 'cancelled', 'rejected'].includes(s);
+                  });
+                  if (!canCancel) return null;
+                  return (
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                       <span style={{ fontSize: 10, color: "#777", fontStyle: "italic", maxWidth: 120, lineHeight: 1.2, textAlign: "right" }}>Cannot cancel once dispatched.</span>
+                       <button 
+                         onClick={() => handleCancelOrder(selectedOrder.id)} 
+                         disabled={cancellingOrderId === selectedOrder.id}
+                         style={{ 
+                           background: "transparent", 
+                           color: "#c62828", 
+                           border: "1px solid #c62828", 
+                           padding: "0.4rem 0.8rem", 
+                           fontSize: 11, 
+                           fontWeight: 500, 
+                           cursor: cancellingOrderId === selectedOrder.id ? "not-allowed" : "pointer", 
+                           textTransform: "uppercase", 
+                           letterSpacing: "0.05em",
+                           opacity: cancellingOrderId === selectedOrder.id ? 0.5 : 1
+                         }}>
+                           {cancellingOrderId === selectedOrder.id ? "Cancelling..." : "Cancel Order"}
+                       </button>
+                    </div>
+                  );
+                })()}
                 <button onClick={() => setSelectedOrder(null)} style={{ background: "none", border: "none", fontSize: 28, cursor: "pointer", color: "#777", padding: "0 0.5rem" }}>&times;</button>
               </div>
             </div>
