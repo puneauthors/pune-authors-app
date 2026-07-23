@@ -134,19 +134,38 @@ export function CustomerProfilePage() {
   };
 
   const handleSaveProfile = async () => {
+    if (!editName || !editName.trim()) {
+      alert("Full Name is required.");
+      return;
+    }
+    const cleanPhone = (editPhone || "").replace(/\D/g, "");
+    if (!cleanPhone || cleanPhone.length !== 10) {
+      alert("Please enter a valid 10-digit Mobile Number.");
+      return;
+    }
+    if (!editAddressObj.street?.trim() || !editAddressObj.city?.trim() || !editAddressObj.state?.trim() || !editAddressObj.pincode?.trim()) {
+      alert("Please fill all required address details: Street Address, City, State, and PIN Code.");
+      return;
+    }
+    if (!/^\d{6}$/.test(editAddressObj.pincode.trim())) {
+      alert("Please enter a valid 6-digit PIN Code.");
+      return;
+    }
+
     setSaving(true);
     try {
       const token = localStorage.getItem("token");
-      const fullAddress = editAddressObj.houseNo ? 
-        `${editAddressObj.houseNo}, ${editAddressObj.street}, ${editAddressObj.city}, ${editAddressObj.state} - ${editAddressObj.pincode}` 
-        : editAddressObj.street;
+      const fullAddress = editAddressObj.houseNo && editAddressObj.houseNo.trim()
+        ? `${editAddressObj.houseNo.trim()}, ${editAddressObj.street.trim()}, ${editAddressObj.city.trim()}, ${editAddressObj.state.trim()} - ${editAddressObj.pincode.trim()}`
+        : `${editAddressObj.street.trim()}, ${editAddressObj.city.trim()}, ${editAddressObj.state.trim()} - ${editAddressObj.pincode.trim()}`;
         
       const res = await axios.put(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/auth/profile`, 
-        { name: editName, address: fullAddress, phone: editPhone },
+        { name: editName.trim(), address: fullAddress, phone: cleanPhone },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setUserData(res.data);
       setIsEditing(false);
+      alert("Profile updated successfully!");
     } catch (err) {
       alert("Failed to update profile");
     } finally {
@@ -492,7 +511,7 @@ export function CustomerProfilePage() {
                 {isEditing ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "0.6rem" }}>
                     <span style={{ fontSize: 13, color: "#555", fontWeight: 600 }}>Delivery Address</span>
-                    <input type="text" value={editAddressObj.houseNo} onChange={(e) => setEditAddressObj({...editAddressObj, houseNo: e.target.value})} style={{ width: "100%", padding: "0.5rem", border: "1px solid #ddd", fontSize: 13, outline: "none" }} placeholder="Building / House No. *" required />
+                    <input type="text" value={editAddressObj.houseNo} onChange={(e) => setEditAddressObj({...editAddressObj, houseNo: e.target.value})} style={{ width: "100%", padding: "0.5rem", border: "1px solid #ddd", fontSize: 13, outline: "none" }} placeholder="Building / House No. (Optional)" />
                     <input type="text" value={editAddressObj.street} onChange={(e) => setEditAddressObj({...editAddressObj, street: e.target.value})} style={{ width: "100%", padding: "0.5rem", border: "1px solid #ddd", fontSize: 13, outline: "none" }} placeholder="Street Address *" required />
                     <div style={{ display: "flex", gap: "0.5rem" }}>
                       <input type="text" value={editAddressObj.city} onChange={(e) => setEditAddressObj({...editAddressObj, city: e.target.value})} style={{ width: "50%", padding: "0.5rem", border: "1px solid #ddd", fontSize: 13, outline: "none" }} placeholder="City *" required />
