@@ -41,15 +41,58 @@ export function OrganizeEventPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
+  const [otherActivityText, setOtherActivityText] = useState("");
+
+  const activityOptions = [
+    { id: "meet_the_author", label: "Meet the Author" },
+    { id: "story_writing", label: "Story Writing Session" },
+    { id: "panel_discussion", label: "Panel Discussion" },
+    { id: "author_talk", label: "Author Talk / Author Speaks" },
+    { id: "other", label: "Other" },
+  ];
+
+  const toggleActivity = (id: string) => {
+    if (selectedActivities.includes(id)) {
+      setSelectedActivities(selectedActivities.filter(a => a !== id));
+    } else {
+      setSelectedActivities([...selectedActivities, id]);
+    }
+  };
+
   const handleEventSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!eventForm.format || !eventForm.category) {
-      toast.error("Please select both Format and Category.");
+
+    if (selectedActivities.length === 0) {
+      toast.error("Please select at least one Event Activity.");
       return;
     }
+
+    if (selectedActivities.includes("other") && !otherActivityText.trim()) {
+      toast.error("Please specify details for 'Other' activity.");
+      return;
+    }
+
+    if (!eventForm.category) {
+      toast.error("Please select a Category.");
+      return;
+    }
+
+    const formattedActivities = selectedActivities.map(id => {
+      if (id === "other") return `Other: ${otherActivityText.trim()}`;
+      const found = activityOptions.find(o => o.id === id);
+      return found ? found.label : id;
+    });
+
+    const activitiesStr = formattedActivities.join(", ");
+
     setIsSubmitting(true);
     try {
-      const payload = { ...eventForm };
+      const payload = {
+        ...eventForm,
+        format: activitiesStr,
+        activities: activitiesStr
+      };
       
       await axios.post(
         `${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/author-event-request`,
@@ -198,42 +241,88 @@ export function OrganizeEventPage() {
                   <h3 style={{ fontSize: 22, fontWeight: 900, color: C.dark, letterSpacing: "-0.02em", margin: 0 }}>Event Specifications</h3>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "1.5rem" }} className="form-grid">
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", gridColumn: "1 / -1" }}>
-                    <div>
-                      <label style={labelStyle}>Format *</label>
-                      <select 
-                        required 
-                        value={eventForm.format} 
-                        onChange={(e) => setEventForm({ ...eventForm, format: e.target.value })} 
-                        style={inputStyle} 
-                        className="form-input"
-                      >
-                        <option value="">Select Format</option>
-                        <option value="Meet the Authors">Meet the Authors</option>
-                        <option value="Stall">Stall</option>
-                        <option value="Others">Others</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label style={labelStyle}>Category *</label>
-                      <select 
-                        required 
-                        value={eventForm.category} 
-                        onChange={(e) => setEventForm({ ...eventForm, category: e.target.value })} 
-                        style={inputStyle} 
-                        className="form-input"
-                      >
-                        <option value="">Select Category</option>
-                        <option value="Housing Society">Housing Society</option>
-                        <option value="College">College</option>
+                {/* EVENT ACTIVITIES * */}
+                <div style={{ marginBottom: "2rem" }}>
+                  <label style={{ ...labelStyle, fontSize: 13, fontWeight: 800, letterSpacing: "0.05em", marginBottom: "0.8rem" }}>
+                    EVENT ACTIVITIES *
+                  </label>
 
-                        <option value="Book Fair">Book Fair</option>
-                        <option value="Corporate Office">Corporate Office</option>
-                        <option value="University">University</option>
-                        <option value="Others">Others</option>
-                      </select>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }} className="form-grid">
+                    {activityOptions.map((opt) => {
+                      const isChecked = selectedActivities.includes(opt.id);
+                      return (
+                        <div
+                          key={opt.id}
+                          onClick={() => toggleActivity(opt.id)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.9rem",
+                            padding: "1rem 1.25rem",
+                            background: C.white,
+                            border: `2px solid ${C.dark}`,
+                            borderRadius: 16,
+                            cursor: "pointer",
+                            boxShadow: isChecked ? "4px 4px 0px #3b82f6" : "3px 3px 0px #000",
+                            transform: isChecked ? "translate(-2px, -2px)" : "none",
+                            transition: "all 0.15s ease",
+                            userSelect: "none"
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}}
+                            style={{
+                              width: 20,
+                              height: 20,
+                              accentColor: "#3b82f6",
+                              cursor: "pointer"
+                            }}
+                          />
+                          <span style={{ fontSize: 15, fontWeight: 800, color: C.dark }}>
+                            {opt.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* SPECIFY OTHER ACTIVITY INPUT */}
+                  {selectedActivities.includes("other") && (
+                    <div style={{ marginTop: "1.2rem", animation: "fadeIn 0.2s ease-in-out" }}>
+                      <label style={labelStyle}>Specify Other Activity Details *</label>
+                      <input
+                        type="text"
+                        required
+                        value={otherActivityText}
+                        onChange={(e) => setOtherActivityText(e.target.value)}
+                        style={inputStyle}
+                        className="form-input"
+                        placeholder="e.g. Poetry Workshop, Book Launch, Storytelling..."
+                      />
                     </div>
+                  )}
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "1.5rem" }} className="form-grid">
+                  <div>
+                    <label style={labelStyle}>Category *</label>
+                    <select 
+                      required 
+                      value={eventForm.category} 
+                      onChange={(e) => setEventForm({ ...eventForm, category: e.target.value })} 
+                      style={inputStyle} 
+                      className="form-input"
+                    >
+                      <option value="">Select Category</option>
+                      <option value="Housing Society">Housing Society</option>
+                      <option value="College">College</option>
+                      <option value="Book Fair">Book Fair</option>
+                      <option value="Corporate Office">Corporate Office</option>
+                      <option value="University">University</option>
+                      <option value="Others">Others</option>
+                    </select>
                   </div>
                   <div>
                     <label style={labelStyle}>Target Audience</label>

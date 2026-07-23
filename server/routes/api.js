@@ -19,14 +19,17 @@ const fs = require('fs');
 // Author Event Request (from Author Landing Page)
 router.post('/api/author-event-request', async (req, res) => {
   try {
-    const { name, email, phone, format, category, audience, proposedDate, proposedTime, location, description, organisationName, proposerName, designation } = req.body;
+    const { name, email, phone, format, category, audience, proposedDate, proposedTime, location, description, organisationName, proposerName, designation, activities } = req.body;
+
+    const eventActivitiesStr = activities || format || "N/A";
 
     // Save to existing ContactInquiry table to avoid requiring AWS database migrations
     const formattedMessage = `[EVENT REQUEST]
 Organisation: ${organisationName || "N/A"}
 Proposer: ${proposerName || "N/A"}
 Designation: ${designation || "N/A"}
-Format: ${format}
+Event Activities: ${eventActivitiesStr}
+Format: ${eventActivitiesStr}
 Category: ${category}
 Audience: ${audience || "N/A"}
 Date: ${proposedDate}
