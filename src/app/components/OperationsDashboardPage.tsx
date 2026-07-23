@@ -6071,12 +6071,16 @@ const totalAuthorsBase = eventRegistrations.length;
                                   const mrpToUse = book.overrideMrp !== undefined && book.overrideMrp !== "" ? parseFloat(book.overrideMrp) : book.mrp;
                                   
                                   let prevSold = 0;
-                                  for (let j = 0; j < i; j++) {
-                                     const dDate = new Date(selectedEventBreakdown?.date || new Date());
-                                     dDate.setDate(dDate.getDate() + j);
-                                     prevSold += (book.manualDailySales?.[dDate.toDateString()]?.sold || 0);
+                                  if (book.manualDailySales) {
+                                      const currentDayTime = new Date(baseDate.toDateString()).getTime();
+                                      Object.entries(book.manualDailySales).forEach(([dKey, dVal]: [string, any]) => {
+                                          const entryTime = new Date(dKey).getTime();
+                                          if (!isNaN(entryTime) && entryTime < currentDayTime) {
+                                              prevSold += (dVal.sold || 0);
+                                          }
+                                      });
                                   }
-                                  const startQty = i === 0 ? book.listedStock : Math.max(0, (book.listedStock || 0) - prevSold);
+                                  const startQty = Math.max(0, (book.listedStock || 0) - prevSold);
 
                                   return (
                                   <div key={bIdx} className="flex items-center justify-between gap-3 text-sm flex-wrap md:flex-nowrap">

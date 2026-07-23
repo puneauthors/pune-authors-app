@@ -25,9 +25,18 @@ export function LivePosDashboard() {
   const [selectedDay, setSelectedDay] = useState<string>('All');
 
   const uniqueDates = useMemo(() => {
-    if (!salesSummary?.posOrders) return [];
-    const dates = salesSummary.posOrders.map((o: any) => new Date(o.createdAt).toDateString());
-    return Array.from(new Set(dates)).sort((a: any, b: any) => new Date(a).getTime() - new Date(b).getTime());
+    const dates = new Set<string>();
+    if (salesSummary?.posOrders) {
+      salesSummary.posOrders.forEach((o: any) => dates.add(new Date(o.createdAt).toDateString()));
+    }
+    if (salesSummary?.eventBooks) {
+      salesSummary.eventBooks.forEach((eb: any) => {
+        if (eb.manualDailySales) {
+          Object.keys(eb.manualDailySales).forEach(d => dates.add(d));
+        }
+      });
+    }
+    return Array.from(dates).sort((a: any, b: any) => new Date(a).getTime() - new Date(b).getTime());
   }, [salesSummary]);
 
   const filteredOrders = useMemo(() => {
@@ -37,33 +46,61 @@ export function LivePosDashboard() {
   }, [salesSummary, selectedDay]);
 
   const filteredSummary = useMemo(() => {
-     let rev = 0;
-     let txns = 0;
-     let sold = 0;
-     filteredOrders.forEach((o: any) => {
-       rev += o.totalAmount;
-       txns += 1;
-       o.items.forEach((i: any) => sold += i.quantity);
-     });
-     return { totalRevenue: rev, totalTransactions: txns, totalBooksSold: sold };
+     let txns = filteredOrders.length;
+     // We will calculate rev and sold from filteredEventBooks instead to avoid double counting
+     return { totalTransactions: txns };
   }, [filteredOrders]);
 
   const filteredEventBooks = useMemo(() => {
      if (!salesSummary?.eventBooks) return [];
-     if (selectedDay === 'All') return salesSummary.eventBooks;
+     if (selectedDay === 'All') {
+         return salesSummary.eventBooks.map((eb: any) => {
+             // For 'All', we can just use the global soldStock and manualTotalRevenue or calculate from mrp
+             let revenue = 0;
+             if (eb.manualDailySales) {
+                 Object.values(eb.manualDailySales).forEach((d: any) => revenue += (d.revenue || 0));
+             } else {
+                 revenue = (eb.soldStock || 0) * (parseFloat(eb.overrideMrp || eb.book.mrp) || 0);
+             }
+             return { ...eb, daySold: eb.soldStock, totalSold: eb.soldStock, dayRevenue: revenue };
+         });
+     }
      
      return salesSummary.eventBooks.map((eb: any) => {
          let soldForDay = 0;
+         let revForDay = 0;
          filteredOrders.forEach((o: any) => {
              o.items.forEach((i: any) => {
                  if (i.bookId === eb.bookId) {
                      soldForDay += i.quantity;
+                     revForDay += (i.quantity * i.price);
                  }
              });
          });
-         return { ...eb, soldStock: soldForDay }; 
+         
+         // Use manualDailySales if available for this day as it overrides POS
+         if (eb.manualDailySales && eb.manualDailySales[selectedDay]) {
+             if (eb.manualDailySales[selectedDay].sold !== undefined) {
+                 soldForDay = eb.manualDailySales[selectedDay].sold;
+             }
+             if (eb.manualDailySales[selectedDay].revenue !== undefined) {
+                 revForDay = eb.manualDailySales[selectedDay].revenue;
+             }
+         }
+         
+         return { ...eb, daySold: soldForDay, dayRevenue: revForDay, totalSold: eb.soldStock }; 
      });
   }, [salesSummary, filteredOrders, selectedDay]);
+  
+  const displaySummary = useMemo(() => {
+      let rev = 0;
+      let sold = 0;
+      filteredEventBooks.forEach((eb: any) => {
+          rev += (eb.dayRevenue || 0);
+          sold += (eb.daySold || 0);
+      });
+      return { totalRevenue: rev, totalTransactions: filteredSummary.totalTransactions, totalBooksSold: sold };
+  }, [filteredEventBooks, filteredSummary]);
   const handleAddStock = async () => {
     if(!addStockBook) return;
     setIsAddingStock(true);
@@ -469,20 +506,20 @@ export function LivePosDashboard() {
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
                      <div className="bg-[#e4ebf5] p-3 rounded text-center border border-paa-navy/10 shadow-sm flex flex-col justify-center">
                         <div className="text-[10px] font-bold text-paa-navy uppercase tracking-widest mb-1">Revenue</div>
-                        <div className="text-xl font-serif text-paa-navy">₹{filteredSummary.totalRevenue}</div>
+                        <div className="text-xl font-serif text-paa-navy">₹{displaySummary.totalRevenue}</div>
                      </div>
                      <div className="bg-[#e4ebf5] p-3 rounded text-center border border-paa-navy/10 shadow-sm flex flex-col justify-center">
                         <div className="text-[10px] font-bold text-paa-navy uppercase tracking-widest mb-1">Txns</div>
-                        <div className="text-xl font-bold text-paa-navy">{filteredSummary.totalTransactions}</div>
+                        <div className="text-xl font-bold text-paa-navy">{displaySummary.totalTransactions}</div>
                      </div>
                      <div className="bg-[#e4ebf5] p-3 rounded text-center border border-paa-navy/10 shadow-sm flex flex-col justify-center">
                         <div className="text-[10px] font-bold text-paa-navy uppercase tracking-widest mb-1">Books Sold</div>
-                        <div className="text-xl font-bold text-paa-navy">{filteredSummary.totalBooksSold}</div>
-                        {filteredEventBooks.some((eb: any) => eb.soldStock > 0) && (
+                        <div className="text-xl font-bold text-paa-navy">{displaySummary.totalBooksSold}</div>
+                        {filteredEventBooks.some((eb: any) => eb.daySold > 0) && (
                           <div className="flex flex-wrap justify-center gap-1 mt-2">
-                             {filteredEventBooks.filter((eb: any) => eb.soldStock > 0).map((eb: any, idx: number) => (
+                             {filteredEventBooks.filter((eb: any) => eb.daySold > 0).map((eb: any, idx: number) => (
                                <span key={idx} className="bg-white text-paa-navy border border-paa-navy/20 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-widest">
-                                 {eb.soldStock}x {eb.book.title.length > 10 ? eb.book.title.substring(0, 10) + '...' : eb.book.title}
+                                 {eb.daySold}x {eb.book.title.length > 10 ? eb.book.title.substring(0, 10) + '...' : eb.book.title}
                                </span>
                              ))}
                           </div>
@@ -491,7 +528,7 @@ export function LivePosDashboard() {
                      <div className="bg-[#e4ebf5] p-3 rounded text-center border border-paa-navy/10 shadow-sm flex flex-col justify-center">
                         <div className="text-[10px] font-bold text-paa-navy uppercase tracking-widest mb-1">Inventory Left</div>
                         <div className="text-xl font-bold text-paa-navy">
-                           {filteredEventBooks.reduce((acc: number, eb: any) => acc + Math.max(0, eb.listedStock - eb.soldStock), 0)}
+                           {filteredEventBooks.reduce((acc: number, eb: any) => acc + Math.max(0, eb.listedStock - eb.totalSold), 0)}
                         </div>
                      </div>
                    </div>
@@ -509,11 +546,11 @@ export function LivePosDashboard() {
                              <div className="text-right flex gap-3">
                                <div className="text-center">
                                  <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Sold</div>
-                                 <div className="font-bold text-paa-navy">{eb.soldStock}</div>
+                                 <div className="font-bold text-paa-navy">{eb.daySold}</div>
                                </div>
                                <div className="text-center">
                                  <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Left</div>
-                                 <div className={`font-bold ${eb.listedStock - eb.soldStock > 0 ? 'text-green-700' : 'text-red-500'}`}>{eb.listedStock - eb.soldStock}</div>
+                                 <div className={`font-bold ${eb.listedStock - eb.totalSold > 0 ? 'text-green-700' : 'text-red-500'}`}>{eb.listedStock - eb.totalSold}</div>
                                </div>
                              </div>
                            </div>
