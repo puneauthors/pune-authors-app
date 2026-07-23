@@ -7209,10 +7209,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 </p>
                 <div className="text-2xl font-serif">
                   {
-                    allCombinedEvents.filter((e) => {
-                      const d = new Date(e.date).getTime();
-                      return isNaN(d) || d <= Date.now();
-                    }).length
+                    allCombinedEvents.filter(e => e.status !== "Rejected" && e.status !== "Pending Approval").length
                   }
                 </div>
               </div>
