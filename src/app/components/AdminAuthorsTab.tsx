@@ -225,7 +225,7 @@ const handleExportAuthorsCSV = async () => {
         </div>
 
         <div className="p-3 bg-gray-50/80 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-row gap-1.5 shrink-0">
+          <div className="flex flex-wrap sm:flex-nowrap gap-1.5">
             {(() => {
               const parseEd = (extraData: any) => typeof extraData === 'string' ? (() => { try { return JSON.parse(extraData); } catch (e) { return {}; } })() : (extraData || {});
               const counts = {

@@ -796,7 +796,7 @@ export function AuthorRegistrationPage({ initialData, isReapply = false, onReapp
                       >
                         <div
                           className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center mb-1 transition-all duration-300 shadow-sm
-                            ${i < step ? "bg-[#ebd8c0]0 text-white shadow-emerald-500/20" : i === step ? "bg-paa-gold text-paa-navy shadow-paa-gold/20" : "bg-gray-100 text-gray-400 group-hover:bg-gray-200"}`}
+                            ${i < step ? "bg-[#ebd8c0] text-paa-navy shadow-amber-500/20" : i === step ? "bg-paa-gold text-paa-navy shadow-paa-gold/20" : "bg-gray-100 text-gray-400 group-hover:bg-gray-200"}`}
                         >
                           {i < step ? <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-[18px] md:h-[18px]" /> : <span className="scale-[0.6] sm:scale-75 md:scale-100">{s.icon}</span>}
                         </div>
@@ -805,7 +805,7 @@ export function AuthorRegistrationPage({ initialData, isReapply = false, onReapp
                         </span>
                       </div>
                       {i < currentSteps.length - 1 && (
-                        <div className={`flex-1 h-0.5 mx-0.5 sm:mx-1 md:mx-2 min-w-[4px] transition-colors ${i < step ? "bg-[#ebd8c0]0" : "bg-gray-200"}`} />
+                        <div className={`flex-1 h-0.5 mx-0.5 sm:mx-1 md:mx-2 min-w-[4px] transition-colors ${i < step ? "bg-[#ebd8c0]" : "bg-gray-200"}`} />
                       )}
                     </Fragment>
                   ))}

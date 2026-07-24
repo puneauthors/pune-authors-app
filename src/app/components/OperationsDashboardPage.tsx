@@ -3333,15 +3333,14 @@ export function OperationsDashboardPage() {
 
     return (
       <div className="bg-white border border-paa-navy/5 shadow-premium hover:shadow-premium-hover hover:-translate-y-1 transition-all duration-500 ease-out flex flex-col">
-        <div className="p-4 border-b border-paa-navy/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#e6f2eb]">
+        <div className="p-4 border-b border-paa-navy/5 flex flex-col gap-3 bg-[#e6f2eb]">
           <div className="flex items-center gap-2">
             <h3 className="text-2xl font-serif font-semibold text-paa-navy tracking-tight">
               Book Catalogue
             </h3>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="flex flex-wrap bg-gray-100 rounded-3xl-2xl p-1">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <div className="flex flex-wrap sm:flex-nowrap bg-gray-100 rounded-xl p-1 gap-1 w-full sm:w-auto">
                 {["All", "Pending", "Approved", "Rejected"].map((status) => {
                   const tabCount =
                     status === "All"
@@ -3363,20 +3362,19 @@ export function OperationsDashboardPage() {
                   );
                 })}
               </div>
-              <div className="relative">
+              <div className="relative flex-1 sm:flex-none">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-paa-gray-text" />
                 <input
                   type="text"
                   placeholder="SEARCH BOOKS/AUTHORS..."
                   value={bookSearchTerm}
                   onChange={(e) => setBookSearchTerm(e.target.value)}
-                  className="pl-9 pr-4 py-2 bg-white border border-paa-navy/20 text-xs font-bold tracking-widest uppercase outline-none focus:border-paa-navy transition-colors w-64"
+                  className="pl-9 pr-4 py-2 bg-white border border-paa-navy/20 text-xs font-bold tracking-widest uppercase outline-none focus:border-paa-navy transition-colors w-full sm:w-56"
                 />
               </div>
-            </div>
             <button
               onClick={handleExportBookCatalogue}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-paa-navy/20 text-paa-navy bg-white hover:bg-paa-navy hover:text-white shadow-sm whitespace-nowrap"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-paa-navy/20 text-paa-navy bg-white hover:bg-paa-navy hover:text-white shadow-sm whitespace-nowrap shrink-0"
             >
               <Download className="w-4 h-4" /> Export Excel
             </button>
