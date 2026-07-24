@@ -1136,7 +1136,7 @@ export function LibraryDonationsTab() {
 
     return (
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex items-center justify-between mb-6 border-b pb-4">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 border-b pb-4 gap-4">
           <div>
             <h3 className="text-2xl font-serif text-paa-navy mb-1">{selectedDriveBreakdown.title}</h3>
             <p className="text-sm text-gray-500 font-medium">
@@ -1147,7 +1147,7 @@ export function LibraryDonationsTab() {
               <p className="text-sm text-gray-600 mt-2 max-w-3xl leading-relaxed">{selectedDriveBreakdown.description}</p>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button onClick={handleExportCampaignReport} className="dash-btn bg-[#ebd8c0] text-emerald-700 hover:bg-[#ebd8c0] border border-emerald-200 transition-colors shadow-sm flex items-center gap-2">
               <Download className="w-4 h-4" /> Download Report
             </button>
@@ -1234,7 +1234,7 @@ export function LibraryDonationsTab() {
           </div>
         </div>
 
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
           <div>
             <h4 className="font-bold text-gray-700">Author Registry</h4>
             <p className="text-xs text-gray-400 mt-0.5">Manage author registrations and dispatch details for this drive</p>
@@ -1242,7 +1242,7 @@ export function LibraryDonationsTab() {
           <input
             type="text"
             placeholder="Search authors..."
-            className="border border-gray-300 rounded-lg p-2 text-sm w-64 outline-none focus:border-paa-navy"
+            className="border border-gray-300 rounded-lg p-2 text-sm w-full md:w-64 outline-none focus:border-paa-navy"
             value={registrySearch}
             onChange={(e) => setRegistrySearch(e.target.value)}
           />
@@ -1254,7 +1254,7 @@ export function LibraryDonationsTab() {
           const uniqueNotRegisteredCount = adminAuthors.filter(a => !registrations.some(r => r.authorId === a.id)).length;
           
           return (
-            <div className="flex mb-6 bg-gray-100 p-1.5 rounded-2xl gap-2 w-max shadow-inner">
+            <div className="flex flex-wrap mb-6 bg-gray-100 p-1.5 rounded-2xl gap-2 w-full sm:w-max shadow-inner">
               <button
                 onClick={() => setBreakdownTab('All')}
                 className={`py-2.5 px-6 text-xs font-extrabold rounded-xl transition-all duration-300 ${breakdownTab === 'All'
