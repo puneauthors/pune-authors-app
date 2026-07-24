@@ -386,7 +386,7 @@ function WebOrdersTab({
           )}
         </div>
 
-        <div className="block w-full overflow-x-auto">
+        <div className="hidden md:block w-full overflow-x-auto">
           <table className="dash-table w-full table-auto xl:table-fixed min-w-[900px] xl:min-w-0">
             <thead>
               <tr className="bg-indigo-50 border-b-2 border-indigo-100">
