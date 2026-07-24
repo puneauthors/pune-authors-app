@@ -2920,18 +2920,21 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
     };
 
     const processItem = (date, channel, eventName, authorName, title, qty, price, orderId) => {
-      const dateStr = date.toISOString().split('T')[0];
+      const fullDateStr = date.toISOString().split('T')[0];
+      const monthStr = date.toISOString().slice(0, 7);
+      const chartDateStr = (filterType === 'ytd' || filterType === 'lifetime') ? monthStr : fullDateStr;
+
       const rev = qty * price;
 
       totalRevenue += rev;
       totalBooksSold += qty;
 
-      if (!chartDataMap[dateStr]) chartDataMap[dateStr] = { date: dateStr, revenue: 0, books: 0 };
-      chartDataMap[dateStr].revenue += rev;
-      chartDataMap[dateStr].books += qty;
+      if (!chartDataMap[chartDateStr]) chartDataMap[chartDateStr] = { date: chartDateStr, revenue: 0, books: 0 };
+      chartDataMap[chartDateStr].revenue += rev;
+      chartDataMap[chartDateStr].books += qty;
 
       tableData.push({
-        date: dateStr,
+        date: fullDateStr,
         orderId,
         channel,
         event: eventName,
@@ -2995,11 +2998,14 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
         if (qty > 0 || rev > 0) {
           totalRevenue += rev;
           totalBooksSold += qty;
-          const dateStr = evtDate.toISOString().split('T')[0];
+          
+          const fullDateStr = evtDate.toISOString().split('T')[0];
+          const monthStr = evtDate.toISOString().slice(0, 7);
+          const chartDateStr = (filterType === 'ytd' || filterType === 'lifetime') ? monthStr : fullDateStr;
 
-          if (!chartDataMap[dateStr]) chartDataMap[dateStr] = { date: dateStr, revenue: 0, books: 0 };
-          chartDataMap[dateStr].revenue += rev;
-          chartDataMap[dateStr].books += qty;
+          if (!chartDataMap[chartDateStr]) chartDataMap[chartDateStr] = { date: chartDateStr, revenue: 0, books: 0 };
+          chartDataMap[chartDateStr].revenue += rev;
+          chartDataMap[chartDateStr].books += qty;
 
           channelDataMap[channelName] += rev;
           kpiSplits[kpiKey].revenue += rev;
@@ -3008,7 +3014,7 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
           totalOrders += 1;
 
           tableData.push({
-            date: dateStr,
+            date: fullDateStr,
             orderId: evt.name || `LEGACY-${evt.id}`,
             channel: channelName,
             event: evt.name,
