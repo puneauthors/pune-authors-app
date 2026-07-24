@@ -12,6 +12,14 @@ const { inr } = require('../utils/helpers');
 const path = require('path');
 const fs = require('fs');
 
+router.post('/api/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+  const url = `/uploads/${req.file.filename}`;
+  res.json({ success: true, url });
+});
+
 // --- BOOKS & AUTHORS ---
 
 // --- PUBLIC FORMS --- //
@@ -312,9 +320,11 @@ router.post('/api/authors/register', upload.any(), async (req, res) => {
       qualificationsArray.push({ qualification, institution, subject });
     }
 
-    let photoUrl = null, paymentScreenshotUrl = null, qrCodeUrl = null, certificateUrl = null;
+    let photoUrl = req.body.photoUrl || null, paymentScreenshotUrl = req.body.paymentScreenshotUrl || null, qrCodeUrl = req.body.qrCodeUrl || null, certificateUrl = req.body.certificateUrl || null;
     let covers = {};
     let backCovers = {};
+    if (req.body.covers) try { covers = JSON.parse(req.body.covers); } catch(e){}
+    if (req.body.backCovers) try { backCovers = JSON.parse(req.body.backCovers); } catch(e){}
     if (Array.isArray(req.files)) {
       for (const file of req.files) {
         if (file.fieldname === 'photo') photoUrl = `/uploads/${file.filename}`;
