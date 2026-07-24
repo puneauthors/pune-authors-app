@@ -1629,7 +1629,10 @@ router.get('/api/admin/books', verifyToken, isAdmin, async (req, res) => {
 
 router.delete('/api/admin/books/:id', verifyToken, isAdmin, async (req, res) => {
   try {
-    await prisma.book.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.book.update({ 
+      where: { id: parseInt(req.params.id) }, 
+      data: { isArchived: true, status: 'Archived' } 
+    });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed' });
@@ -2757,9 +2760,7 @@ router.put('/api/order-items/:id/author-approve', verifyToken, async (req, res) 
     }
 
     // Prevent negative inventory
-    if (orderItem.book.stock < orderItem.quantity) {
-      return res.status(400).json({ error: `Insufficient stock to approve. Available: ${orderItem.book.stock}` });
-    }
+    // (Removed because stock was already deducted at checkout. The author does not need double stock to click accept)
 
     const updated = await prisma.orderItem.update({
       where: { id: orderItemId },
@@ -3587,10 +3588,36 @@ router.get('/api/admin/orders', verifyToken, isAdmin, async (req, res) => {
 
 router.put('/api/admin/orders/:id/status', verifyToken, isAdmin, async (req, res) => {
   try {
+    const orderId = parseInt(req.params.id);
+    const { status } = req.body;
+    
+    // Fetch current order to check previous status
+    const currentOrder = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
+    if (!currentOrder) return res.status(404).json({ error: 'Order not found' });
+
+    // Update the order status
     const order = await prisma.order.update({
-      where: { id: parseInt(req.params.id) },
-      data: { status: req.body.status }
+      where: { id: orderId },
+      data: { status }
     });
+
+    // If changing to Cancelled or Rejected from a valid state, we must refund stock!
+    if ((status === 'Cancelled' || status === 'Rejected') && 
+        (currentOrder.status !== 'Cancelled' && currentOrder.status !== 'Rejected')) {
+      for (const item of currentOrder.items) {
+        if (item.status !== 'Dispatched' && item.status !== 'Completed' && item.status !== 'Rejected' && item.status !== 'Cancelled') {
+          await prisma.book.update({
+            where: { id: item.bookId },
+            data: { stock: { increment: item.quantity } }
+          });
+          await prisma.orderItem.update({
+            where: { id: item.id },
+            data: { status: 'Cancelled' }
+          });
+        }
+      }
+    }
+
     res.json(order);
   } catch (err) {
     res.status(500).json({ error: 'Failed' });
@@ -3602,7 +3629,9 @@ router.put('/api/order-items/:id/status', verifyToken, async (req, res) => {
     let { status } = req.body;
 
     // Check if buyer has already submitted feedback
-    const existing = await prisma.orderItem.findUnique({ where: { id: parseInt(req.params.id) } });
+    const existing = await prisma.orderItem.findUnique({ where: { id: parseInt(req.params.id) }, include: { book: true } });
+    if (!existing) return res.status(404).json({ error: 'Order item not found' });
+
     if (status === 'Delivered' && existing.feedbackRating != null) {
       status = 'Completed';
     }
@@ -3614,6 +3643,15 @@ router.put('/api/order-items/:id/status', verifyToken, async (req, res) => {
       updateData.acceptedAt = new Date();
     } else if (status === 'Dispatched') {
       updateData.dispatchedAt = new Date();
+    }
+
+    // Refund stock if cancelled/rejected by admin manually
+    if ((status === 'Cancelled' || status === 'Rejected') && 
+        (existing.status !== 'Cancelled' && existing.status !== 'Rejected')) {
+       await prisma.book.update({
+          where: { id: existing.bookId },
+          data: { stock: { increment: existing.quantity } }
+       });
     }
 
     const orderItem = await prisma.orderItem.update({
@@ -3686,9 +3724,7 @@ router.put('/api/order-items/:id/accept', verifyToken, async (req, res) => {
       }
     }
 
-    if (existing.book.stock < existing.quantity) {
-      return res.status(400).json({ error: 'Insufficient stock' });
-    }
+    // Removed existing.book.stock < existing.quantity check. Stock was already deducted at order creation.
 
     const orderItem = await prisma.orderItem.update({
       where: { id: parseInt(req.params.id) },
