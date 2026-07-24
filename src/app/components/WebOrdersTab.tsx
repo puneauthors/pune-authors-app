@@ -100,6 +100,14 @@ function WebOrdersTab({
       if (anyRejected) return { text: 'Rejected', style: 'bg-red-500 text-white border-transparent shadow-md' };
     }
 
+    if (ord.isBulk) {
+      if (ordStatus === 'Bulk Request Pending') return { text: 'Bulk Req Pending', style: 'bg-amber-500 text-white border-transparent shadow-md' };
+      if (ordStatus === 'Approved - Pending Payment') return { text: 'Pending Payment', style: 'bg-indigo-500 text-white border-transparent shadow-md' };
+      if (ordStatus === 'Payment Verified') return { text: 'Payment Verified', style: 'bg-emerald-500 text-white border-transparent shadow-md' };
+      if (ordStatus === 'Dispatched') return { text: 'Dispatched', style: 'bg-blue-500 text-white border-transparent shadow-md' };
+      if (ordStatus === 'Delivered' || ordStatus === 'Completed') return { text: 'Delivered', style: 'bg-green-500 text-white border-transparent shadow-md' };
+    }
+
     if (ordStatus === 'Pending Verification' || ordStatus === 'Pending') {
       return { text: 'Pending Verification', style: 'bg-yellow-400 text-black border-transparent shadow-md' };
     }
@@ -383,11 +391,11 @@ function WebOrdersTab({
             <thead>
               <tr className="bg-indigo-50 border-b-2 border-indigo-100">
                 <th className="w-[5%] !text-indigo-800 !bg-transparent !text-[14px]">S.No</th>
-                <th className="w-1/6 !text-indigo-800 !bg-transparent !text-[14px]">Order ID & Date</th>
-                <th className="w-1/5 !text-indigo-800 !bg-transparent !text-[14px]">Customer</th>
-                <th className="w-[28%] !text-indigo-800 !bg-transparent !text-[14px]">Items / Books</th>
+                <th className="w-[15%] !text-indigo-800 !bg-transparent !text-[14px]">Order ID & Date</th>
+                <th className="w-[15%] !text-indigo-800 !bg-transparent !text-[14px]">Customer</th>
+                <th className="w-[30%] !text-indigo-800 !bg-transparent !text-[14px]">Items / Books</th>
                 <th className="w-[10%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Amount</th>
-                <th className="w-[12%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Status</th>
+                <th className="w-[15%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Status</th>
                 <th className="w-[10%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
@@ -417,9 +425,33 @@ function WebOrdersTab({
                       <td style={{ textAlign: 'center' }} className="font-bold text-paa-navy">₹{ord.total}</td>
                       <td style={{ textAlign: 'center' }}>
                         <div className="flex flex-col items-center justify-center gap-1">
-                          <span className={`inline-flex items-center justify-center w-full px-2 py-1 text-[9px] font-bold uppercase tracking-widest rounded-full border ${getAggregateStatus(ord).style}`}>
-                            {statusText}
-                          </span>
+                          {ord.isBulk ? (
+                            <select
+                              value={statusText}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                const val = e.target.value;
+                                if (statusText === 'Bulk Request Pending' && val === 'Approved - Pending Payment') {
+                                  handleApproveBulk(ord.dbId);
+                                } else {
+                                  handleUpdateBulkStatus(ord.dbId, val, `Change bulk order status to ${val}?`);
+                                }
+                              }}
+                              className={`w-full text-[9px] font-bold uppercase tracking-widest px-2 py-1.5 rounded-full border text-center outline-none cursor-pointer appearance-none ${getAggregateStatus(ord).style}`}
+                            >
+                              <option value="Bulk Request Pending" className="bg-white text-gray-800">Bulk Req Pending</option>
+                              <option value="Approved - Pending Payment" className="bg-white text-gray-800">Pending Payment</option>
+                              <option value="Payment Verified" className="bg-white text-gray-800">Payment Verified</option>
+                              <option value="Dispatched" className="bg-white text-gray-800">Dispatched</option>
+                              <option value="Delivered" className="bg-white text-gray-800">Delivered</option>
+                              <option value="Cancelled" className="bg-white text-gray-800">Cancelled</option>
+                            </select>
+                          ) : (
+                            <span className={`inline-flex items-center justify-center w-full px-2 py-1 text-[9px] font-bold uppercase tracking-widest rounded-full border ${getAggregateStatus(ord).style}`}>
+                              {statusText}
+                            </span>
+                          )}
                           {['Dispatched', 'Delivered', 'Completed'].includes(statusText) && ord.items.some((it: any) => it.dispatchedAt) && (
                             <span className="text-[9px] text-gray-500 font-bold tracking-wider uppercase">
                               Disp: {new Date(Math.max(...ord.items.filter((it: any) => it.dispatchedAt).map((it: any) => new Date(it.dispatchedAt).getTime()))).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
@@ -435,32 +467,32 @@ function WebOrdersTab({
                       <td style={{ textAlign: 'center' }}>
                         <div className="flex items-center justify-center gap-2">
                           {ord.isBulk && statusText === 'Bulk Request Pending' && (
-                            <button onClick={(e) => { e.stopPropagation(); handleApproveBulk(ord.dbId); }} className="p-1.5 rounded-full hover:bg-green-50 text-green-500 transition-colors" title="Approve Bulk Order">
-                              <CheckCircle2 size={16} />
+                            <button onClick={(e) => { e.stopPropagation(); handleApproveBulk(ord.dbId); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-indigo-600 text-white border-none rounded shadow hover:bg-indigo-700 transition-colors" title="Approve Bulk Order">
+                              Approve Request
                             </button>
                           )}
                           {ord.isBulk && statusText === 'Approved - Pending Payment' && (
-                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Payment Verified', 'Verify Payment for this bulk order?'); }} className="p-1.5 rounded-full hover:bg-green-50 text-green-600 transition-colors" title="Verify Payment">
-                              <CheckCircle2 size={16} />
+                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Payment Verified', 'Verify Payment for this bulk order?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-emerald-600 text-white border-none rounded shadow hover:bg-emerald-700 transition-colors" title="Verify Payment">
+                              Verify Payment
                             </button>
                           )}
                           {ord.isBulk && statusText === 'Payment Verified' && (
-                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Dispatched', 'Mark this bulk order as Dispatched?'); }} className="p-1.5 rounded-full hover:bg-blue-50 text-blue-500 transition-colors" title="Mark as Dispatched">
-                              <Truck size={16} />
+                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Dispatched', 'Mark this bulk order as Dispatched?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-blue-600 text-white border-none rounded shadow hover:bg-blue-700 transition-colors" title="Mark as Dispatched">
+                              Dispatch
                             </button>
                           )}
                           {ord.isBulk && statusText === 'Dispatched' && (
-                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Delivered', 'Mark this bulk order as Delivered?'); }} className="p-1.5 rounded-full hover:bg-purple-50 text-purple-500 transition-colors" title="Mark as Delivered">
-                              <PackageCheck size={16} />
+                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Delivered', 'Mark this bulk order as Delivered?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-purple-600 text-white border-none rounded shadow hover:bg-purple-700 transition-colors" title="Mark as Delivered">
+                              Deliver
                             </button>
                           )}
                           {!ord.isBulk && statusText === 'Pending Verification' && (
                             <>
-                              <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Accepted', 'Accept this Web Order?'); }} className="p-1.5 rounded-full hover:bg-purple-50 text-purple-600 transition-colors" title="Accept Order">
-                                <CheckCircle2 size={16} />
+                              <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Accepted', 'Accept this Web Order?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-purple-600 text-white border-none rounded shadow hover:bg-purple-700 transition-colors" title="Accept Order">
+                                Accept
                               </button>
-                              <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Rejected', 'Reject this Web Order?'); }} className="p-1.5 rounded-full hover:bg-red-50 text-red-600 transition-colors" title="Reject Order">
-                                <XCircle size={16} />
+                              <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Rejected', 'Reject this Web Order?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-red-600 text-white border-none rounded shadow hover:bg-red-700 transition-colors" title="Reject Order">
+                                Reject
                               </button>
                             </>
                           )}
@@ -629,9 +661,33 @@ function WebOrdersTab({
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className={`text-[9px] px-2 py-1 rounded-full font-bold uppercase tracking-widest border ${getAggregateStatus(ord).style}`}>
-                      {statusText}
-                    </span>
+                    {ord.isBulk ? (
+                      <select
+                        value={statusText}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          const val = e.target.value;
+                          if (statusText === 'Bulk Request Pending' && val === 'Approved - Pending Payment') {
+                            handleApproveBulk(ord.dbId);
+                          } else {
+                            handleUpdateBulkStatus(ord.dbId, val, `Change bulk order status to ${val}?`);
+                          }
+                        }}
+                        className={`text-[9px] px-2 py-1.5 rounded-full font-bold uppercase tracking-widest border text-center outline-none cursor-pointer appearance-none ${getAggregateStatus(ord).style}`}
+                      >
+                        <option value="Bulk Request Pending" className="bg-white text-gray-800">Bulk Req Pending</option>
+                        <option value="Approved - Pending Payment" className="bg-white text-gray-800">Pending Payment</option>
+                        <option value="Payment Verified" className="bg-white text-gray-800">Payment Verified</option>
+                        <option value="Dispatched" className="bg-white text-gray-800">Dispatched</option>
+                        <option value="Delivered" className="bg-white text-gray-800">Delivered</option>
+                        <option value="Cancelled" className="bg-white text-gray-800">Cancelled</option>
+                      </select>
+                    ) : (
+                      <span className={`text-[9px] px-2 py-1 rounded-full font-bold uppercase tracking-widest border ${getAggregateStatus(ord).style}`}>
+                        {statusText}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -650,32 +706,32 @@ function WebOrdersTab({
                   <div className="text-base font-black text-indigo-600">₹{ord.total}</div>
                   <div className="flex items-center gap-2">
                     {ord.isBulk && statusText === 'Bulk Request Pending' && (
-                      <button onClick={(e) => { e.stopPropagation(); handleApproveBulk(ord.dbId); }} className="p-1.5 rounded-full hover:bg-green-50 text-green-500 transition-colors" title="Approve Bulk Order">
-                        <CheckCircle2 size={16} />
+                      <button onClick={(e) => { e.stopPropagation(); handleApproveBulk(ord.dbId); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-indigo-600 text-white border-none rounded shadow hover:bg-indigo-700 transition-colors" title="Approve Bulk Order">
+                        Approve Request
                       </button>
                     )}
                     {ord.isBulk && statusText === 'Approved - Pending Payment' && (
-                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Payment Verified', 'Verify Payment for this bulk order?'); }} className="p-1.5 rounded-full hover:bg-green-50 text-green-600 transition-colors" title="Verify Payment">
-                        <CheckCircle2 size={16} />
+                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Payment Verified', 'Verify Payment for this bulk order?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-emerald-600 text-white border-none rounded shadow hover:bg-emerald-700 transition-colors" title="Verify Payment">
+                        Verify Payment
                       </button>
                     )}
                     {ord.isBulk && statusText === 'Payment Verified' && (
-                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Dispatched', 'Mark this bulk order as Dispatched?'); }} className="p-1.5 rounded-full hover:bg-blue-50 text-blue-500 transition-colors" title="Mark as Dispatched">
-                        <Truck size={16} />
+                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Dispatched', 'Mark this bulk order as Dispatched?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-blue-600 text-white border-none rounded shadow hover:bg-blue-700 transition-colors" title="Mark as Dispatched">
+                        Dispatch
                       </button>
                     )}
                     {ord.isBulk && statusText === 'Dispatched' && (
-                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Delivered', 'Mark this bulk order as Delivered?'); }} className="p-1.5 rounded-full hover:bg-purple-50 text-purple-500 transition-colors" title="Mark as Delivered">
-                        <PackageCheck size={16} />
+                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Delivered', 'Mark this bulk order as Delivered?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-purple-600 text-white border-none rounded shadow hover:bg-purple-700 transition-colors" title="Mark as Delivered">
+                        Deliver
                       </button>
                     )}
                     {!ord.isBulk && statusText === 'Pending Verification' && (
                       <>
-                        <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Accepted', 'Accept this Web Order?'); }} className="p-1.5 rounded-full hover:bg-purple-50 text-purple-600 transition-colors" title="Accept Order">
-                          <CheckCircle2 size={16} />
+                        <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Accepted', 'Accept this Web Order?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-purple-600 text-white border-none rounded shadow hover:bg-purple-700 transition-colors" title="Accept Order">
+                          Accept
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Rejected', 'Reject this Web Order?'); }} className="p-1.5 rounded-full hover:bg-red-50 text-red-600 transition-colors" title="Reject Order">
-                          <XCircle size={16} />
+                        <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Rejected', 'Reject this Web Order?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-red-600 text-white border-none rounded shadow hover:bg-red-700 transition-colors" title="Reject Order">
+                          Reject
                         </button>
                       </>
                     )}
