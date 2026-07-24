@@ -246,9 +246,21 @@ export const AuthorFullProfileView = ({ author, onBack }: { author: any, onBack:
                      <td className="font-medium text-paa-navy">{o.bookTitle}</td>
                      <td style={{textAlign: 'center'}} className="font-bold text-paa-navy">{o.quantity} <span className="text-gray-400 font-medium px-1">/</span> ₹{o.amount}</td>
                      <td style={{textAlign: 'center'}}>
-                        <span className={`dash-badge ${o.status === 'Completed' ? 'approved' : 'pending'}`}>
-                          {o.status}
-                        </span>
+                        <div className="flex flex-col items-center justify-center gap-1">
+                          <span className={`dash-badge ${o.status === 'Completed' ? 'approved' : o.status === 'Dispatched' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'pending'}`}>
+                            {o.status}
+                          </span>
+                          {(o.status === 'Dispatched') && o.dispatchedAt && (
+                            <span className="text-[9px] text-gray-500 font-bold tracking-wider uppercase">
+                              {new Date(o.dispatchedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                            </span>
+                          )}
+                          {(o.status === 'Delivered' || o.status === 'Completed') && o.deliveredAt && (
+                            <span className="text-[9px] text-gray-500 font-bold tracking-wider uppercase">
+                              {new Date(o.deliveredAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                            </span>
+                          )}
+                        </div>
                      </td>
                      <td style={{textAlign: 'center'}}>
                         {o.paymentVerified ? <span className="dash-badge approved"><Check size={10}/> Verified</span> : o.paymentFailed ? <span className="dash-badge rejected"><XCircle size={10}/> Failed</span> : <span className="dash-badge pending">Pending</span>}

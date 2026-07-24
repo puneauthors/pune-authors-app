@@ -416,9 +416,21 @@ function WebOrdersTab({
                       </td>
                       <td style={{ textAlign: 'center' }} className="font-bold text-paa-navy">₹{ord.total}</td>
                       <td style={{ textAlign: 'center' }}>
-                        <span className={`inline-flex items-center justify-center w-full px-2 py-1 text-[9px] font-bold uppercase tracking-widest rounded-full border ${getAggregateStatus(ord).style}`}>
-                          {statusText}
-                        </span>
+                        <div className="flex flex-col items-center justify-center gap-1">
+                          <span className={`inline-flex items-center justify-center w-full px-2 py-1 text-[9px] font-bold uppercase tracking-widest rounded-full border ${getAggregateStatus(ord).style}`}>
+                            {statusText}
+                          </span>
+                          {['Dispatched', 'Delivered', 'Completed'].includes(statusText) && ord.items.some((it: any) => it.dispatchedAt) && (
+                            <span className="text-[9px] text-gray-500 font-bold tracking-wider uppercase">
+                              Disp: {new Date(Math.max(...ord.items.filter((it: any) => it.dispatchedAt).map((it: any) => new Date(it.dispatchedAt).getTime()))).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                            </span>
+                          )}
+                          {['Delivered', 'Completed'].includes(statusText) && ord.items.some((it: any) => it.deliveredAt) && (
+                            <span className="text-[9px] text-gray-500 font-bold tracking-wider uppercase">
+                              Del: {new Date(Math.max(...ord.items.filter((it: any) => it.deliveredAt).map((it: any) => new Date(it.deliveredAt).getTime()))).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <div className="flex items-center justify-center gap-2">
@@ -486,6 +498,31 @@ function WebOrdersTab({
                                     </ul>
                                   </div>
                                 )}
+                                <div className="mt-4 border-t border-gray-100 pt-4 space-y-2">
+                                  <h5 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Order Timeline</h5>
+                                  <div className="flex justify-between items-center text-xs">
+                                    <span className="text-gray-500 font-medium">Placed On</span>
+                                    <span className="font-bold text-paa-navy">{new Date(ord.date).toLocaleString('en-IN')}</span>
+                                  </div>
+                                  {ord.items.some((it: any) => it.acceptedAt) && (
+                                    <div className="flex justify-between items-center text-xs">
+                                      <span className="text-gray-500 font-medium">Accepted</span>
+                                      <span className="font-bold text-paa-navy">{new Date(Math.max(...ord.items.filter((it: any) => it.acceptedAt).map((it: any) => new Date(it.acceptedAt).getTime()))).toLocaleString('en-IN')}</span>
+                                    </div>
+                                  )}
+                                  {ord.items.some((it: any) => it.dispatchedAt) && (
+                                    <div className="flex justify-between items-center text-xs">
+                                      <span className="text-gray-500 font-medium">Dispatched</span>
+                                      <span className="font-bold text-paa-navy">{new Date(Math.max(...ord.items.filter((it: any) => it.dispatchedAt).map((it: any) => new Date(it.dispatchedAt).getTime()))).toLocaleString('en-IN')}</span>
+                                    </div>
+                                  )}
+                                  {ord.items.some((it: any) => it.deliveredAt) && (
+                                    <div className="flex justify-between items-center text-xs">
+                                      <span className="text-gray-500 font-medium">Delivered</span>
+                                      <span className="font-bold text-green-600">{new Date(Math.max(...ord.items.filter((it: any) => it.deliveredAt).map((it: any) => new Date(it.deliveredAt).getTime()))).toLocaleString('en-IN')}</span>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
 
@@ -580,10 +617,22 @@ function WebOrdersTab({
                   <div>
                     <p className="font-bold text-paa-navy text-sm">{ord.id}</p>
                     <p className="text-[10px] text-paa-gray-text flex items-center gap-1 font-medium"><CalendarIcon className="w-3 h-3" /> {ord.date}</p>
+                    {['Dispatched', 'Delivered', 'Completed'].includes(statusText) && ord.items.some((it: any) => it.dispatchedAt) && (
+                      <span className="text-[10px] text-gray-500 font-bold uppercase block">
+                        Disp: {new Date(Math.max(...ord.items.filter((it: any) => it.dispatchedAt).map((it: any) => new Date(it.dispatchedAt).getTime()))).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                      </span>
+                    )}
+                    {['Delivered', 'Completed'].includes(statusText) && ord.items.some((it: any) => it.deliveredAt) && (
+                      <span className="text-[10px] text-gray-500 font-bold uppercase block">
+                        Del: {new Date(Math.max(...ord.items.filter((it: any) => it.deliveredAt).map((it: any) => new Date(it.deliveredAt).getTime()))).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                      </span>
+                    )}
                   </div>
-                  <span className={`text-[9px] px-2 py-1 rounded-full font-bold uppercase tracking-widest border ${getAggregateStatus(ord).style}`}>
-                    {statusText}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`text-[9px] px-2 py-1 rounded-full font-bold uppercase tracking-widest border ${getAggregateStatus(ord).style}`}>
+                      {statusText}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <p className="text-[10px] text-paa-gray-text font-bold uppercase tracking-widest mb-0.5">Customer</p>
@@ -657,6 +706,31 @@ function WebOrdersTab({
                           </ul>
                         </div>
                       )}
+                      <div className="mt-4 border-t border-gray-100 pt-4 space-y-2">
+                        <h5 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Order Timeline</h5>
+                        <div className="flex justify-between items-center text-[11px]">
+                          <span className="text-gray-500 font-medium">Placed On</span>
+                          <span className="font-bold text-paa-navy">{new Date(ord.date).toLocaleString('en-IN')}</span>
+                        </div>
+                        {ord.items.some((it: any) => it.acceptedAt) && (
+                          <div className="flex justify-between items-center text-[11px]">
+                            <span className="text-gray-500 font-medium">Accepted</span>
+                            <span className="font-bold text-paa-navy">{new Date(Math.max(...ord.items.filter((it: any) => it.acceptedAt).map((it: any) => new Date(it.acceptedAt).getTime()))).toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        {ord.items.some((it: any) => it.dispatchedAt) && (
+                          <div className="flex justify-between items-center text-[11px]">
+                            <span className="text-gray-500 font-medium">Dispatched</span>
+                            <span className="font-bold text-paa-navy">{new Date(Math.max(...ord.items.filter((it: any) => it.dispatchedAt).map((it: any) => new Date(it.dispatchedAt).getTime()))).toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        {ord.items.some((it: any) => it.deliveredAt) && (
+                          <div className="flex justify-between items-center text-[11px]">
+                            <span className="text-gray-500 font-medium">Delivered</span>
+                            <span className="font-bold text-green-600">{new Date(Math.max(...ord.items.filter((it: any) => it.deliveredAt).map((it: any) => new Date(it.deliveredAt).getTime()))).toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-1.5 text-xs">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-2">Bill Summary</p>

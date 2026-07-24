@@ -3882,67 +3882,79 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
                       <div className="flex flex-col gap-2 items-center w-full max-w-[120px] mx-auto">
                         
                         {/* Status Badge */}
-                        {ord.isBulk ? (
-                          <span className={`inline-flex items-center justify-center w-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest rounded-full border ${
-                            ord.orderStatus === 'Completed' || ord.orderStatus === 'Delivered' ? 'bg-[#43a047] text-white border-[#4cae4c]'
-                            : ord.orderStatus === 'Dispatched' ? 'bg-blue-50 text-blue-800 border-blue-200'
-                            : ord.orderStatus === 'Accepted' || ord.orderStatus === 'Processing' ? 'bg-gray-50 text-paa-navy border-gray-200'
-                            : ord.orderStatus === 'Rejected' ? 'bg-red-50 text-red-700 border-red-200'
-                            : 'bg-yellow-50 text-yellow-800 border-yellow-200'
-                          }`}>
-                            {ord.orderStatus === 'Completed' ? 'Delivered' : (ord.orderStatus || 'Pending')}
-                          </span>
-                        ) : ord.status === 'Pending Verification' || ord.status === 'Pending' ? (
-                          <span className="inline-flex items-center justify-center w-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest rounded-full border bg-yellow-50 text-yellow-800 border-yellow-200">
-                            Pending
-                          </span>
-                        ) : (
-                          <>
-                            {editingStatusOrderId === String(ord.orderId) ? (
-                              <select
-                                className={`text-[9px] py-1.5 px-2 uppercase font-bold w-full text-center rounded-full border shadow-sm outline-none cursor-pointer ${ord.status === 'Completed' ? 'bg-[#43a047] text-white border-[#4cae4c]'
-                                    : ord.status === 'Dispatched' ? 'bg-white text-blue-800 border-blue-200'
-                                      : ord.status === 'Accepted' ? 'bg-[#eef2f6] text-paa-navy border-[#8faadc]'
-                                        : ord.status === 'Rejected' ? 'bg-red-50 text-red-700 border-red-200'
-                                          : 'bg-yellow-50 text-yellow-800 border-yellow-200'
+                        <div className="flex flex-col items-center justify-center gap-1 w-full">
+                          {ord.isBulk ? (
+                            <span className={`inline-flex items-center justify-center w-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest rounded-full border ${
+                              ord.orderStatus === 'Completed' || ord.orderStatus === 'Delivered' ? 'bg-[#43a047] text-white border-[#4cae4c]'
+                              : ord.orderStatus === 'Dispatched' ? 'bg-blue-50 text-blue-800 border-blue-200'
+                              : ord.orderStatus === 'Accepted' || ord.orderStatus === 'Processing' ? 'bg-gray-50 text-paa-navy border-gray-200'
+                              : ord.orderStatus === 'Rejected' ? 'bg-red-50 text-red-700 border-red-200'
+                              : 'bg-yellow-50 text-yellow-800 border-yellow-200'
+                            }`}>
+                              {ord.orderStatus === 'Completed' ? 'Delivered' : (ord.orderStatus || 'Pending')}
+                            </span>
+                          ) : ord.status === 'Pending Verification' || ord.status === 'Pending' ? (
+                            <span className="inline-flex items-center justify-center w-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest rounded-full border bg-yellow-50 text-yellow-800 border-yellow-200">
+                              Pending
+                            </span>
+                          ) : (
+                            <>
+                              {editingStatusOrderId === String(ord.orderId) ? (
+                                <select
+                                  className={`text-[9px] py-1.5 px-2 uppercase font-bold w-full text-center rounded-full border shadow-sm outline-none cursor-pointer ${ord.status === 'Completed' ? 'bg-[#43a047] text-white border-[#4cae4c]'
+                                      : ord.status === 'Dispatched' ? 'bg-white text-blue-800 border-blue-200'
+                                        : ord.status === 'Accepted' ? 'bg-[#eef2f6] text-paa-navy border-[#8faadc]'
+                                          : ord.status === 'Rejected' ? 'bg-red-50 text-red-700 border-red-200'
+                                            : 'bg-yellow-50 text-yellow-800 border-yellow-200'
+                                    }`}
+                                  value={ord.status === 'Completed' ? 'Delivered' : ord.status}
+                                  disabled={loadingAction !== null}
+                                  onChange={(e) => {
+                                    handleStatusChange(ord.itemIds, e.target.value);
+                                    setEditingStatusOrderId(null);
+                                  }}
+                                  onBlur={() => setEditingStatusOrderId(null)}
+                                  autoFocus
+                                >
+                                  <option value="Accepted">Accepted</option>
+                                  <option value="Dispatched">Dispatched</option>
+                                </select>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    if (ord.status !== 'Rejected' && ord.status !== 'Completed' && ord.status !== 'Delivered') {
+                                      setEditingStatusOrderId(String(ord.orderId));
+                                    }
+                                  }}
+                                  disabled={ord.status === 'Rejected' || ord.status === 'Completed' || ord.status === 'Delivered'}
+                                  className={`group flex items-center justify-between w-full px-3 py-1.5 rounded-full border transition-all ${
+                                    ord.status === 'Completed' ? 'bg-[#43a047] text-white border-[#4cae4c] cursor-default'
+                                    : ord.status === 'Dispatched' ? 'bg-blue-50 text-blue-800 border-blue-200  cursor-pointer'
+                                    : ord.status === 'Accepted' ? 'bg-gray-50 text-paa-navy border-gray-200 hover:bg-gray-100 cursor-pointer'
+                                    : ord.status === 'Rejected' ? 'bg-red-50 text-red-700 border-red-200 cursor-default'
+                                    : 'bg-yellow-50 text-yellow-800 border-yellow-200 cursor-default'
                                   }`}
-                                value={ord.status === 'Completed' ? 'Delivered' : ord.status}
-                                disabled={loadingAction !== null}
-                                onChange={(e) => {
-                                  handleStatusChange(ord.itemIds, e.target.value);
-                                  setEditingStatusOrderId(null);
-                                }}
-                                onBlur={() => setEditingStatusOrderId(null)}
-                                autoFocus
-                              >
-                                <option value="Accepted">Accepted</option>
-                                <option value="Dispatched">Dispatched</option>
-                              </select>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  if (ord.status !== 'Rejected' && ord.status !== 'Completed' && ord.status !== 'Delivered') {
-                                    setEditingStatusOrderId(String(ord.orderId));
-                                  }
-                                }}
-                                disabled={ord.status === 'Rejected' || ord.status === 'Completed' || ord.status === 'Delivered'}
-                                className={`group flex items-center justify-between w-full px-3 py-1.5 rounded-full border transition-all ${
-                                  ord.status === 'Completed' ? 'bg-[#43a047] text-white border-[#4cae4c] cursor-default'
-                                  : ord.status === 'Dispatched' ? 'bg-blue-50 text-blue-800 border-blue-200  cursor-pointer'
-                                  : ord.status === 'Accepted' ? 'bg-gray-50 text-paa-navy border-gray-200 hover:bg-gray-100 cursor-pointer'
-                                  : ord.status === 'Rejected' ? 'bg-red-50 text-red-700 border-red-200 cursor-default'
-                                  : 'bg-yellow-50 text-yellow-800 border-yellow-200 cursor-default'
-                                }`}
-                                title={ord.status !== 'Rejected' && ord.status !== 'Completed' && ord.status !== 'Delivered' ? 'Click to Edit Status' : ''}
-                              >
-                                <span className="text-[9px] font-bold uppercase tracking-widest mx-auto">{ord.status}</span>
-                                {ord.status !== 'Rejected' && ord.status !== 'Completed' && ord.status !== 'Delivered' && (
-                                  <Edit2 size={10} className="opacity-40 group-hover:opacity-100 transition-opacity shrink-0" />
-                                )}
-                              </button>
-                            )}
-                          </>
-                        )}
+                                  title={ord.status !== 'Rejected' && ord.status !== 'Completed' && ord.status !== 'Delivered' ? 'Click to Edit Status' : ''}
+                                >
+                                  <span className="text-[9px] font-bold uppercase tracking-widest mx-auto">{ord.status}</span>
+                                  {ord.status !== 'Rejected' && ord.status !== 'Completed' && ord.status !== 'Delivered' && (
+                                    <Edit2 size={10} className="opacity-40 group-hover:opacity-100 transition-opacity shrink-0" />
+                                  )}
+                                </button>
+                              )}
+                            </>
+                          )}
+                          {(ord.status === 'Dispatched' || ord.orderStatus === 'Dispatched' || ord.status === 'Delivered' || ord.status === 'Completed' || ord.orderStatus === 'Delivered' || ord.orderStatus === 'Completed') && ord.dispatchedAt && (
+                            <span className="text-[9px] text-gray-500 font-bold tracking-wider uppercase mt-0.5">
+                              Disp: {new Date(ord.dispatchedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                            </span>
+                          )}
+                          {(ord.status === 'Delivered' || ord.status === 'Completed' || ord.orderStatus === 'Delivered' || ord.orderStatus === 'Completed') && ord.deliveredAt && (
+                            <span className="text-[9px] text-gray-500 font-bold tracking-wider uppercase mt-0.5">
+                              Del: {new Date(ord.deliveredAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                            </span>
+                          )}
+                        </div>
                         
                         {/* Rejection Reason Text */}
                         {ord.status === 'Rejected' && ord.rejectionReason && (
