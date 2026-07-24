@@ -374,10 +374,10 @@ export function AuthorDashboardPage() {
 
   return (
     <>
-      {/* Late Delivery Fine Overlay */}
+      {/* Late Delivery Fine Banner */}
       {(isFineOverdue || showFineModal) && fineAmount > 0 && (
-        <div className="fixed inset-0 bg-[#1a1a2e]/90 backdrop-blur-md z-[9999] flex items-center justify-center p-4 pointer-events-auto">
-          <div className="bg-white p-8 rounded-3xl-2xl shadow-premium max-w-md w-full border border-red-100 text-center relative overflow-hidden animate-fade-in-up">
+        <div className="w-full bg-red-50 border-b-4 border-red-600 p-6 z-40 relative flex justify-center">
+          <div className="bg-white p-6 rounded-2xl shadow-md max-w-3xl w-full border border-red-100 text-center relative overflow-hidden animate-fade-in-up">
             {!isFineOverdue && (
               <button onClick={() => setShowFineModal(false)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 transition-colors">
                 <X size={16} />
@@ -385,45 +385,54 @@ export function AuthorDashboardPage() {
             )}
             {dashboardData?.authorProfile?.extraData?.fineStatus === 'Pending Verification' ? (
               <>
-                <div className="absolute top-0 left-0 w-full h-2 bg-green-500"></div>
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-6 h-6 text-green-600" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h2 className="text-xl font-serif text-paa-navy">Payment Under Review</h2>
                 </div>
-                <h2 className="text-2xl font-serif text-paa-navy mb-2">Payment Under Review</h2>
-                <p className="text-sm text-gray-600 mb-6">You have submitted your payment of <strong className="text-green-600">₹{dashboardData.authorProfile.extraData.lateFines}</strong>. Your payment is currently under review by an administrator.</p>
-                {isFineOverdue && <p className="text-sm text-red-500 mb-6 font-semibold">Your dashboard access will be restored once the payment is approved.</p>}
+                <p className="text-sm text-gray-600">You have submitted your payment of <strong className="text-green-600">₹{dashboardData.authorProfile.extraData.lateFines}</strong>. Your payment is currently under review by an administrator.</p>
+                {isFineOverdue && <p className="text-sm text-red-500 font-semibold mt-2">Please ensure you manage your pending orders below.</p>}
               </>
             ) : (
               <>
-                <div className="absolute top-0 left-0 w-full h-2 bg-red-600"></div>
-                <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-                <h2 className="text-2xl font-serif text-paa-navy mb-2">{isFineOverdue ? 'Account Restricted' : 'Pay Late Fine'}</h2>
-                <p className="text-sm text-gray-600 mb-6">You have an outstanding late delivery fine of <strong className="text-red-600">₹{dashboardData.authorProfile.extraData.lateFines}</strong>. {isFineOverdue ? 'Your dashboard access has been temporarily suspended until the fine is cleared.' : 'Please pay it to avoid dashboard suspension.'}</p>
-    
-                <div className="bg-orange-50 p-6 rounded-xl border border-orange-200 mb-6 relative">
-                  <img src={qrCode} alt="Payment QR" className="w-40 h-40 mx-auto rounded-xl shadow-sm mb-3 border border-orange-300" />
-                  <p className="text-xs font-bold text-orange-900 uppercase tracking-widest">Scan to pay ₹{dashboardData.authorProfile.extraData.lateFines}</p>
+                <div className="absolute top-0 left-0 w-full h-1 bg-red-600"></div>
+                <div className="flex flex-col items-center justify-center gap-2 mb-4">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-6 h-6 text-red-600" />
+                    <h2 className="text-xl font-serif text-paa-navy">Outstanding Late Fine</h2>
+                  </div>
+                  <p className="text-sm text-gray-600">You have an outstanding late delivery fine of <strong className="text-red-600">₹{dashboardData.authorProfile.extraData.lateFines}</strong>. {isFineOverdue ? 'Please pay it as soon as possible. Your dashboard access remains active so you can fulfill orders.' : 'Please pay it to avoid issues.'}</p>
                 </div>
     
-                <div className="text-left mb-6">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-paa-navy mb-2 block">Upload Payment Screenshot *</label>
-                  <input type="file" accept="image/*" className="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none focus:border-paa-navy bg-white" onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      setFineScreenshot(e.target.files[0]);
-                    } else {
-                      setFineScreenshot(null);
-                    }
-                  }} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                  <div className="bg-orange-50 p-4 rounded-xl border border-orange-200 relative flex flex-col items-center justify-center h-full">
+                    <img src={qrCode} alt="Payment QR" className="w-32 h-32 rounded-xl shadow-sm mb-3 border border-orange-300" />
+                    <p className="text-xs font-bold text-orange-900 uppercase tracking-widest">Scan to pay ₹{dashboardData.authorProfile.extraData.lateFines}</p>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="text-left">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-paa-navy mb-1 block">Upload Payment Screenshot *</label>
+                      <input type="file" accept="image/*" className="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none focus:border-paa-navy bg-white" onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setFineScreenshot(e.target.files[0]);
+                        } else {
+                          setFineScreenshot(null);
+                        }
+                      }} />
+                    </div>
+        
+                    <div className="text-left">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-paa-navy mb-1 block">Reason for Late Dispatch *</label>
+                      <textarea className="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none focus:border-paa-navy bg-white min-h-[60px]" placeholder="Please explain why the order was dispatched late..." value={fineReason} onChange={(e) => setFineReason(e.target.value)} />
+                    </div>
+        
+                    <button onClick={handlePayFine} disabled={isSubmittingFine || !fineScreenshot || !fineReason} className="w-full dash-btn dash-btn-primary bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white border-none py-2 text-sm">
+                      {isSubmittingFine ? 'Submitting...' : 'Submit Payment Screenshot'}
+                    </button>
+                  </div>
                 </div>
-    
-                <div className="text-left mb-6">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-paa-navy mb-2 block">Reason for Late Dispatch *</label>
-                  <textarea className="w-full border border-gray-300 rounded-lg p-2 text-xs outline-none focus:border-paa-navy bg-white min-h-[60px]" placeholder="Please explain why the order was dispatched late..." value={fineReason} onChange={(e) => setFineReason(e.target.value)} />
-                </div>
-    
-                <button onClick={handlePayFine} disabled={isSubmittingFine || !fineScreenshot || !fineReason} className="w-full dash-btn dash-btn-primary bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white border-none py-3">
-                  {isSubmittingFine ? 'Submitting...' : 'Submit Payment Screenshot'}
-                </button>
               </>
             )}
           </div>
@@ -1349,6 +1358,62 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
             <h3 className="text-2xl font-bold text-paa-navy">{kpi.value}</h3>
           </div>
         ))}
+      </div>
+
+      {/* ── Royalty & Bank Payout Reconciliation ── */}
+      <div className="dash-panel mb-8">
+        <div className="dash-panel-header">
+          <h3 className="dash-panel-title">Royalty & Bank Payout Reconciliation</h3>
+        </div>
+        <div className="p-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Gross Sales</p>
+              <h4 className="text-xl font-bold text-gray-900">₹{grossSales.toFixed(0)}</h4>
+            </div>
+            <div className="bg-red-50 rounded-xl p-4 border border-red-100 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-red-500 mb-1">Platform Commission</p>
+              <h4 className="text-xl font-bold text-red-600">-₹{(grossSales * (data?.authorProfile?.extraData?.commissionRate || 0.20)).toFixed(0)}</h4>
+            </div>
+            <div className="bg-orange-50 rounded-xl p-4 border border-orange-100 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-orange-500 mb-1">Total Fees Offset</p>
+              <h4 className="text-xl font-bold text-orange-600">-₹{totalFeesPaid.toFixed(0)}</h4>
+            </div>
+            <div className="bg-green-50 rounded-xl p-4 border border-green-100 text-center shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-green-600 mb-1">Net Payable Royalty</p>
+              <h4 className="text-2xl font-black text-green-700">₹{Math.max(0, grossSales - (grossSales * (data?.authorProfile?.extraData?.commissionRate || 0.20)) - totalFeesPaid).toFixed(0)}</h4>
+            </div>
+          </div>
+          
+          <div className="mt-6 border-t border-gray-100 pt-6">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-paa-navy mb-4">Recent Bank Payouts</h4>
+            {data?.authorProfile?.extraData?.payouts && data.authorProfile.extraData.payouts.length > 0 ? (
+              <div className="space-y-3">
+                {data.authorProfile.extraData.payouts.map((payout: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                        <Check size={16} className="text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">Transfer ID: {payout.transactionId}</p>
+                        <p className="text-xs text-gray-500">{new Date(payout.date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-green-600">₹{payout.amount}</p>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Processed</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-6 bg-gray-50 rounded-xl border border-gray-200 border-dashed">
+                <p className="text-sm text-gray-500">No bank payouts have been processed yet.</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* ── Library Donations KPI Cards ── */}

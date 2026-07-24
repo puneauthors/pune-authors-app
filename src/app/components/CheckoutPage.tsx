@@ -414,7 +414,7 @@ export function CheckoutPage() {
               <strong>Expected Delivery:</strong> Orders are typically delivered within <strong>10 days</strong>. There is no need to worry until then! If you haven't received your order after 10 days, a support ticket will be raised automatically.
             </div>
           <div style={{ marginBottom: "2.5rem", textAlign: "left" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 500, color: "#111", marginBottom: "1rem", borderBottom: "1px solid #eaeaea", paddingBottom: "0.5rem" }}>Contact Authors for Delivery Updates</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 500, color: "#111", marginBottom: "1rem", borderBottom: "1px solid #eaeaea", paddingBottom: "0.5rem" }}>Authors Processing Your Order</h3>
               <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
                 {authors.map((author: any) => (
                   <div key={author.id} style={{ background: "#fff", border: "1px solid #eaeaea", borderRadius: 4, padding: "1.5rem", display: "flex", flexDirection: "column", gap: "0.75rem", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
@@ -427,23 +427,9 @@ export function CheckoutPage() {
                         <div style={{ fontSize: 13, color: "#666" }}>Author</div>
                       </div>
                     </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
-                      {author.whatsapp && author.whatsapp !== 'NA' && (
-                        <a href={`https://wa.me/${author.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#16a34a", textDecoration: "none", fontSize: 14, fontWeight: 600, background: "#f0fdf4", padding: "0.5rem 1rem", borderRadius: 8 }}>
-                          <MessageSquare size={16} /> WhatsApp: {author.whatsapp}
-                        </a>
-                      )}
-                      {author.email && (
-                        <a href={`mailto:${author.email}`} style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#2563eb", textDecoration: "none", fontSize: 14, fontWeight: 600, background: "#eff6ff", padding: "0.5rem 1rem", borderRadius: 8 }}>
-                          <Mail size={16} /> {author.email}
-                        </a>
-                      )}
-                      {author.phone && author.phone !== 'NA' && (!author.whatsapp || author.whatsapp === 'NA') && (
-                        <a href={`tel:${author.phone}`} style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#475569", textDecoration: "none", fontSize: 14, fontWeight: 600, background: "#f1f5f9", padding: "0.5rem 1rem", borderRadius: 8 }}>
-                          <Phone size={16} /> Call: {author.phone}
-                        </a>
-                      )}
+                    
+                    <div style={{ marginTop: "0.5rem", fontSize: 13, color: "#666", background: "#f9fafb", padding: "0.75rem", borderRadius: 8, border: "1px solid #f3f4f6" }}>
+                      For privacy and security, direct author contact is disabled. If you face issues after 10 days, a support ticket will automatically be raised for you.
                     </div>
                   </div>
                 ))}
@@ -718,8 +704,10 @@ export function CheckoutPage() {
                         } else {
                           handleAddressSubmit();
                         }
-                      }} style={{ width: "100%", padding: "1rem", background: "#111", color: "#fff", borderRadius: 4, fontSize: 16, fontWeight: 500, cursor: "pointer", border: "none" }}>
-                        Proceed to Payment
+                      }} 
+                      disabled={currentGroupBooks.some((b: any) => b.stock <= 0 || (quantities[b.id] || 1) > b.stock)}
+                      style={{ width: "100%", padding: "1rem", background: currentGroupBooks.some((b: any) => b.stock <= 0 || (quantities[b.id] || 1) > b.stock) ? "#9ca3af" : "#111", color: "#fff", borderRadius: 4, fontSize: 16, fontWeight: 500, cursor: currentGroupBooks.some((b: any) => b.stock <= 0 || (quantities[b.id] || 1) > b.stock) ? "not-allowed" : "pointer", border: "none" }}>
+                        {currentGroupBooks.some((b: any) => b.stock <= 0 || (quantities[b.id] || 1) > b.stock) ? "Some items are out of stock" : "Proceed to Payment"}
                       </button>
                     </div>
                   </>
@@ -854,10 +842,10 @@ export function CheckoutPage() {
                     )}
                     <button
                       onClick={handlePay}
-                      disabled={uploading}
+                      disabled={uploading || currentGroupBooks.some((b: any) => b.stock <= 0 || (quantities[b.id] || 1) > b.stock)}
                       style={{
                         width: currentAuthorIndex === 0 ? "70%" : "100%",
-                        background: "#111",
+                        background: (uploading || currentGroupBooks.some((b: any) => b.stock <= 0 || (quantities[b.id] || 1) > b.stock)) ? "#9ca3af" : "#111",
                         color: "#fff",
                         border: "none",
                         padding: "1rem",
@@ -865,16 +853,15 @@ export function CheckoutPage() {
                         fontFamily: "var(--font-body)",
                         fontSize: 16,
                         fontWeight: 500,
-                        cursor: uploading ? "not-allowed" : "pointer",
+                        cursor: (uploading || currentGroupBooks.some((b: any) => b.stock <= 0 || (quantities[b.id] || 1) > b.stock)) ? "not-allowed" : "pointer",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         gap: "0.5rem",
-                        opacity: uploading ? 0.7 : 1,
                       }}
                     >
                       <Package size={18} />
-                      {uploading ? "Processing..." : `Pay & Continue (${currentAuthorIndex + 1}/${authorGroups.length})`}
+                      {uploading ? "Processing..." : currentGroupBooks.some((b: any) => b.stock <= 0 || (quantities[b.id] || 1) > b.stock) ? "Out of Stock" : `Pay & Continue (${currentAuthorIndex + 1}/${authorGroups.length})`}
                     </button>
                   </div>
                 </div>

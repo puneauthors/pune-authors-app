@@ -2016,7 +2016,7 @@ router.put('/api/author/inventory/:id', verifyToken, async (req, res) => {
 // Author: Update own bio / profile info
 router.put('/api/author/profile/bio', verifyToken, upload.single('photo'), async (req, res) => {
   try {
-    const { bio, phone, whatsapp, name, penName, city, state, instagram, facebook, address, aadharNumber, qualification, institution, subject, age, experience, skills, hobbies, whyJoining } = req.body;
+    const { bio, phone, whatsapp, name, penName, city, state, instagram, facebook, address, aadharNumber, qualification, institution, subject, age, experience, skills, hobbies, whyJoining, district, pincode, dob } = req.body;
     const author = await prisma.author.findUnique({ where: { email: req.user.email } });
     if (!author) return res.status(403).json({ error: 'Not an author' });
 
