@@ -7471,7 +7471,7 @@ const totalAuthorsBase = eventRegistrations.length;
                       angle={-45}
                       textAnchor="end"
                       dy={10}
-                      interval={0}
+                      interval="preserveStartEnd"
                       height={90}
                       tickFormatter={(v) =>
                         v.length > 15 ? v.substring(0, 15) + "..." : v
@@ -7519,7 +7519,40 @@ const totalAuthorsBase = eventRegistrations.length;
                         }}
                         activeDot={{ r: 6 }}
                       >
+                        <LabelList
+                          dataKey="booksSold"
+                          position="top"
+                          content={(props: any) => {
+                            const { x, y, value, index } = props;
+                            if (value === undefined || value === 0) return null;
+                            
+                            // Only show labels for top 6 points to avoid clutter
+                            const topIndices = [...chartData]
+                              .map((d, i) => ({ v: d.booksSold || 0, i }))
+                              .sort((a, b) => b.v - a.v)
+                              .slice(0, 6)
+                              .map((item) => item.i);
+                              
+                            if (!topIndices.includes(index)) return null;
 
+                            const prev = chartData[index - 1]?.booksSold;
+                            const next = chartData[index + 1]?.booksSold;
+                            let yPos = y - 12;
+
+                            if (prev !== undefined && next !== undefined && value <= prev && value <= next) {
+                              yPos = y + 20;
+                            } else if (prev !== undefined && value < prev && next === undefined) {
+                              yPos = y + 20;
+                            }
+
+                            return (
+                              <g>
+                                <text x={x} y={yPos} fill="none" stroke="#ffffff" strokeWidth={4} strokeLinejoin="round" fontSize="10px" fontWeight="bold" textAnchor="middle">{value}</text>
+                                <text x={x} y={yPos} fill="#ec4899" fontSize="10px" fontWeight="bold" textAnchor="middle">{value}</text>
+                              </g>
+                            );
+                          }}
+                        />
                       </Line>
                     )}
                   </LineChart>
