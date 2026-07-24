@@ -2466,7 +2466,20 @@ router.put('/api/orders/:id/cancel', verifyToken, async (req, res) => {
 router.post('/api/orders/bulk', optionalVerifyToken, async (req, res) => {
   try {
     const { customerName, customerEmail, customerPhone, address, amount, items } = req.body;
-    const parsedItems = Array.isArray(items) ? items : JSON.parse(items);
+    const rawItems = Array.isArray(items) ? items : JSON.parse(items);
+
+    // 1. Aggregate and Validate quantities > 0
+    const aggregatedItems = {};
+    for (const item of rawItems) {
+      const qty = parseInt(item.quantity);
+      if (isNaN(qty) || qty <= 0) {
+        return res.status(400).json({ error: 'Invalid quantity provided' });
+      }
+      const bId = parseInt(item.bookId);
+      aggregatedItems[bId] = (aggregatedItems[bId] || 0) + qty;
+    }
+
+    const parsedItems = Object.keys(aggregatedItems).map(id => ({ bookId: parseInt(id), quantity: aggregatedItems[id] }));
 
     const emailToUse = req.user ? req.user.email : (customerEmail || 'guest@example.com');
 
@@ -2484,13 +2497,13 @@ router.post('/api/orders/bulk', optionalVerifyToken, async (req, res) => {
         customerEmail: emailToUse,
         customerPhone,
         address,
-        amount: parseFloat(amount || 0),
+        amount: parseFloat(amount || 0), // Bulk orders get negotiated later, so this is just a requested baseline
         status: "Bulk Request Pending",
         isBulk: true,
         items: {
           create: parsedItems.map(item => ({
-            bookId: parseInt(item.bookId),
-            quantity: parseInt(item.quantity)
+            bookId: item.bookId,
+            quantity: item.quantity
           }))
         }
       },
@@ -2533,16 +2546,40 @@ router.post('/api/admin/orders/:id/approve-bulk', verifyToken, isAdmin, async (r
 router.post('/api/orders', optionalVerifyToken, upload.single('paymentScreenshot'), async (req, res) => {
   try {
     const { customerName, customerEmail, customerPhone, address, amount, items, transactionId } = req.body;
-    const parsedItems = Array.isArray(items) ? items : JSON.parse(items);
+    const rawItems = Array.isArray(items) ? items : JSON.parse(items);
     const paymentScreenshot = req.file ? `/uploads/${req.file.filename}` : null;
 
-    // Validate stock before allowing order placement
+    // 1. Aggregate and Validate quantities > 0
+    const aggregatedItems = {};
+    for (const item of rawItems) {
+      const qty = parseInt(item.quantity);
+      if (isNaN(qty) || qty <= 0) {
+        return res.status(400).json({ error: 'Invalid quantity provided' });
+      }
+      const bId = parseInt(item.bookId);
+      aggregatedItems[bId] = (aggregatedItems[bId] || 0) + qty;
+    }
+
+    const parsedItems = Object.keys(aggregatedItems).map(id => ({ bookId: parseInt(id), quantity: aggregatedItems[id] }));
+
+    // 2. Validate stock AND recalculate exact subtotal from DB to prevent financial spoofing
+    let calculatedSubtotal = 0;
     for (const item of parsedItems) {
-      const book = await prisma.book.findUnique({ where: { id: parseInt(item.bookId) } });
+      const book = await prisma.book.findUnique({ where: { id: item.bookId } });
       if (!book) return res.status(404).json({ error: `Book ID ${item.bookId} not found` });
-      if (book.stock < parseInt(item.quantity)) {
+      if (book.stock < item.quantity) {
         return res.status(400).json({ error: `Insufficient stock for book: ${book.title}. Available: ${book.stock}` });
       }
+      calculatedSubtotal += book.mrp * item.quantity;
+    }
+
+    const bundleDiscount = parseFloat(req.body.bundleDiscount || 0);
+    const deliveryCharges = parseFloat(req.body.deliveryCharges || 0);
+    const expectedAmount = calculatedSubtotal - bundleDiscount + deliveryCharges;
+    const requestedAmount = parseFloat(amount);
+
+    if (Math.abs(expectedAmount - requestedAmount) > 1) {
+      return res.status(400).json({ error: 'Amount mismatch detected. Financial payload may be corrupted.' });
     }
 
     const emailToUse = req.user ? req.user.email : (customerEmail || 'guest@example.com');
@@ -2558,43 +2595,55 @@ router.post('/api/orders', optionalVerifyToken, upload.single('paymentScreenshot
         }
       });
     } else if (customerName && customer.name === 'Guest') {
-      // Update guest name to actual name if provided now
       customer = await prisma.customer.update({
         where: { id: customer.id },
         data: { name: customerName, phone: customerPhone || customer.phone }
       });
     }
 
-    const order = await prisma.order.create({
-      data: {
-        customerId: customer.id,
-        customerName,
-        customerEmail: emailToUse,
-        customerPhone,
-        address,
-        amount: parseFloat(amount),
-        subtotal: parseFloat(req.body.subtotal || 0),
-        bundleDiscount: parseFloat(req.body.bundleDiscount || 0),
-        deliveryCharges: parseFloat(req.body.deliveryCharges || 0),
-        paymentScreenshot,
-        transactionId: transactionId || null,
-        items: {
-          create: parsedItems.map(item => ({
-            bookId: parseInt(item.bookId),
-            quantity: parseInt(item.quantity)
-          }))
+    // 3. Wrap Order Creation and Stock Deduction in a SINGLE Transaction to prevent zombie orders
+    const order = await prisma.$transaction(async (tx) => {
+      // Re-verify stock inside the transaction lock
+      for (const item of parsedItems) {
+        const book = await tx.book.findUnique({ where: { id: item.bookId } });
+        if (book.stock < item.quantity) {
+          throw new Error(`Insufficient stock for book ID ${item.bookId}`);
         }
-      },
-      include: { items: { include: { book: { include: { author: true, reviews: { select: { rating: true } } } } } } }
-    });
+      }
 
-    // Deduct stock immediately to prevent overselling
-    for (const item of parsedItems) {
-      await prisma.book.update({
-        where: { id: parseInt(item.bookId) },
-        data: { stock: { decrement: parseInt(item.quantity) } }
+      const newOrder = await tx.order.create({
+        data: {
+          customerId: customer.id,
+          customerName,
+          customerEmail: emailToUse,
+          customerPhone,
+          address,
+          amount: expectedAmount, // Strictly use our calculated amount
+          subtotal: calculatedSubtotal,
+          bundleDiscount,
+          deliveryCharges,
+          paymentScreenshot,
+          transactionId: transactionId || null,
+          items: {
+            create: parsedItems.map(item => ({
+              bookId: item.bookId,
+              quantity: item.quantity
+            }))
+          }
+        },
+        include: { items: { include: { book: { include: { author: true, reviews: { select: { rating: true } } } } } } }
       });
-    }
+
+      // Deduct stock safely within transaction
+      for (const item of parsedItems) {
+        await tx.book.update({
+          where: { id: item.bookId },
+          data: { stock: { decrement: item.quantity } }
+        });
+      }
+
+      return newOrder;
+    });
 
     const orderId = `PAA-${String(order.id).padStart(4, '0')}`;
     const orderDate = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
