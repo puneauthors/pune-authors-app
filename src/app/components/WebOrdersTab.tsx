@@ -343,7 +343,7 @@ function WebOrdersTab({
           </div>
           {section.showFilters && (
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <div className="flex bg-white rounded-lg p-1 border border-paa-navy/10 shadow-sm overflow-x-auto whitespace-nowrap">
+              <div className="flex flex-wrap sm:flex-nowrap bg-white rounded-lg p-1 border border-paa-navy/10 shadow-sm">
                 {['All', 'Pending', 'Accepted', 'Dispatched', 'Completed'].map((st) => {
                   const tabCount = st === 'All' ? section.data.length : section.data.filter((ord: any) => {
                     const statusText = getAggregateStatus(ord).text;

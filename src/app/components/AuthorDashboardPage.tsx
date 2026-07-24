@@ -3760,7 +3760,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar max-w-full">
+        <div className="flex flex-wrap sm:flex-nowrap gap-2">
           {['All', 'Pending', 'Accepted', 'Dispatched', 'Delivered', 'Rejected'].map(status => {
             const tabCount = status === 'All' 
               ? uniqueAllOrders.length
