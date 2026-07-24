@@ -1,15 +1,4 @@
-
-import React, { useState, useMemo } from 'react';
-import { Users, Activity, ShoppingCart, BookOpen, Calendar as CalendarIcon, Library, TrendingUp, Eye, PieChart, BarChart2, AlertCircle, Package, Bell, X, MessageSquare, Edit } from 'lucide-react';
-import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, PieChart as RechartsPieChart, Pie, Cell, BarChart, Bar, LabelList } from 'recharts';
-import axios from 'axios';
-import { toast } from 'sonner';
-import { getAuthorParticipationStats } from './OperationsDashboardPage';
-
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
-
-export const AdminOverviewTab = React.memo(({ refreshTrigger, books, authors, orders, events, stats, prevQueries, setActiveTab, setAuthorStatusFilter, API }: any) => {
-
+const OverviewTab = ({ refreshTrigger }: { refreshTrigger: number }) => {
     const [localDismissed, setLocalDismissed] = useState<string[]>(() => {
       const saved = localStorage.getItem('paa_dismissed_actions');
       return saved ? JSON.parse(saved) : [];
@@ -28,15 +17,7 @@ export const AdminOverviewTab = React.memo(({ refreshTrigger, books, authors, or
       });
     };
 
-    
-    // Memoize heavy calculations to prevent layout thrashing and high main-thread execution time
-    const { 
-      lowStockBooks, pendingAuthors, pendingEdits, pendingEvents, pendingOrders, pendingQueries, pendingFines,
-      orderCompletionRate, avgParticipation, participationChartData, latestEventRate, categoryChartData,
-      orderStatusData, topAuthorsData, topBooksData, revenueTrendData, totalBooksSoldWeb, totalRevenueWeb,
-      completedOrders
-    } = useMemo(() => {
-// Low stock books (threshold < 15)
+    // Low stock books (threshold < 15)
     // Exclude if inventory is same AND notified within 24 hours.
     const lowStockBooks = books.filter((b: any) => {
       const inv = b.inventory || 0;
@@ -52,14 +33,44 @@ export const AdminOverviewTab = React.memo(({ refreshTrigger, books, authors, or
       return true;
     });
 
+    const handleNotifyAllLowStock = async () => {
+      setNotifiedBooks(prev => {
+        const next = { ...prev };
+        lowStockBooks.forEach((b: any) => {
+          next[b.id || b.dbId] = { inv: b.inventory || 0, time: Date.now() };
+        });
+        localStorage.setItem('paa_notified_lowstock_v2', JSON.stringify(next));
+        return next;
+      });
+      toast.success(`Notified ${lowStockBooks.length} authors about low stock!`);
 
+      for (const b of lowStockBooks) {
+        try {
+          await axios.post(`${API}/api/admin/authors/${b.authorId}/notify-low-stock`, { bookId: b.id || b.dbId, title: b.title }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        } catch (e) { }
+      }
+    };
+
+    const handleNotifySingleBook = async (b: any) => {
+      const id = b.id || b.dbId;
+      const currentInventory = b.inventory || 0;
+      setNotifiedBooks(prev => {
+        const next = { ...prev, [id]: { inv: currentInventory, time: Date.now() } };
+        localStorage.setItem('paa_notified_lowstock_v2', JSON.stringify(next));
+        return next;
+      });
+      toast.success('Author notified about low stock!');
+      try {
+        await axios.post(`${API}/api/admin/authors/${b.authorId}/notify-low-stock`, { bookId: id, title: b.title }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      } catch (e) { }
+    };
 
     // KPIs & Insights
     const pendingAuthors = authors.filter((a: any) => a.status === 'Pending').length;
     const pendingEdits = authors.filter((a: any) => { const ed = typeof a.extraData === 'string' ? (() => { try { return JSON.parse(a.extraData) } catch(e) { return {} } })() : (a.extraData || {}); return a.status === 'Edited' || ed?.hasPendingEdits; }).length;
     const pendingEvents = authors.filter((a: any) => a.eventParticipation && a.eventParticipation.length > 0 && a.eventParticipation.some((e: any) => e.status === 'Pending')).length;
     const pendingOrders = orders.filter((o: any) => o.status === 'Pending Verification' || o.status === 'Processing').length;
-    const pendingQueries = prevQueries || 0;
+    const pendingQueries = prevCountsRef.current?.queries || 0;
     const pendingFines = authors.filter((a: any) => { const ed = typeof a.extraData === 'string' ? (() => { try { return JSON.parse(a.extraData) } catch(e) { return {} } })() : (a.extraData || {}); return ed?.fineStatus === 'Pending Verification' || (!ed?.fineStatus && ed?.finePaymentScreenshot); }).length;
 
     const totalOrders = orders.length;
@@ -175,108 +186,19 @@ export const AdminOverviewTab = React.memo(({ refreshTrigger, books, authors, or
     const totalRevenueWeb = orders.reduce((sum: number, o: any) => (o.status === 'Completed' || o.status === 'Dispatched') ? sum + (o.total || 0) : sum, 0);
     const avgOrderValue = completedOrders > 0 ? Math.round(totalRevenueWeb / completedOrders) : 0;
 
-    
-      return {
-        lowStockBooks, pendingAuthors, pendingEdits, pendingEvents, pendingOrders, pendingQueries: prevQueries, pendingFines,
-        orderCompletionRate, avgParticipation, participationChartData, latestEventRate, categoryChartData,
-        orderStatusData, topAuthorsData, topBooksData, revenueTrendData, totalBooksSoldWeb, totalRevenueWeb,
-        completedOrders: orders.filter((o: any) => o.status === 'Completed' || o.status === 'Dispatched').length
-      };
-    }, [books, authors, orders, events, stats, localDismissed, notifiedBooks, prevQueries]);
-
-    const handleNotifyAllLowStock = async () => {
-      setNotifiedBooks((prev: any) => {
-        const next = { ...prev };
-        lowStockBooks.forEach((b: any) => {
-          next[b.id || b.dbId] = { inv: b.inventory || 0, time: Date.now() };
-        });
-        localStorage.setItem('paa_notified_lowstock_v2', JSON.stringify(next));
-        return next;
-      });
-      toast.success(`Notified ${lowStockBooks.length} authors about low stock!`);
-
-      for (const b of lowStockBooks) {
-        try {
-          await axios.post(`${API}/api/admin/authors/${b.authorId}/notify-low-stock`, { bookId: b.id || b.dbId, title: b.title }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-        } catch (e) { }
-      }
-    };
-
-    const handleNotifySingleBook = async (b: any) => {
-      const id = b.id || b.dbId;
-      const currentInventory = b.inventory || 0;
-      setNotifiedBooks((prev: any) => {
-        const next = { ...prev, [id]: { inv: currentInventory, time: Date.now() } };
-        localStorage.setItem('paa_notified_lowstock_v2', JSON.stringify(next));
-        return next;
-      });
-      toast.success('Author notified about low stock!');
-      try {
-        await axios.post(`${API}/api/admin/authors/${b.authorId}/notify-low-stock`, { bookId: id, title: b.title }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-      } catch (e) { }
-    };
-const insights = [
+    const insights = [
       { label: 'Event Participation', value: `${avgParticipation}%`, desc: 'Avg author participation rate', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
       { label: 'Order Completion', value: `${orderCompletionRate}%`, desc: 'Of all web orders', icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
       { label: 'Web Orders Received', value: totalBooksSoldWeb, desc: 'Total web orders received online', icon: ShoppingCart, color: 'text-purple-600', bg: 'bg-purple-50' },
     ];
 
-    const pendingActionItems = [
-      { id: 'authors', show: !localDismissed.includes('authors') && pendingAuthors > 0, icon: Users, color: 'bg-blue-50 text-blue-600 border-blue-200', label: 'Approve New Authors', count: pendingAuthors, unit: 'waiting', tab: 'authors', filter: null },
-      { id: 'edits', show: !localDismissed.includes('edits') && pendingEdits > 0, icon: Edit, color: 'bg-orange-50 text-orange-600 border-orange-200', label: 'Profile Edits', count: pendingEdits, unit: 'pending', tab: 'authors', filter: 'Edited' },
-      { id: 'events', show: !localDismissed.includes('events') && pendingEvents > 0, icon: CalendarIcon, color: 'bg-amber-50 text-amber-600 border-amber-200', label: 'Event Registrations', count: pendingEvents, unit: 'pending', tab: 'events', filter: null },
-      { id: 'orders', show: !localDismissed.includes('orders') && pendingOrders > 0, icon: ShoppingCart, color: 'bg-emerald-50 text-emerald-600 border-emerald-200', label: 'Web Orders', count: pendingOrders, unit: 'to fulfill', tab: 'web_orders', filter: null },
-      { id: 'fines', show: !localDismissed.includes('fines') && pendingFines > 0, icon: AlertCircle, color: 'bg-red-50 text-red-600 border-red-200', label: 'Fine Payments', count: pendingFines, unit: 'received', tab: 'late_authors', filter: null },
-      { id: 'helpdesk', show: !localDismissed.includes('helpdesk') && pendingQueries > 0, icon: MessageSquare, color: 'bg-purple-50 text-purple-600 border-purple-200', label: 'Author Queries', count: pendingQueries, unit: 'unread', tab: 'helpdesk', filter: null },
-    ].filter(a => a.show);
-
     return (
       <div className="space-y-6">
-        {/* ════ Pending Actions — Full Width Strip Above KPIs ════ */}
-        <div className="bg-white rounded-2xl border border-paa-navy/5 shadow-sm px-6 py-5">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertCircle className="w-5 h-5 text-amber-500 animate-pulse" aria-hidden="true" />
-            <h3 className="text-base font-serif font-semibold text-paa-navy">Pending Actions</h3>
-            {pendingActionItems.length > 0 && (
-              <span className="ml-1 text-xs font-bold bg-amber-100 text-amber-700 rounded-full px-2.5 py-0.5">{pendingActionItems.length}</span>
-            )}
-          </div>
-          {pendingActionItems.length === 0 ? (
-            <p className="text-sm text-paa-gray-text py-1">✓ All caught up — no pending actions.</p>
-          ) : (
-            <div className="flex flex-wrap gap-3">
-              {pendingActionItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => { if (item.filter) { setActiveTab(item.tab); setAuthorStatusFilter(item.filter); } else setActiveTab(item.tab); }}
-                    className={`group relative flex items-center gap-3 pl-4 pr-3 py-3 rounded-xl border cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${item.color}`}
-                  >
-                    <Icon size={18} aria-hidden="true" />
-                    <div className="leading-tight">
-                      <p className="text-sm font-bold whitespace-nowrap">{item.label}</p>
-                      <p className="text-xs opacity-70">{item.count} {item.unit}</p>
-                    </div>
-                    <button
-                      aria-label={`Dismiss ${item.label}`}
-                      onClick={(e) => handleDismiss(e, item.id)}
-                      className="ml-1 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-black/10 transition-all"
-                    >
-                      <X size={13} aria-hidden="true" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* ════ High Level KPIs ════ */}
+        {/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ High Level KPIs ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
           {[
             { label: 'Total Authors', value: stats?.totalAuthors || 0, icon: Users, colorClass: 'blue' },
-            { label: 'Books Listed', value: stats?.totalBooks || 0, icon: BookOpen, colorClass: 'green' },
+            { label: 'Books Published', value: stats?.totalBooks || 0, icon: BookOpen, colorClass: 'green' },
             { label: 'No of Events', value: stats?.totalEvents || 0, icon: CalendarIcon, colorClass: 'amber' },
             { label: 'No of Flybraries', value: stats?.totalLibraries || 0, icon: Library, colorClass: 'purple' },
             { label: 'Total Revenue', value: `₹${(stats?.totalRevenue || 0).toLocaleString()}`, icon: TrendingUp, colorClass: 'red' },
@@ -291,15 +213,18 @@ const insights = [
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-          {/* ════ Visual Data Insights (col-span-2) ════ */}
-          <div className="lg:col-span-2 space-y-5">
-            {/* Mini Insight Cards — 3 cols so no empty gap */}
-            <div className="grid grid-cols-3 gap-4">
+
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Visual Data Insights (col-span-2) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Mini Insight Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {insights.map((insight, idx) => (
                 <div key={idx} className="p-4 rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow relative group">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-3 ${insight.bg} ${insight.color}`}>
-                    <insight.icon size={16} aria-hidden="true" />
+                    <insight.icon size={16} />
                   </div>
                   <h4 className="text-2xl font-bold text-paa-navy mb-1">{insight.value}</h4>
                   <p className="text-xs font-semibold text-gray-800 mb-1">{insight.label}</p>
@@ -325,11 +250,11 @@ const insights = [
               ))}
             </div>
 
-            {/* Charts Row 1 — all 3 charts in one row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Charts Row 1 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-2xl border border-paa-navy/5 shadow-sm">
                 <h3 className="text-sm font-serif font-semibold text-paa-navy mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-500" aria-hidden="true" /> Recent Revenue Trend
+                  <TrendingUp className="w-4 h-4 text-emerald-500" /> Recent Revenue Trend
                 </h3>
                 <div className="h-48 w-full">
                   {revenueTrendData.length > 0 ? (
@@ -347,9 +272,10 @@ const insights = [
                   )}
                 </div>
               </div>
+
               <div className="bg-white p-6 rounded-2xl border border-paa-navy/5 shadow-sm">
                 <h3 className="text-sm font-serif font-semibold text-paa-navy mb-4 flex items-center gap-2">
-                  <PieChart className="w-4 h-4 text-indigo-500" aria-hidden="true" /> Order Status Distribution
+                  <PieChart className="w-4 h-4 text-indigo-500" /> Order Status Distribution
                 </h3>
                 <div className="h-48 w-full">
                   {orderStatusData.length > 0 ? (
@@ -370,7 +296,7 @@ const insights = [
               </div>
               <div className="bg-white p-6 rounded-2xl border border-paa-navy/5 shadow-sm">
                 <h3 className="text-sm font-serif font-semibold text-paa-navy mb-4 flex items-center gap-2">
-                  <PieChart className="w-4 h-4 text-indigo-500" aria-hidden="true" /> Event Participation
+                  <PieChart className="w-4 h-4 text-indigo-500" /> Event Participation Distribution
                 </h3>
                 <div className="h-48 w-full">
                   {participationChartData.length > 0 ? (
@@ -389,11 +315,12 @@ const insights = [
                 </div>
               </div>
             </div>
+
             {/* Charts Row 2 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white p-6 rounded-2xl border border-paa-navy/5 shadow-sm col-span-1">
                 <h3 className="text-sm font-serif font-semibold text-paa-navy mb-4 flex items-center gap-2">
-                  <BarChart2 className="w-4 h-4 text-blue-500" aria-hidden="true" /> Popular by Category & Genre
+                  <BarChart2 className="w-4 h-4 text-blue-500" /> Popular by Category & Genre
                 </h3>
                 <div className="h-56 w-full">
                   {categoryChartData.length > 0 ? (
@@ -418,7 +345,7 @@ const insights = [
 
               <div className="bg-white p-5 rounded-2xl border border-paa-navy/5 shadow-sm">
                 <h3 className="text-sm font-serif font-semibold text-paa-navy mb-4 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-indigo-500" aria-hidden="true" /> Top Selling Authors
+                  <Users className="w-4 h-4 text-indigo-500" /> Top Selling Authors
                 </h3>
                 <div className="space-y-3">
                   {topAuthorsData.length > 0 ? topAuthorsData.map((a, idx) => (
@@ -438,7 +365,7 @@ const insights = [
 
               <div className="bg-white p-5 rounded-2xl border border-paa-navy/5 shadow-sm">
                 <h3 className="text-sm font-serif font-semibold text-paa-navy mb-4 flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-emerald-500" aria-hidden="true" /> Highest Selling Books
+                  <BookOpen className="w-4 h-4 text-emerald-500" /> Highest Selling Books
                 </h3>
                 <div className="space-y-3">
                   {topBooksData.length > 0 ? topBooksData.map((b, idx) => (
@@ -457,23 +384,142 @@ const insights = [
               </div>
             </div>
           </div>
-          {/* ════ Low Stock (col-span-1) ════ */}
-          <div className="bg-white p-6 rounded-2xl border border-paa-navy/5 shadow-sm flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-serif font-semibold text-paa-navy flex items-center gap-2">
-                <Package className="w-5 h-5 text-red-500" aria-hidden="true" /> Low Stock Books Alert
+
+          {/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Pending Actions & Low Stock (col-span-1) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */}
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-2xl border border-paa-navy/5 shadow-sm">
+              <h3 className="text-lg font-serif font-semibold text-paa-navy mb-4 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-amber-500 animate-pulse" /> Pending Actions
               </h3>
-              {lowStockBooks.length > 0 && (
-                <button aria-label="Notify All Authors About Low Stock" onClick={handleNotifyAllLowStock} className="text-xs flex items-center gap-1 font-bold text-paa-navy bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-full transition-colors uppercase tracking-wider">
-                  <Bell size={12} className="text-amber-500" /> Notify All
-                </button>
-              )}
+              <div className="space-y-3">
+                {!localDismissed.includes('authors') && pendingAuthors > 0 && (
+                  <div className="group relative flex items-center justify-between p-3 rounded-xl border border-paa-navy/10 hover:bg-paa-navy/5 transition-colors text-left cursor-pointer" onClick={() => setActiveTab('authors')}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <Users size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-paa-navy">Approve New Authors</p>
+                        <p className="text-xs text-paa-gray-text">{pendingAuthors} authors waiting for approval</p>
+                      </div>
+                    </div>
+                    <button onClick={(e) => handleDismiss(e, 'authors')} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100">
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {!localDismissed.includes('edits') && pendingEdits > 0 && (
+                  <div className="group relative flex items-center justify-between p-3 rounded-xl border border-paa-navy/10 hover:bg-paa-navy/5 transition-colors text-left cursor-pointer" onClick={() => { setActiveTab('authors'); setAuthorStatusFilter('Edited'); }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                        <Edit size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-paa-navy">Approve Profile Edits</p>
+                        <p className="text-xs text-paa-gray-text">{pendingEdits} author profiles have pending edits</p>
+                      </div>
+                    </div>
+                    <button onClick={(e) => handleDismiss(e, 'edits')} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100">
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {!localDismissed.includes('events') && pendingEvents > 0 && (
+                  <div className="group relative flex items-center justify-between p-3 rounded-xl border border-paa-navy/10 hover:bg-paa-navy/5 transition-colors text-left cursor-pointer" onClick={() => setActiveTab('events')}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                        <CalendarIcon size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-paa-navy">Event Registrations</p>
+                        <p className="text-xs text-paa-gray-text">{pendingEvents} new event participations pending</p>
+                      </div>
+                    </div>
+                    <button onClick={(e) => handleDismiss(e, 'events')} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100">
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {!localDismissed.includes('orders') && pendingOrders > 0 && (
+                  <div className="group relative flex items-center justify-between p-3 rounded-xl border border-paa-navy/10 hover:bg-paa-navy/5 transition-colors text-left cursor-pointer" onClick={() => setActiveTab('web_orders')}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#ebd8c0] text-emerald-600 flex items-center justify-center shrink-0">
+                        <ShoppingCart size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-paa-navy">Fulfill Web Orders</p>
+                        <p className="text-xs text-paa-gray-text">{pendingOrders} orders pending verification or dispatch</p>
+                      </div>
+                    </div>
+                    <button onClick={(e) => handleDismiss(e, 'orders')} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100">
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {!localDismissed.includes('fines') && pendingFines > 0 && (
+                  <div className="group relative flex items-center justify-between p-3 rounded-xl border border-paa-navy/10 hover:bg-paa-navy/5 transition-colors text-left cursor-pointer" onClick={() => setActiveTab('late_authors')}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                        <AlertCircle size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-paa-navy">Fine Payments Received</p>
+                        <p className="text-xs text-paa-gray-text">{pendingFines} authors submitted fine payments</p>
+                      </div>
+                    </div>
+                    <button onClick={(e) => handleDismiss(e, 'fines')} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100">
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {!localDismissed.includes('helpdesk') && pendingQueries > 0 && (
+                  <div className="group relative flex items-center justify-between p-3 rounded-xl border border-paa-navy/10 hover:bg-paa-navy/5 transition-colors text-left cursor-pointer" onClick={() => setActiveTab('helpdesk')}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                        <MessageSquare size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-paa-navy">Author Queries</p>
+                        <p className="text-xs text-paa-gray-text">{pendingQueries} unread helpdesk queries</p>
+                      </div>
+                    </div>
+                    <button onClick={(e) => handleDismiss(e, 'helpdesk')} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100">
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {((localDismissed.includes('authors') || pendingAuthors === 0) &&
+                  (localDismissed.includes('edits') || pendingEdits === 0) &&
+                  (localDismissed.includes('events') || pendingEvents === 0) &&
+                  (localDismissed.includes('orders') || pendingOrders === 0) &&
+                  (localDismissed.includes('fines') || pendingFines === 0) &&
+                  (localDismissed.includes('helpdesk') || pendingQueries === 0)) && (
+                    <div className="text-center py-6 text-sm text-paa-gray-text">No pending actions to display.</div>
+                  )}
+              </div>
             </div>
-            {lowStockBooks.length === 0 ? (
-              <div className="text-center py-8 text-sm text-paa-gray-text my-auto">All books have sufficient inventory or authors notified.</div>
-            ) : (
-              <>
-                <div className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: '420px' }}>
+
+            <div className="bg-white p-6 rounded-2xl border border-paa-navy/5 shadow-sm flex flex-col h-[500px]">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-serif font-semibold text-paa-navy flex items-center gap-2">
+                  <Package className="w-5 h-5 text-red-500" /> Low Stock Books Alert
+                </h3>
+                {lowStockBooks.length > 0 && (
+                  <button onClick={handleNotifyAllLowStock} className="text-xs flex items-center gap-1 font-bold text-paa-navy bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-full transition-colors uppercase tracking-wider">
+                    <Bell size={12} className="text-amber-500" /> Notify All
+                  </button>
+                )}
+              </div>
+              {lowStockBooks.length === 0 ? (
+                <div className="text-center py-8 text-sm text-paa-gray-text my-auto">All books have sufficient inventory or authors notified.</div>
+              ) : (
+                <div className="space-y-3 overflow-y-auto pr-2 flex-1">
                   {lowStockBooks.map((b: any) => (
                     <div key={b.dbId || b.id} className="flex items-center justify-between p-3 rounded-xl border border-red-100 bg-red-50/30 group">
                       <div className="flex-1 min-w-0 pr-4">
@@ -481,11 +527,11 @@ const insights = [
                         <p className="text-xs text-paa-gray-text">by {b.authorName}</p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <button aria-label="Notify Author About Low Stock" onClick={() => handleNotifySingleBook(b)} className="opacity-0 group-hover:opacity-100 p-1.5 bg-white text-gray-400 hover:text-amber-500 rounded-full shadow-sm transition-all" title="Notify Author">
-                          <Bell size={14} aria-hidden="true" />
+                        <button onClick={() => handleNotifySingleBook(b)} className="opacity-0 group-hover:opacity-100 p-1.5 bg-white text-gray-400 hover:text-amber-500 rounded-full shadow-sm transition-all" title="Notify Author">
+                          <Bell size={14} />
                         </button>
-                        <button aria-label="Dismiss Low Stock Alert" onClick={(e) => handleDismiss(e, `lowstock_${b.dbId || b.id}`)} className="opacity-0 group-hover:opacity-100 p-1.5 bg-white text-gray-400 hover:text-red-500 rounded-full shadow-sm transition-all" title="Dismiss Alert">
-                          <X size={14} aria-hidden="true" />
+                        <button onClick={(e) => handleDismiss(e, `lowstock_${b.dbId || b.id}`)} className="opacity-0 group-hover:opacity-100 p-1.5 bg-white text-gray-400 hover:text-red-500 rounded-full shadow-sm transition-all" title="Dismiss Alert">
+                          <X size={14} />
                         </button>
                         <div className="text-right">
                           <span className="text-lg font-black text-red-600">{b.inventory || 0}</span>
@@ -495,16 +541,13 @@ const insights = [
                     </div>
                   ))}
                 </div>
-                <button
-                  onClick={() => setActiveTab('inventory')}
-                  className="mt-4 w-full text-xs font-bold text-paa-navy bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl py-2.5 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Package size={13} /> View All Inventory
-                </button>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
     );
-});
+  };
+
+
+  
