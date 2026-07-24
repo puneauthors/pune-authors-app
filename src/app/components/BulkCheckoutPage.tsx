@@ -16,9 +16,7 @@ export function BulkCheckoutPage() {
     // Load selected bulk items from localStorage
     try {
       const saved = localStorage.getItem("bulk_checkout_items");
-      if (saved) {
-        setItems(JSON.parse(saved).map((book: any) => ({ ...book, id: book.id || book.dbId, quantity: 1 })));
-      }
+        setItems(JSON.parse(saved).map((book: any) => ({ ...book, id: book.id || book.dbId, quantity: 5 })));
     } catch (e) {
       console.error(e);
     }
@@ -27,7 +25,10 @@ export function BulkCheckoutPage() {
   const updateQuantity = (id: number, delta: number) => {
     setItems(prev => prev.map(item => {
       if (item.id === id) {
-        const newQty = Math.max(1, item.quantity + delta);
+        const newQty = Math.max(5, item.quantity + delta);
+        if (item.quantity === 5 && delta < 0) {
+          toast.warning("Minimum 5 copies per book are required for bulk orders.");
+        }
         return { ...item, quantity: newQty };
       }
       return item;
@@ -148,27 +149,32 @@ export function BulkCheckoutPage() {
                     <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: "0 0 0.25rem 0" }}>{item.title}</h3>
                     <p style={{ fontSize: 14, color: "#64748b", margin: 0 }}>₹{item.mrp} MRP</p>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8 }}>
-                      <button type="button" onClick={() => updateQuantity(item.id, -1)} style={{ padding: "0.5rem", background: "none", border: "none", cursor: "pointer", color: "#64748b" }}>
-                        <Minus size={14} />
-                      </button>
-                      <input 
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value) || 1;
-                          setItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: Math.max(1, val) } : i));
-                        }}
-                        style={{ width: 50, textAlign: "center", border: "none", background: "none", fontSize: 14, fontWeight: 600, color: "#0f172a", outline: "none" }}
-                      />
-                      <button type="button" onClick={() => updateQuantity(item.id, 1)} style={{ padding: "0.5rem", background: "none", border: "none", cursor: "pointer", color: "#64748b" }}>
-                        <Plus size={14} />
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.5rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8 }}>
+                        <button type="button" onClick={() => updateQuantity(item.id, -1)} style={{ padding: "0.5rem", background: "none", border: "none", cursor: "pointer", color: "#64748b" }}>
+                          <Minus size={14} />
+                        </button>
+                        <input 
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value) || 5;
+                            if (val < 5) {
+                              toast.warning("Minimum 5 copies per book are required for bulk orders.");
+                            }
+                            setItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: Math.max(5, val) } : i));
+                          }}
+                          style={{ width: 50, textAlign: "center", border: "none", background: "none", fontSize: 14, fontWeight: 600, color: "#0f172a", outline: "none" }}
+                        />
+                        <button type="button" onClick={() => updateQuantity(item.id, 1)} style={{ padding: "0.5rem", background: "none", border: "none", cursor: "pointer", color: "#64748b" }}>
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                      <button type="button" onClick={() => removeItem(item.id)} style={{ padding: "0.5rem", background: "none", border: "none", cursor: "pointer", color: "#ef4444" }}>
+                        <Trash2 size={18} />
                       </button>
                     </div>
-                    <button type="button" onClick={() => removeItem(item.id)} style={{ padding: "0.5rem", background: "none", border: "none", cursor: "pointer", color: "#ef4444" }}>
-                      <Trash2 size={18} />
-                    </button>
                   </div>
                 </div>
               ))}
