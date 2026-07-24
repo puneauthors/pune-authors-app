@@ -2519,7 +2519,7 @@ export function OperationsDashboardPage() {
             </div>
 
             <div className="flex items-center gap-3 w-full xl:w-auto overflow-hidden">
-              <div className="flex overflow-x-auto hide-scrollbar whitespace-nowrap bg-gray-100 rounded-xl p-1 w-full xl:w-auto gap-1 shrink-0 max-w-full">
+              <div className="flex flex-wrap bg-gray-100 rounded-xl p-1 w-full xl:w-auto gap-1">
                 <button
                   onClick={() => setActiveTable("late")}
                   className={`px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-colors rounded-lg flex items-center gap-2 shrink-0 ${activeTable === "late" ? "bg-white text-paa-navy shadow-sm" : "text-gray-500 hover:text-paa-navy"}`}
@@ -3341,7 +3341,7 @@ export function OperationsDashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="flex bg-gray-100 rounded-3xl-2xl p-1 overflow-x-auto whitespace-nowrap">
+              <div className="flex flex-wrap bg-gray-100 rounded-3xl-2xl p-1">
                 {["All", "Pending", "Approved", "Rejected"].map((status) => {
                   const tabCount =
                     status === "All"
@@ -13592,7 +13592,7 @@ const HelpdeskTab = ({ refreshTrigger }: any) => {
               className="dash-input w-full pl-9 rounded-2xl bg-white border-gray-200 focus:border-paa-navy"
             />
           </div>
-          <div className="flex overflow-x-auto hide-scrollbar bg-gray-100 rounded-2xl p-1 w-full lg:w-auto gap-1 shrink-0 max-w-full">
+          <div className="flex flex-wrap bg-gray-100 rounded-2xl p-1 w-full lg:w-auto gap-1">
             {[
               {
                 id: "All",

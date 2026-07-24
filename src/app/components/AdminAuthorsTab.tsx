@@ -224,7 +224,7 @@ const handleExportAuthorsCSV = async () => {
           </div>
         </div>
 
-        <div className="p-3 bg-gray-50/80 border-b border-gray-200 flex flex-row items-center justify-between gap-2 overflow-x-auto whitespace-nowrap hide-scrollbar">
+        <div className="p-3 bg-gray-50/80 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-row gap-1.5 shrink-0">
             {(() => {
               const parseEd = (extraData: any) => typeof extraData === 'string' ? (() => { try { return JSON.parse(extraData); } catch (e) { return {}; } })() : (extraData || {});
