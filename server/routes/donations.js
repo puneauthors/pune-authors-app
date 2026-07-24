@@ -195,15 +195,29 @@ router.put('/api/admin/donation-announcements/:id', verifyToken, isAdmin, async 
   }
 });
 
-// Delete announcement
+// Delete (Archive) announcement
 router.delete('/api/admin/donation-announcements/:id', verifyToken, isAdmin, async (req, res) => {
   try {
-    await prisma.donationAnnouncement.delete({
-      where: { id: parseInt(req.params.id) }
+    await prisma.donationAnnouncement.update({
+      where: { id: parseInt(req.params.id) },
+      data: { isArchived: true }
     });
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to delete announcement' });
+    res.status(500).json({ error: 'Failed to archive announcement' });
+  }
+});
+
+// Restore announcement
+router.put('/api/admin/donation-announcements/:id/restore', verifyToken, isAdmin, async (req, res) => {
+  try {
+    await prisma.donationAnnouncement.update({
+      where: { id: parseInt(req.params.id) },
+      data: { isArchived: false }
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to restore announcement' });
   }
 });
 

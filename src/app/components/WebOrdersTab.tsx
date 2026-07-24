@@ -82,6 +82,8 @@ function WebOrdersTab({
   const [bulkSearchTerm, setBulkSearchTerm] = useState('');
   const [bulkStatusFilter, setBulkStatusFilter] = useState('All');
   const [showAllBulkOrders, setShowAllBulkOrders] = useState(false);
+  const [showArchivedWeb, setShowArchivedWeb] = useState(false);
+  const [showArchivedBulk, setShowArchivedBulk] = useState(false);
 
   const getAggregateStatus = (ord: any) => {
     const { status: ordStatus, items } = ord;
@@ -115,8 +117,10 @@ function WebOrdersTab({
     return { text: ordStatus || 'Pending', style: 'bg-gray-500 text-white border-transparent shadow-md' };
   };
 
-  const filterOrders = (sourceOrders: any[], term: string, statFilter: string) => {
+  const filterOrders = (sourceOrders: any[], term: string, statFilter: string, showArchived: boolean) => {
     return sourceOrders.filter((ord: any) => {
+      if (showArchived) return ord.isArchived;
+      if (ord.isArchived) return false;
       if (statFilter !== 'All') {
         const statusText = getAggregateStatus(ord).text;
         if (statFilter === 'Pending' && !['Pending Verification', 'Pending', 'Bulk Request Pending', 'Approved - Pending Payment'].includes(statusText)) return false;
@@ -144,8 +148,8 @@ function WebOrdersTab({
   const webOrders = orders.filter((o: any) => !o.isBulk);
   const bulkOrders = orders.filter((o: any) => o.isBulk);
 
-  const filteredWebOrders = filterOrders(webOrders, webSearchTerm, webStatusFilter);
-  const filteredBulkOrders = filterOrders(bulkOrders, bulkSearchTerm, bulkStatusFilter);
+  const filteredWebOrders = filterOrders(webOrders, webSearchTerm, webStatusFilter, showArchivedWeb);
+  const filteredBulkOrders = filterOrders(bulkOrders, bulkSearchTerm, bulkStatusFilter, showArchivedBulk);
   const filteredOrders = [...filteredWebOrders, ...filteredBulkOrders];
 
   const successfulWeb = webOrders.filter((o: any) => getAggregateStatus(o).text === 'Delivered').length;
@@ -186,15 +190,29 @@ function WebOrdersTab({
   const avgDeliveryDays = deliveredCount > 0 ? (totalDeliveryTime / deliveredCount / (1000 * 3600 * 24)).toFixed(1) : 0;
 
   const handleDeleteOrder = async (id: number) => {
-    if (window.confirm('Are you sure you want to permanently delete this order?')) {
+    if (window.confirm('Are you sure you want to archive this order?')) {
       try {
         await axios.delete(`${API}/api/admin/orders/${id}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         fetchOrders();
-        toast.success('Order deleted successfully');
+        toast.success('Order archived successfully');
       } catch (err) {
-        toast.error('Failed to delete order');
+        toast.error('Failed to archive order');
+      }
+    }
+  };
+
+  const handleRestoreOrder = async (id: number) => {
+    if (window.confirm('Are you sure you want to restore this order?')) {
+      try {
+        await axios.put(`${API}/api/admin/orders/${id}/restore`, {}, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        fetchOrders();
+        toast.success('Order restored successfully');
+      } catch (err) {
+        toast.error('Failed to restore order');
       }
     }
   };
@@ -342,8 +360,8 @@ function WebOrdersTab({
             <h3 className="text-2xl font-serif font-semibold text-paa-navy tracking-tight">{section.title}</h3>
           </div>
           {section.showFilters && (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <div className="flex flex-wrap sm:flex-nowrap bg-white rounded-lg p-1 border border-paa-navy/10 shadow-sm">
+            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
+              <div className="flex flex-wrap bg-white rounded-lg p-1 border border-paa-navy/10 shadow-sm">
                 {['All', 'Pending', 'Accepted', 'Dispatched', 'Completed'].map((st) => {
                   const tabCount = st === 'All' ? section.data.length : section.data.filter((ord: any) => {
                     const statusText = getAggregateStatus(ord).text;
@@ -382,6 +400,16 @@ function WebOrdersTab({
                   <ClipboardList className="w-4 h-4" /> Web Orders Summary
                 </button>
               )}
+              <div className="w-[1px] h-6 bg-gray-300 mx-1 hidden sm:block"></div>
+              <div 
+                onClick={() => section.isBulkSection ? setShowArchivedBulk(!showArchivedBulk) : setShowArchivedWeb(!showArchivedWeb)}
+                className="flex items-center gap-2 cursor-pointer shrink-0 ml-1"
+              >
+                <div className={`relative w-8 h-4 rounded-full transition-colors ${(section.isBulkSection ? showArchivedBulk : showArchivedWeb) ? 'bg-red-500' : 'bg-gray-300'}`}>
+                  <div className={`absolute top-0.5 left-0.5 bg-white w-3 h-3 rounded-full transition-transform duration-200 ${(section.isBulkSection ? showArchivedBulk : showArchivedWeb) ? 'translate-x-4' : 'translate-x-0'} shadow-sm`}></div>
+                </div>
+                <span className="text-[10px] font-bold tracking-wider uppercase text-gray-600">Archived</span>
+              </div>
             </div>
           )}
         </div>
@@ -393,10 +421,10 @@ function WebOrdersTab({
                 <th className="w-[5%] !text-indigo-800 !bg-transparent !text-[14px]">S.No</th>
                 <th className="w-[15%] !text-indigo-800 !bg-transparent !text-[14px]">Order ID & Date</th>
                 <th className="w-[15%] !text-indigo-800 !bg-transparent !text-[14px]">Customer</th>
-                <th className="w-[30%] !text-indigo-800 !bg-transparent !text-[14px]">Items / Books</th>
-                <th className="w-[10%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Amount</th>
-                <th className="w-[15%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Status</th>
-                <th className="w-[10%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Actions</th>
+                <th className="w-[25%] !text-indigo-800 !bg-transparent !text-[14px]">Items / Books</th>
+                <th className="w-[8%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Amount</th>
+                <th className="w-[17%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Status</th>
+                <th className="w-[15%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -423,7 +451,7 @@ function WebOrdersTab({
                         </ul>
                       </td>
                       <td style={{ textAlign: 'center' }} className="font-bold text-paa-navy">₹{ord.total}</td>
-                      <td style={{ textAlign: 'center' }}>
+                      <td style={{ textAlign: 'center' }} className="px-2">
                         <div className="flex flex-col items-center justify-center gap-1">
                           {ord.isBulk ? (
                             <select
@@ -464,8 +492,8 @@ function WebOrdersTab({
                           )}
                         </div>
                       </td>
-                      <td style={{ textAlign: 'center' }}>
-                        <div className="flex items-center justify-center gap-2">
+                      <td style={{ textAlign: 'center' }} className="px-2">
+                        <div className="flex flex-wrap items-center justify-center gap-1.5">
                           {ord.isBulk && statusText === 'Bulk Request Pending' && (
                             <button onClick={(e) => { e.stopPropagation(); handleApproveBulk(ord.dbId); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-indigo-600 text-white border-none rounded shadow hover:bg-indigo-700 transition-colors" title="Approve Bulk Order">
                               Approve Request
@@ -496,9 +524,15 @@ function WebOrdersTab({
                               </button>
                             </>
                           )}
-                          <button onClick={(e) => { e.stopPropagation(); handleDeleteOrder(ord.dbId); }} className="p-1.5 rounded-full hover:bg-red-50 text-red-500 transition-colors" title="Delete Order">
-                            <Trash2 size={16} />
-                          </button>
+                          {ord.isArchived ? (
+                            <button onClick={(e) => { e.stopPropagation(); handleRestoreOrder(ord.dbId); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-amber-100 text-amber-800 border-none rounded shadow hover:bg-amber-200 transition-colors" title="Restore Order">
+                              Restore
+                            </button>
+                          ) : (
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteOrder(ord.dbId); }} className="p-1.5 rounded-full hover:bg-red-50 text-red-500 transition-colors" title="Archive Order">
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                           <button className="text-gray-400 p-1.5 rounded-full hover:bg-gray-100 transition-colors" title="Toggle Details">
                             <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${expandedOrderId === ord.dbId ? 'rotate-180' : ''}`} />
                           </button>
@@ -735,9 +769,15 @@ function WebOrdersTab({
                         </button>
                       </>
                     )}
-                    <button onClick={(e) => { e.stopPropagation(); handleDeleteOrder(ord.dbId); }} className="p-1.5 rounded-full hover:bg-red-50 text-red-500 transition-colors" title="Delete Order">
-                      <Trash2 size={16} />
-                    </button>
+                    {ord.isArchived ? (
+                      <button onClick={(e) => { e.stopPropagation(); handleRestoreOrder(ord.dbId); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-amber-100 text-amber-800 border-none rounded shadow hover:bg-amber-200 transition-colors" title="Restore Order">
+                        Restore
+                      </button>
+                    ) : (
+                      <button onClick={(e) => { e.stopPropagation(); handleDeleteOrder(ord.dbId); }} className="p-1.5 rounded-full hover:bg-red-50 text-red-500 transition-colors" title="Archive Order">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                     <button className="p-1 rounded-full hover:bg-gray-100 text-paa-navy font-bold flex items-center gap-1 text-[10px] uppercase tracking-wider" title="Toggle Details">
                       Details
                       <ChevronDown size={14} className={`transition-transform duration-200 ${expandedOrderId === ord.dbId ? 'rotate-180' : ''}`} />

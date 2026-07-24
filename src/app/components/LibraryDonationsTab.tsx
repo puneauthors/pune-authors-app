@@ -20,6 +20,7 @@ export function LibraryDonationsTab() {
   const [driveStatusFilter, setDriveStatusFilter] = useState<'All' | 'Open' | 'Closed'>('All');
   const [graphFilter, setGraphFilter] = useState<'both' | 'books' | 'authors'>('both');
   const [donationTimeFilter, setDonationTimeFilter] = useState<string>('All');
+  const [showArchivedDrives, setShowArchivedDrives] = useState(false);
 
   // Editing States
   const [editingDrive, setEditingDrive] = useState<any>(null);
@@ -357,12 +358,21 @@ export function LibraryDonationsTab() {
   };
 
   const handleDeleteDrive = async (id: number) => {
-    if (!window.confirm('Delete this donation drive? This will also remove all registrations for this drive.')) return;
+    if (!window.confirm('Archive this donation drive?')) return;
     try {
       await axios.delete(`${API}/api/admin/donation-announcements/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-      toast.success('Donation drive deleted');
+      toast.success('Donation drive archived');
       fetchDrives();
-    } catch (err) { toast.error('Failed to delete drive'); }
+    } catch (err) { toast.error('Failed to archive drive'); }
+  };
+
+  const handleRestoreDrive = async (id: number) => {
+    if (!window.confirm('Restore this donation drive?')) return;
+    try {
+      await axios.put(`${API}/api/admin/donation-announcements/${id}/restore`, {}, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      toast.success('Donation drive restored');
+      fetchDrives();
+    } catch (err) { toast.error('Failed to restore drive'); }
   };
 
   const publishCampaign = async (id: number) => {
@@ -1775,6 +1785,8 @@ export function LibraryDonationsTab() {
   const closedDrivesCount = drives.filter(d => d.visibility === 'Closed').length;
 
   const filteredDrives = filteredBySearch.filter(d => {
+    if (showArchivedDrives) return d.isArchived;
+    if (d.isArchived) return false;
     if (driveStatusFilter === 'Open') return d.visibility === 'Published';
     if (driveStatusFilter === 'Closed') return d.visibility === 'Closed';
     return true;
@@ -2032,8 +2044,8 @@ export function LibraryDonationsTab() {
       {/* Drives Grid Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-4 mt-8">
         <h3 className="text-xl font-bold text-paa-navy font-serif">Donation Drives Master</h3>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-          <div className="flex bg-gray-100 p-1 rounded-lg">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
+          <div className="flex flex-wrap bg-gray-100 p-1 rounded-lg gap-1">
             {['All', 'Open', 'Closed'].map((filter) => (
               <button
                 key={filter}
@@ -2046,6 +2058,16 @@ export function LibraryDonationsTab() {
                 {filter} ({filter === 'All' ? allDrivesCount : filter === 'Open' ? openDrivesCount : closedDrivesCount})
               </button>
             ))}
+            <div className="w-[1px] h-6 bg-gray-300 mx-1 hidden sm:block self-center"></div>
+            <div 
+              onClick={() => setShowArchivedDrives(!showArchivedDrives)}
+              className="flex items-center gap-2 cursor-pointer shrink-0 ml-1 self-center"
+            >
+              <div className={`relative w-8 h-4 rounded-full transition-colors ${showArchivedDrives ? 'bg-red-500' : 'bg-gray-300'}`}>
+                <div className={`absolute top-0.5 left-0.5 bg-white w-3 h-3 rounded-full transition-transform duration-200 ${showArchivedDrives ? 'translate-x-4' : 'translate-x-0'} shadow-sm`}></div>
+              </div>
+              <span className="text-[10px] font-bold tracking-wider uppercase text-gray-600">Archived</span>
+            </div>
           </div>
           <input
             type="text"
@@ -2132,18 +2154,24 @@ export function LibraryDonationsTab() {
                     >
                       <Edit className="w-4 h-4" />
                     </button>
-                    {drive.visibility === 'Published' ? (
+                    {drive.visibility === 'Published' && !drive.isArchived ? (
                       <button onClick={() => unpublishCampaign(drive.id)} className="p-1.5 text-orange-600 hover:bg-orange-50 rounded border border-orange-200 transition-colors" title="Unpublish Campaign">
                         <X className="w-4 h-4" />
                       </button>
-                    ) : (
+                    ) : !drive.isArchived ? (
                       <button onClick={() => publishCampaign(drive.id)} className="p-1.5 text-emerald-600 hover:bg-[#ebd8c0] rounded border border-emerald-200 transition-colors" title="Publish to All Authors">
                         <CheckCircle className="w-4 h-4" />
                       </button>
+                    ) : null}
+                    {drive.isArchived ? (
+                      <button onClick={() => handleRestoreDrive(drive.id)} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-amber-100 text-amber-800 border-none rounded shadow hover:bg-amber-200 transition-colors" title="Restore Drive">
+                        Restore
+                      </button>
+                    ) : (
+                      <button onClick={() => handleDeleteDrive(drive.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded border border-red-200 transition-colors" title="Archive Drive">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     )}
-                    <button onClick={() => handleDeleteDrive(drive.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded border border-red-200 transition-colors" title="Delete Drive">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </td>
                 </tr>
               );

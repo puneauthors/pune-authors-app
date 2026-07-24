@@ -92,6 +92,7 @@ model Author {
   formResponses         FormResponse[]
   posOrders             PosOrder[]
   queries               Query[]
+  isArchived            Boolean                @default(false)
 }
 
 model Query {
@@ -170,6 +171,7 @@ model Order {
   deliveryCharges   Float       @default(0)
   subtotal          Float       @default(0)
   isBulk            Boolean     @default(false)
+  isArchived        Boolean     @default(false)
   customer          Customer?   @relation(fields: [customerId], references: [id])
   items             OrderItem[]
 }
@@ -330,6 +332,7 @@ model Event {
   eventBooks         EventBook[]
   galleryEvent       GalleryEvent?
   posOrders          PosOrder[]
+  isArchived         Boolean       @default(false)
 }
 
 model EventAuthor {
@@ -399,6 +402,7 @@ model Notification {
   createdAt    DateTime @default(now())
   documentName String?
   documentUrl  String?
+  isArchived   Boolean  @default(false)
 }
 
 model Library {
@@ -442,6 +446,7 @@ model DonationAnnouncement {
   additionalInstructions String?
   visibility             String                 @default("Draft")
   createdAt              DateTime               @default(now())
+  isArchived             Boolean                @default(false)
   library                Library                @relation(fields: [libraryId], references: [id], onDelete: Cascade)
   registrations          DonationRegistration[]
 }

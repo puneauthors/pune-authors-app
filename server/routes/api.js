@@ -827,6 +827,7 @@ router.get('/api/admin/authors', verifyToken, isAdmin, async (req, res) => {
           groupJoiningDate: true,
           extraData: true,
           qrCodeUrl: true,
+          isArchived: true,
           books: {
             select: {
               id: true,
@@ -927,26 +928,27 @@ router.get('/api/admin/authors', verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// Delete Author
+// Delete (Archive) Author
 router.delete('/api/admin/authors/:id', verifyToken, isAdmin, async (req, res) => {
   try {
     const authorId = parseInt(req.params.id);
-    // Delete related records to satisfy foreign key constraints
-    await prisma.eventRegistration.deleteMany({ where: { authorId } });
-    await prisma.formResponse.deleteMany({ where: { authorId } });
-
-    const books = await prisma.book.findMany({ where: { authorId } });
-    const bookIds = books.map(b => b.id);
-    if (bookIds.length > 0) {
-      await prisma.orderItem.deleteMany({ where: { bookId: { in: bookIds } } });
-      await prisma.book.deleteMany({ where: { authorId } });
-    }
-
-    await prisma.author.delete({ where: { id: authorId } });
+    await prisma.author.update({ where: { id: authorId }, data: { isArchived: true } });
     res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to delete' });
+    res.status(500).json({ error: 'Failed to archive' });
+  }
+});
+
+// Restore Author
+router.put('/api/admin/authors/:id/restore', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const authorId = parseInt(req.params.id);
+    await prisma.author.update({ where: { id: authorId }, data: { isArchived: false } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to restore' });
   }
 });
 
@@ -3378,17 +3380,29 @@ router.get('/api/admin/customers', verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// Delete Order
+// Delete (Archive) Order
 router.delete('/api/admin/orders/:id', verifyToken, isAdmin, async (req, res) => {
   try {
     const orderId = parseInt(req.params.id);
-    await prisma.orderItem.deleteMany({ where: { orderId } });
-    await prisma.order.delete({ where: { id: orderId } });
+    await prisma.order.update({ where: { id: orderId }, data: { isArchived: true } });
     invalidateCache('admin:dashboard-stats');
     res.json({ success: true });
   } catch (error) {
-    console.error('Delete order error:', error);
-    res.status(500).json({ error: 'Failed to delete order' });
+    console.error('Archive order error:', error);
+    res.status(500).json({ error: 'Failed to archive order' });
+  }
+});
+
+// Restore Order
+router.put('/api/admin/orders/:id/restore', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+    await prisma.order.update({ where: { id: orderId }, data: { isArchived: false } });
+    invalidateCache('admin:dashboard-stats');
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Restore order error:', error);
+    res.status(500).json({ error: 'Failed to restore order' });
   }
 });
 
@@ -5501,14 +5515,27 @@ router.put('/api/author/events/:id/settle', verifyToken, async (req, res) => {
   }
 });
 
+// Delete (Archive) Event
 router.delete('/api/admin/events/:id', verifyToken, isAdmin, async (req, res) => {
   try {
     const eventId = parseInt(req.params.id);
-    await prisma.event.delete({ where: { id: eventId } });
+    await prisma.event.update({ where: { id: eventId }, data: { isArchived: true } });
     res.json({ success: true });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Failed to delete event' });
+    res.status(500).json({ error: 'Failed to archive event' });
+  }
+});
+
+// Restore Event
+router.put('/api/admin/events/:id/restore', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.id);
+    await prisma.event.update({ where: { id: eventId }, data: { isArchived: false } });
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to restore event' });
   }
 });
 
@@ -5588,14 +5615,27 @@ router.post('/api/admin/notifications', verifyToken, isAdmin, upload.single('doc
   }
 });
 
+// Delete (Archive) Notification
 router.delete('/api/admin/notifications/:id', verifyToken, isAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    await prisma.notification.delete({ where: { id } });
+    await prisma.notification.update({ where: { id }, data: { isArchived: true } });
     res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to delete notification' });
+    res.status(500).json({ error: 'Failed to archive notification' });
+  }
+});
+
+// Restore Notification
+router.put('/api/admin/notifications/:id/restore', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await prisma.notification.update({ where: { id }, data: { isArchived: false } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to restore notification' });
   }
 });
 

@@ -984,6 +984,8 @@ export function OperationsDashboardPage() {
   const [rejectReasons, setRejectReasons] = useState<string[]>([]);
   const [otherReason, setOtherReason] = useState("");
   const [selectedAuthorIds, setSelectedAuthorIds] = useState<number[]>([]);
+  const [showArchivedEvents, setShowArchivedEvents] = useState(false);
+  const [showArchivedDocs, setShowArchivedDocs] = useState(false);
   const [editingAuthor, setEditingAuthor] = useState<any>(null);
   const [isEditAuthorModalOpen, setIsEditAuthorModalOpen] = useState(false);
 
@@ -1397,15 +1399,28 @@ export function OperationsDashboardPage() {
   };
 
   const handleDeleteEvent = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
+    if (!window.confirm("Are you sure you want to archive this event?")) return;
     try {
       await axios.delete(`${API}/api/admin/events/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      toast.success("Event deleted successfully");
+      toast.success("Event archived successfully");
       fetchEvents();
     } catch (err) {
-      toast.error("Failed to delete event");
+      toast.error("Failed to archive event");
+    }
+  };
+
+  const handleRestoreEvent = async (id: number) => {
+    if (!window.confirm("Are you sure you want to restore this event?")) return;
+    try {
+      await axios.put(`${API}/api/admin/events/${id}/restore`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      toast.success("Event restored successfully");
+      fetchEvents();
+    } catch (err) {
+      toast.error("Failed to restore event");
     }
   };
 
@@ -2074,7 +2089,7 @@ export function OperationsDashboardPage() {
   const handleDeleteNotification = async (id: number) => {
     if (
       !window.confirm(
-        "Are you sure you want to delete this document/notification? This action cannot be undone.",
+        "Are you sure you want to archive this document/notification? This action cannot be undone.",
       )
     )
       return;
@@ -2087,11 +2102,30 @@ export function OperationsDashboardPage() {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      setNotifications(notifications.filter((n) => n.id !== id));
-      toast.success("Deleted successfully");
+      setNotifications(notifications.map((n) => n.id === id ? { ...n, isArchived: true } : n));
+      toast.success("Archived successfully");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to delete");
+      toast.error("Failed to archive");
+    }
+  };
+
+  const handleRestoreNotification = async (id: number) => {
+    if (!window.confirm("Are you sure you want to restore this document/notification?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      await fetch(
+        `${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/admin/notifications/${id}/restore`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      setNotifications(notifications.map((n) => n.id === id ? { ...n, isArchived: false } : n));
+      toast.success("Restored successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to restore");
     }
   };
 
@@ -6963,6 +6997,8 @@ const totalAuthorsBase = eventRegistrations.length;
     }
 
     let filteredTableEvents = allCombinedEvents.filter((e: any) => {
+      if (showArchivedEvents) return e.isArchived;
+      if (e.isArchived) return false;
       if (eventGraphFilter === "All") return true;
       // Format filters
       if (eventGraphFilter === "Meet the Authors")
@@ -7703,19 +7739,19 @@ const totalAuthorsBase = eventRegistrations.length;
         {/* end two-col flex */}
 
         <div className="flex flex-col gap-4 mb-4 mt-8">
-          <div className="flex justify-between items-center w-full">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
             <h4 className="text-2xl font-serif font-bold text-paa-navy">
               Events Registry
             </h4>
             <input
               type="text"
               placeholder="Search events..."
-              className="border border-gray-300 rounded-lg p-2 text-sm w-64 outline-none focus:border-paa-navy shadow-sm"
+              className="border border-gray-300 rounded-lg p-2 text-sm w-full sm:w-64 outline-none focus:border-paa-navy shadow-sm"
               value={eventSearch}
               onChange={(e) => setEventSearch(e.target.value)}
             />
           </div>
-          <div className="hidden lg:flex bg-white rounded-lg p-1 border border-paa-navy/10 shadow-sm self-start">
+          <div className="hidden lg:flex flex-wrap bg-white rounded-lg p-1 border border-paa-navy/10 shadow-sm self-start gap-1">
             {[
               "All Events",
               "Pending Approval",
@@ -7761,6 +7797,16 @@ const totalAuthorsBase = eventRegistrations.length;
                 </button>
               );
             })}
+            <div className="w-[1px] h-6 bg-gray-300 mx-1 hidden sm:block"></div>
+            <div 
+              onClick={() => setShowArchivedEvents(!showArchivedEvents)}
+              className="flex items-center gap-2 cursor-pointer shrink-0 ml-1"
+            >
+              <div className={`relative w-8 h-4 rounded-full transition-colors ${showArchivedEvents ? 'bg-red-500' : 'bg-gray-300'}`}>
+                <div className={`absolute top-0.5 left-0.5 bg-white w-3 h-3 rounded-full transition-transform duration-200 ${showArchivedEvents ? 'translate-x-4' : 'translate-x-0'} shadow-sm`}></div>
+              </div>
+              <span className="text-[10px] font-bold tracking-wider uppercase text-gray-600">Archived</span>
+            </div>
           </div>
         </div>
 
@@ -8144,28 +8190,46 @@ const totalAuthorsBase = eventRegistrations.length;
                             )}
                             {!evt.isProposed && (
                               <>
-                                <button
-                                  title="Edit Event"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setEditingEvent(evt);
-                                    setTimeout(
-                                      () => setIsEditEventModalOpen(true),
-                                      10,
-                                    );
-                                  }}
-                                  className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white border border-blue-200 rounded-lg shadow-sm transition-colors"
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  title="Delete Event"
-                                  onClick={() => handleDeleteEvent(evt.id)}
-                                  className="p-2 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white border border-red-200 rounded-lg shadow-sm transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
+                                {!evt.isArchived && (
+                                  <button
+                                    title="Edit Event"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setEditingEvent(evt);
+                                      setTimeout(
+                                        () => setIsEditEventModalOpen(true),
+                                        10,
+                                      );
+                                    }}
+                                    className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white border border-blue-200 rounded-lg shadow-sm transition-colors"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                                {evt.isArchived ? (
+                                  <button
+                                    title="Restore Event"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRestoreEvent(evt.id);
+                                    }}
+                                    className="p-2 text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-200 rounded-lg shadow-sm transition-colors font-bold text-[9px] uppercase tracking-widest"
+                                  >
+                                    Restore
+                                  </button>
+                                ) : (
+                                  <button
+                                    title="Archive Event"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteEvent(evt.id);
+                                    }}
+                                    className="p-2 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white border border-red-200 rounded-lg shadow-sm transition-colors"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
                               </>
                             )}
                           </div>
@@ -10510,9 +10574,20 @@ const totalAuthorsBase = eventRegistrations.length;
                   </div>
                 </div>
 
-                <h3 className="text-sm font-bold uppercase tracking-widest text-paa-navy mb-4">
-                  Previously Uploaded Docs
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-paa-navy">
+                    Previously Uploaded Docs
+                  </h3>
+                  <div 
+                    onClick={() => setShowArchivedDocs(!showArchivedDocs)}
+                    className="flex items-center gap-2 cursor-pointer shrink-0 ml-1"
+                  >
+                    <div className={`relative w-8 h-4 rounded-full transition-colors ${showArchivedDocs ? 'bg-red-500' : 'bg-gray-300'}`}>
+                      <div className={`absolute top-0.5 left-0.5 bg-white w-3 h-3 rounded-full transition-transform duration-200 ${showArchivedDocs ? 'translate-x-4' : 'translate-x-0'} shadow-sm`}></div>
+                    </div>
+                    <span className="text-[10px] font-bold tracking-wider uppercase text-gray-600">Archived</span>
+                  </div>
+                </div>
                 {(() => {
                   const catalogueFile = serverFiles.find(
                     (f: any) => f.name.toLowerCase() === "catalogue.pdf"
@@ -10552,6 +10627,7 @@ const totalAuthorsBase = eventRegistrations.length;
                       : []),
                     ...notifications
                       .filter((n: any) => n.documentUrl)
+                      .filter((n: any) => showArchivedDocs ? n.isArchived : !n.isArchived)
                       .map((n: any) => ({
                         id: n.id,
                         message: n.message || "No description",
@@ -10608,13 +10684,25 @@ const totalAuthorsBase = eventRegistrations.length;
                             </div>
                           </div>
                           {!doc.isServerFile && (
-                            <button
-                              onClick={() => handleDeleteNotification(doc.id)}
-                              className="p-2.5 text-red-500 bg-white border border-red-100 hover:bg-red-50 rounded-xl transition-colors shadow-sm shrink-0"
-                              title="Delete Document"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <>
+                              {doc.isArchived || showArchivedDocs ? (
+                                <button
+                                  onClick={() => handleRestoreNotification(doc.id)}
+                                  className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-xl transition-colors shadow-sm shrink-0"
+                                  title="Restore Document"
+                                >
+                                  Restore
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleDeleteNotification(doc.id)}
+                                  className="p-2.5 text-red-500 bg-white border border-red-100 hover:bg-red-50 rounded-xl transition-colors shadow-sm shrink-0"
+                                  title="Archive Document"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </>
                           )}
                         </div>
                       ))}
