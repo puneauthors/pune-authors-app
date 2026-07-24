@@ -429,6 +429,23 @@ export function AuthorRegistrationPage({ initialData, isReapply = false, onReapp
           let currentBooks = draft.books || [];
           let currentQuals = draft.qualifications || [];
 
+          if (currentBooks.length > 0) {
+            currentBooks = currentBooks.map((b: any) => ({
+              ...b,
+              coverFileUrl: b.draftCoverUrl ? `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${b.draftCoverUrl}` : null,
+              backCoverFileUrl: b.draftBackCoverUrl ? `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${b.draftBackCoverUrl}` : null
+            }));
+          }
+          
+          if (currentQuals.length > 0) {
+            currentQuals = currentQuals.map((q: any) => ({
+              ...q,
+              certificateUrl: q.certificateUrl && !q.certificateUrl.startsWith('blob:') && !q.certificateUrl.startsWith('http') 
+                ? `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${q.certificateUrl}` 
+                : (q.certificateUrl || "")
+            }));
+          }
+
           try {
             const files: any = await localforage.getItem("authorRegistrationFiles");
             if (files) {
@@ -456,8 +473,8 @@ export function AuthorRegistrationPage({ initialData, isReapply = false, onReapp
                     ...b,
                     coverBlob: cBlob,
                     backCoverBlob: bcBlob,
-                    coverFileUrl: cBlob ? URL.createObjectURL(cBlob) : null,
-                    backCoverFileUrl: bcBlob ? URL.createObjectURL(bcBlob) : null
+                    coverFileUrl: cBlob ? URL.createObjectURL(cBlob) : b.coverFileUrl,
+                    backCoverFileUrl: bcBlob ? URL.createObjectURL(bcBlob) : b.backCoverFileUrl
                   };
                 }));
               }
@@ -478,7 +495,7 @@ export function AuthorRegistrationPage({ initialData, isReapply = false, onReapp
                   return {
                     ...q,
                     certificateBlob: f,
-                    certificateUrl: f ? URL.createObjectURL(f) : ""
+                    certificateUrl: f ? URL.createObjectURL(f) : q.certificateUrl
                   };
                 }));
               }
