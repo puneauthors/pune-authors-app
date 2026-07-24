@@ -6942,21 +6942,23 @@ const totalAuthorsBase = eventRegistrations.length;
 
     let dateRangeString = "All Time";
     if (chartEvents.length > 0) {
-      const firstDate = new Date(
-        chartEvents[0].date || chartEvents[0].startDate,
-      );
-      const lastDate = new Date(
-        chartEvents[chartEvents.length - 1].date ||
-          chartEvents[chartEvents.length - 1].startDate,
-      );
-      const formatOpts: Intl.DateTimeFormatOptions = {
-        month: "short",
-        year: "numeric",
-      };
-      if (firstDate.getTime() === lastDate.getTime()) {
-        dateRangeString = firstDate.toLocaleDateString(undefined, formatOpts);
-      } else {
-        dateRangeString = `${firstDate.toLocaleDateString(undefined, formatOpts)} - ${lastDate.toLocaleDateString(undefined, formatOpts)}`;
+      const validDates = chartEvents
+        .map((e) => new Date(e.date || e.startDate).getTime())
+        .filter((t) => !isNaN(t))
+        .sort((a, b) => a - b);
+
+      if (validDates.length > 0) {
+        const firstDate = new Date(validDates[0]);
+        const lastDate = new Date(validDates[validDates.length - 1]);
+        const formatOpts: Intl.DateTimeFormatOptions = {
+          month: "short",
+          year: "numeric",
+        };
+        if (firstDate.getTime() === lastDate.getTime()) {
+          dateRangeString = firstDate.toLocaleDateString(undefined, formatOpts);
+        } else {
+          dateRangeString = `${firstDate.toLocaleDateString(undefined, formatOpts)} - ${lastDate.toLocaleDateString(undefined, formatOpts)}`;
+        }
       }
     }
 
@@ -7466,13 +7468,13 @@ const totalAuthorsBase = eventRegistrations.length;
                       axisLine={false}
                       tickLine={false}
                       tick={{ fontSize: 10, fill: "#6B7280" }}
-                      angle={-90}
+                      angle={-45}
                       textAnchor="end"
                       dy={10}
                       interval={0}
-                      height={100}
+                      height={90}
                       tickFormatter={(v) =>
-                        v.length > 25 ? v.substring(0, 25) + "..." : v
+                        v.length > 15 ? v.substring(0, 15) + "..." : v
                       }
                     />
                     <YAxis
@@ -7517,60 +7519,7 @@ const totalAuthorsBase = eventRegistrations.length;
                         }}
                         activeDot={{ r: 6 }}
                       >
-                        <LabelList
-                          dataKey="booksSold"
-                          position="top"
-                          content={(props: any) => {
-                            const { x, y, value, index } = props;
-                            const prev = chartData[index - 1]?.booksSold;
-                            const next = chartData[index + 1]?.booksSold;
 
-                            let yPos = y - 12;
-
-                            if (
-                              prev !== undefined &&
-                              next !== undefined &&
-                              value <= prev &&
-                              value <= next
-                            ) {
-                              yPos = y + 20;
-                            } else if (
-                              prev !== undefined &&
-                              value < prev &&
-                              next === undefined
-                            ) {
-                              yPos = y + 20;
-                            }
-
-                            return (
-                              <g>
-                                <text
-                                  x={x}
-                                  y={yPos}
-                                  fill="none"
-                                  stroke="#ffffff"
-                                  strokeWidth={4}
-                                  strokeLinejoin="round"
-                                  fontSize="10px"
-                                  fontWeight="bold"
-                                  textAnchor="middle"
-                                >
-                                  {value}
-                                </text>
-                                <text
-                                  x={x}
-                                  y={yPos}
-                                  fill="#ec4899"
-                                  fontSize="10px"
-                                  fontWeight="bold"
-                                  textAnchor="middle"
-                                >
-                                  {value}
-                                </text>
-                              </g>
-                            );
-                          }}
-                        />
                       </Line>
                     )}
                   </LineChart>
