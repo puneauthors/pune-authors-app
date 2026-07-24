@@ -1032,8 +1032,8 @@ export function CataloguePage() {
       <section style={{ position: "relative", padding: "11.5rem 2rem 4rem", zIndex: 30 }}>
         
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "2rem", marginBottom: "2rem" }}>
-            <div style={{ maxWidth: 650 }}>
+          <div className="catalogue-header-wrapper" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "2rem", marginBottom: "2rem" }}>
+            <div style={{ flex: 1, minWidth: "300px", maxWidth: 650 }}>
               <h1 style={{ 
                 fontFamily: "'Playfair Display', serif",
                 fontSize: "clamp(2rem, 5vw, 4.5rem)",
@@ -1060,7 +1060,7 @@ export function CataloguePage() {
               </p>
             </div>
 
-            <div className="catalogue-actions-container" style={{ display: "flex", flexDirection: "column", gap: "0.8rem", alignItems: "flex-end" }}>
+            <div className="catalogue-actions-container" style={{ display: "flex", flexDirection: "column", gap: "0.8rem", alignItems: "flex-end", flexShrink: 0 }}>
               <button 
                 onClick={() => {
                   if (activeCategory === "All") {
