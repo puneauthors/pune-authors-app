@@ -2507,7 +2507,7 @@ export function OperationsDashboardPage() {
 
       return (
         <div className="space-y-6 animate-fade-in-up">
-          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6 px-6 sm:px-0">
             <div className="shrink-0">
               <h2 className="text-2xl font-serif text-paa-navy tracking-tight">
                 Late Authors System
@@ -2518,8 +2518,8 @@ export function OperationsDashboardPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3 w-full xl:w-auto overflow-hidden">
-              <div className="flex flex-wrap bg-gray-100 rounded-xl p-1 w-full xl:w-auto gap-1">
+            <div className="w-full xl:w-auto">
+              <div className="flex flex-wrap bg-gray-100 rounded-xl p-1 w-full sm:w-auto gap-1">
                 <button
                   onClick={() => setActiveTable("late")}
                   className={`px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-colors rounded-lg flex items-center gap-2 shrink-0 ${activeTable === "late" ? "bg-white text-paa-navy shadow-sm" : "text-gray-500 hover:text-paa-navy"}`}
@@ -2572,10 +2572,10 @@ export function OperationsDashboardPage() {
             </div>
           </div>
 
-          {/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Pending Fine Approvals ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */}
+          {/* --- Pending Fine Approvals --- */}
           {activeTable === "approvals" && (
-            <div className="bg-white p-6 rounded-xl border border-paa-navy/5 shadow-sm animate-fade-in-up">
-              <div className="flex justify-between items-center mb-4">
+            <div className="bg-white py-4 sm:p-6 rounded-none sm:rounded-xl border-y sm:border border-paa-navy/5 shadow-sm animate-fade-in-up">
+              <div className="flex justify-between items-center mb-4 px-6 sm:px-0">
                 <h3 className="text-lg font-serif font-semibold text-paa-navy flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500" /> Pending
                   Fine Payment Approvals
@@ -2670,8 +2670,8 @@ export function OperationsDashboardPage() {
 
           {/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Active Fines (Unpaid) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */}
           {activeTable === "suspended" && (
-            <div className="bg-white p-6 rounded-xl border border-paa-navy/5 shadow-sm animate-fade-in-up">
-              <div className="flex justify-between items-center mb-4">
+            <div className="bg-white py-4 sm:p-6 rounded-none sm:rounded-xl border-y sm:border border-paa-navy/5 shadow-sm animate-fade-in-up">
+              <div className="flex justify-between items-center mb-4 px-6 sm:px-0">
                 <h3 className="text-lg font-serif font-semibold text-paa-navy flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-red-500" /> Currently
                   Fined Authors (Suspended)
@@ -2738,8 +2738,8 @@ export function OperationsDashboardPage() {
 
           {/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Late Deliveries Row (Charging) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */}
           {activeTable === "late" && (
-            <div className="bg-white p-6 rounded-xl border border-paa-navy/5 shadow-sm animate-fade-in-up">
-              <div className="flex justify-between items-center mb-4">
+            <div className="bg-white py-4 sm:p-6 rounded-none sm:rounded-xl border-y sm:border border-paa-navy/5 shadow-sm animate-fade-in-up">
+              <div className="flex justify-between items-center mb-4 px-6 sm:px-0">
                 <h3 className="text-lg font-serif font-semibold text-paa-navy flex items-center gap-2">
                   <Clock className="w-5 h-5 text-orange-500" /> Dispatches
                   Pending &gt; 24 Hrs
@@ -3004,10 +3004,10 @@ export function OperationsDashboardPage() {
             </div>
           )}
 
-          {/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Fine History ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */}
+          {/* ——— Fine History ——— */}
           {activeTable === "history" && (
-            <div className="bg-white p-6 rounded-xl border border-paa-navy/5 shadow-sm animate-fade-in-up">
-              <div className="flex justify-between items-center mb-4">
+            <div className="bg-white py-4 sm:p-6 rounded-none sm:rounded-xl border-y sm:border border-paa-navy/5 shadow-sm animate-fade-in-up">
+              <div className="flex justify-between items-center mb-4 px-6 sm:px-0">
                 <h3 className="text-lg font-serif font-semibold text-paa-navy flex items-center gap-2">
                   <FileText className="w-5 h-5 text-indigo-500" /> Fine Payment
                   History
@@ -9806,7 +9806,7 @@ const totalAuthorsBase = eventRegistrations.length;
   }
 
   return (
-    <div className="min-h-screen bg-paa-cream animate-fade-in-up flex flex-col md:flex-row font-sans text-paa-navy selection:bg-paa-gold selection:text-white">
+    <div className="min-h-screen bg-paa-cream flex flex-col md:flex-row font-sans text-paa-navy selection:bg-paa-gold selection:text-white">
       {/* SIDEBAR */}
       <aside
         className={`w-64 flex flex-col shrink-0 h-screen fixed md:sticky top-0 bg-paa-cream z-50 transform transition-transform duration-300 border-r border-paa-navy/5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
@@ -10370,7 +10370,7 @@ const totalAuthorsBase = eventRegistrations.length;
         {/* Scrollable Body */}
         <div
           id="admin-dashboard-scroll"
-          className="flex-1 overflow-auto p-4 sm:p-7"
+          className="flex-1 overflow-auto p-0 sm:p-7"
         >
           <Suspense
             fallback={
@@ -13552,7 +13552,7 @@ const HelpdeskTab = ({ refreshTrigger }: any) => {
 
   return (
     <div className="space-y-6 w-full">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 border-b border-paa-navy/5 pb-4 gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 border-b border-paa-navy/5 pb-4 gap-4 px-6 sm:px-0">
         <div className="shrink-0">
           <h3 className="text-xl font-serif font-medium text-paa-navy mb-1 flex items-center gap-2">
             <Users className="w-5 h-5" /> Messages / Queries
@@ -13561,15 +13561,15 @@ const HelpdeskTab = ({ refreshTrigger }: any) => {
             Manage author queries and contact inquiries.
           </p>
         </div>
-        <div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:w-auto min-w-0 flex-1 justify-end">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 w-full lg:w-auto min-w-0 flex-1 justify-start px-6 sm:px-0">
           <div className="relative w-full lg:max-w-xs shrink">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             <input
               type="text"
               placeholder="Search Subject, Name, Email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="dash-input w-full pl-9 rounded-2xl bg-white border-gray-200 focus:border-paa-navy"
+              className="dash-input w-full !pl-10 rounded-2xl bg-white border-gray-200 focus:border-paa-navy"
             />
           </div>
           <div className="flex flex-wrap bg-gray-100 rounded-2xl p-1 w-full lg:w-auto gap-1">

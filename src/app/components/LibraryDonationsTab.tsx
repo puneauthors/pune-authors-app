@@ -1135,8 +1135,8 @@ export function LibraryDonationsTab() {
     const totalDispatched = new Set(registrations.filter(r => r.dispatchStatus === 'Dispatched' || r.dispatchStatus === 'Delivered').map(r => r.authorId)).size;
 
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 border-b pb-4 gap-4">
+      <div className="bg-white rounded-none sm:rounded-xl shadow-sm py-4 sm:p-6 border-y sm:border border-gray-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 border-b pb-4 gap-4 px-6 sm:px-0">
           <div>
             <h3 className="text-2xl font-serif text-paa-navy mb-1">{selectedDriveBreakdown.title}</h3>
             <p className="text-sm text-gray-500 font-medium">
@@ -1161,7 +1161,7 @@ export function LibraryDonationsTab() {
         </div>
 
         {/* Event Summary Heading & Edit Stats Button */}
-        <div className="mb-2 flex justify-between items-center">
+        <div className="mb-2 flex justify-between items-center px-6 sm:px-0">
           <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Event Summary</span>
           {isEditingDriveStats ? (
             <div className="flex gap-2">
@@ -1194,7 +1194,7 @@ export function LibraryDonationsTab() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 px-6 sm:px-0">
           <div className={`bg-gray-50 border rounded-xl p-4 shadow-sm ${isEditingDriveStats ? "border-paa-navy/40 ring-1 ring-paa-navy/10" : "border-gray-200"}`}>
             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Total Authors Registered</div>
             {isEditingDriveStats ? (
@@ -1234,7 +1234,7 @@ export function LibraryDonationsTab() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4 px-6 sm:px-0">
           <div>
             <h4 className="font-bold text-gray-700">Author Registry</h4>
             <p className="text-xs text-gray-400 mt-0.5">Manage author registrations and dispatch details for this drive</p>
@@ -1254,7 +1254,7 @@ export function LibraryDonationsTab() {
           const uniqueNotRegisteredCount = adminAuthors.filter(a => !registrations.some(r => r.authorId === a.id)).length;
           
           return (
-            <div className="flex flex-wrap mb-6 bg-gray-100 p-1.5 rounded-2xl gap-2 w-full sm:w-max shadow-inner">
+            <div className="flex flex-wrap mb-6 bg-gray-100 p-1.5 rounded-2xl gap-2 w-[calc(100%-3rem)] sm:w-max shadow-inner mx-6 sm:mx-0">
               <button
                 onClick={() => setBreakdownTab('All')}
                 className={`py-2.5 px-6 text-xs font-extrabold rounded-xl transition-all duration-300 ${breakdownTab === 'All'
