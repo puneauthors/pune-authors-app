@@ -429,7 +429,7 @@ export function CheckoutPage() {
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
-                      {author.whatsapp && (
+                      {author.whatsapp && author.whatsapp !== 'NA' && (
                         <a href={`https://wa.me/${author.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#16a34a", textDecoration: "none", fontSize: 14, fontWeight: 600, background: "#f0fdf4", padding: "0.5rem 1rem", borderRadius: 8 }}>
                           <MessageSquare size={16} /> WhatsApp: {author.whatsapp}
                         </a>
@@ -439,8 +439,8 @@ export function CheckoutPage() {
                           <Mail size={16} /> {author.email}
                         </a>
                       )}
-                      {author.phone && !author.whatsapp && (
-                        <a href={`tel:${author.phone}`} style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#475569", textDecoration: "none", fontSize: 14, fontWeight: 600, background: "#f8fafc", padding: "0.5rem 1rem", borderRadius: 8 }}>
+                      {author.phone && author.phone !== 'NA' && (!author.whatsapp || author.whatsapp === 'NA') && (
+                        <a href={`tel:${author.phone}`} style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#475569", textDecoration: "none", fontSize: 14, fontWeight: 600, background: "#f1f5f9", padding: "0.5rem 1rem", borderRadius: 8 }}>
                           <Phone size={16} /> Call: {author.phone}
                         </a>
                       )}

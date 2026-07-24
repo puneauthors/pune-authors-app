@@ -349,17 +349,17 @@ export function CustomerProfilePage() {
                 <p className="text-sm font-bold text-paa-navy mb-2">Before raising a query, you can contact the author directly:</p>
                 <div className="flex flex-col gap-2">
                   <span className="text-xs font-bold uppercase tracking-widest text-blue-800">{queryAuthor.name}</span>
-                  {queryAuthor.whatsapp && (
+                  {queryAuthor.whatsapp && queryAuthor.whatsapp !== 'NA' && (
                     <a href={`https://wa.me/${queryAuthor.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" className="text-sm font-medium text-green-700 flex items-center gap-2 hover:underline">
                       <MessageSquare size={14} /> WhatsApp: {queryAuthor.whatsapp}
                     </a>
                   )}
-                  {queryAuthor.email && (
+                  {queryAuthor.email && queryAuthor.email !== 'NA' && (
                     <a href={`mailto:${queryAuthor.email}`} className="text-sm font-medium text-blue-700 flex items-center gap-2 hover:underline">
                       <Mail size={14} /> {queryAuthor.email}
                     </a>
                   )}
-                  {queryAuthor.phone && !queryAuthor.whatsapp && (
+                  {queryAuthor.phone && queryAuthor.phone !== 'NA' && (!queryAuthor.whatsapp || queryAuthor.whatsapp === 'NA') && (
                     <a href={`tel:${queryAuthor.phone}`} className="text-sm font-medium text-gray-700 flex items-center gap-2 hover:underline">
                       <Phone size={14} /> Call: {queryAuthor.phone}
                     </a>
@@ -965,17 +965,17 @@ export function CustomerProfilePage() {
                         <div>
                           <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">Contact Author</div>
                           <div className="flex flex-wrap gap-2">
-                            {group.author?.whatsapp && (
+                            {group.author?.whatsapp && group.author?.whatsapp !== 'NA' && (
                               <a href={`https://wa.me/${group.author.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-emerald-800 bg-emerald-50 border border-emerald-200 hover:bg-emerald-600 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-2xs">
                                 <MessageSquare size={13} /> WhatsApp: {group.author.whatsapp}
                               </a>
                             )}
-                            {group.author?.email && (
+                            {group.author?.email && group.author?.email !== 'NA' && (
                               <a href={`mailto:${group.author.email}`} className="flex items-center gap-1.5 text-sky-800 bg-sky-50 border border-sky-200 hover:bg-sky-600 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-2xs">
                                 <Mail size={13} /> {group.author.email}
                               </a>
                             )}
-                            {group.author?.phone && !group.author?.whatsapp && (
+                            {group.author?.phone && group.author?.phone !== 'NA' && (!group.author?.whatsapp || group.author?.whatsapp === 'NA') && (
                               <a href={`tel:${group.author.phone}`} className="flex items-center gap-1.5 text-slate-800 bg-slate-100 border border-slate-300 hover:bg-slate-800 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-2xs">
                                 <Phone size={13} /> Call: {group.author.phone}
                               </a>
