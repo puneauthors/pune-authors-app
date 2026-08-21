@@ -6865,19 +6865,19 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
         <div className="border border-paa-navy/5 p-5 md:p-6 rounded-2xl bg-white shadow-sm flex flex-col justify-between">
           <div>
             <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-2">Sales by Channel</h4>
-            <p className="text-[10px] text-gray-400 mb-6 font-medium">Split of total revenue earned per channel</p>
+            <p className="text-[10px] text-gray-400 mb-6 font-medium">Split of total books sold per channel</p>
           </div>
           <div className="h-[200px] w-full">
-            {totalRevenue === 0 ? (
+            {totalBooksSold === 0 ? (
               <div className="h-full flex items-center justify-center text-gray-400 text-xs italic">No channel data available.</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={[
-                      { name: 'Web Orders', value: channelDataMap.Web },
-                      { name: 'Events', value: channelDataMap.Events },
-                      { name: 'Book Fairs', value: channelDataMap['Book Fairs'] }
+                      { name: 'Web Orders', value: kpiSplits.web.books },
+                      { name: 'Events', value: kpiSplits.events.books },
+                      { name: 'Book Fairs', value: kpiSplits.bookFairs.books }
                     ].filter(item => item.value > 0)}
                     cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={4} dataKey="value"
                   >
@@ -6885,13 +6885,13 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
                       { name: 'Web Orders', color: '#3b82f6' },
                       { name: 'Events', color: '#f59e0b' },
                       { name: 'Book Fairs', color: '#10b981' }
-                    ].filter(c => channelDataMap[c.name === 'Web Orders' ? 'Web' : c.name === 'Events' ? 'Events' : 'Book Fairs'] > 0).map((c, index) => (
+                    ].filter(c => (c.name === 'Web Orders' ? kpiSplits.web.books : c.name === 'Events' ? kpiSplits.events.books : kpiSplits.bookFairs.books) > 0).map((c, index) => (
                       <Cell key={`cell-${index}`} fill={c.color} />
                     ))}
                   </Pie>
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']}
+                    formatter={(value: number) => [`${value.toLocaleString('en-IN')}`, 'Books Sold']}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -6908,8 +6908,8 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
 
 
       {/* Row 3: Granular Data Table */}
-      <div className="bg-white border border-paa-navy/5 rounded-2xl shadow-sm overflow-hidden relative min-h-[200px]">
-        <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50">
+      <div className="bg-white border-0 shadow-sm relative min-h-[200px] mb-8">
+        <div className="p-5 border border-black border-b-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50 rounded-t-xl">
           <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest">Raw Sales Data</h4>
           <div className="flex items-center gap-2 flex-wrap">
             {['All', 'Web Orders', 'Events', 'Book Fairs'].map(ch => (
@@ -6926,59 +6926,38 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
             </span>
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="dash-table w-full min-w-[700px] text-left table-fixed">
-            <thead className="bg-indigo-50 border-b-2 border-indigo-100">
+        <div className="overflow-x-auto shadow-sm rounded-b-xl border border-black bg-white">
+          <table className="w-full min-w-[700px] text-left table-fixed text-[11px] border-collapse">
+            <thead className="bg-[#FFE600] border-b-2 border-black">
               <tr>
-                <th className="w-[12%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 !bg-transparent">Date</th>
-                <th className="w-[15%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 !bg-transparent">Order ID</th>
-                <th className="w-[12%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 !bg-transparent">Channel</th>
-                <th className="w-[20%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 !bg-transparent">Event / Source</th>
-                <th className="w-[20%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 !bg-transparent">Book Title</th>
-                <th className="w-[8%] px-5 py-3 text-right !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 !bg-transparent">Qty</th>
-                <th className="w-[10%] px-5 py-3 text-right !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 !bg-transparent">Rev (₹)</th>
-                <th className="w-[8%] px-5 py-3 text-center !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 !bg-transparent">Actions</th>
+                <th className="w-12 p-1 px-1.5 text-center text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle">S.No</th>
+                <th className="w-[12%] p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle">Date</th>
+                <th className="w-[15%] p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle">Order ID</th>
+                <th className="w-[12%] p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle">Channel</th>
+                <th className="w-[20%] p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle">Event / Source</th>
+                <th className="w-[20%] p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle">Book Title</th>
+                <th className="w-[8%] p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle text-right">Qty</th>
+                <th className="w-[10%] p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle text-right">Rev (₹)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 bg-white">
+            <tbody className="bg-white">
               {(tableData.filter((r: any) => tableChannelFilter === 'All' || r.channel === tableChannelFilter)).length === 0 && (
-                <tr><td colSpan={7} className="text-center py-10 text-sm text-gray-400 font-medium italic">No sales recorded in this period for the selected filter.</td></tr>
+                <tr><td colSpan={8} className="text-center py-10 text-sm text-gray-400 font-medium italic border-[1.5px] border-black">No sales recorded in this period for the selected filter.</td></tr>
               )}
               {(tableData.filter((r: any) => tableChannelFilter === 'All' || r.channel === tableChannelFilter)).map((row: any, idx: number) => (
                 <tr key={idx} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#ebd8c0]'} `}>
-                  <td className="px-5 py-3 text-xs font-semibold text-paa-navy truncate">{row.date}</td>
-                  <td className="px-5 py-3 text-xs text-gray-500 font-mono truncate">{row.orderId}</td>
-                  <td className="px-5 py-3 text-xs">
+                  <td className="p-1 px-1.5 text-center align-middle text-xs font-bold text-paa-navy border-[1.5px] border-black">{idx + 1}</td>
+                  <td className="p-1 px-1.5 align-middle text-xs font-semibold text-paa-navy truncate border-[1.5px] border-black">{row.date}</td>
+                  <td className="p-1 px-1.5 align-middle text-xs text-gray-500 font-mono truncate border-[1.5px] border-black">{row.orderId}</td>
+                  <td className="p-1 px-1.5 align-middle text-xs border-[1.5px] border-black">
                     <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest ${row.channel === 'Web Orders' ? 'bg-blue-50 text-blue-700 border border-blue-100' : row.channel === 'Events' ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
                       {row.channel === 'Web Orders' ? 'Web' : row.channel === 'Events' ? 'Events' : 'Fairs'}
                     </span>
                   </td>
-                  <td className="px-5 py-3 pr-2 text-xs text-gray-600 truncate font-semibold" title={row.event}>{row.event}</td>
-                  <td className="px-5 py-3 pr-2 text-xs text-paa-navy truncate" title={row.title}>{row.title}</td>
-                  <td className="px-5 py-3 text-xs font-bold text-paa-navy text-right">{row.qty}</td>
-                  <td className="px-5 py-3 text-xs font-black text-indigo-600 text-right">₹{row.revenue.toLocaleString('en-IN')}</td>
-                  <td className="px-5 py-3 text-center">
-                    {row.rawPosOrderId && (
-                      <button 
-                        onClick={async () => {
-                          if(window.confirm('Are you sure you want to delete this POS order? The inventory will be restored automatically.')) {
-                            try {
-                              const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/pos/orders/${row.rawPosOrderId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
-                              if (!res.ok) throw new Error('Failed to delete');
-                              onRefresh();
-                            } catch(err) {
-                              console.error(err);
-                              alert('Error deleting POS order');
-                            }
-                          }
-                        }}
-                        className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-md transition-colors"
-                        title="Delete POS Order"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                      </button>
-                    )}
-                  </td>
+                  <td className="p-1 px-1.5 align-middle text-xs text-gray-600 truncate font-semibold border-[1.5px] border-black" title={row.event}>{row.event}</td>
+                  <td className="p-1 px-1.5 align-middle text-xs text-paa-navy truncate border-[1.5px] border-black" title={row.title}>{row.title}</td>
+                  <td className="p-1 px-1.5 align-middle text-xs font-bold text-paa-navy text-right border-[1.5px] border-black">{row.qty}</td>
+                  <td className="p-1 px-1.5 align-middle text-xs font-black text-indigo-600 text-right border-[1.5px] border-black">₹{row.revenue.toLocaleString('en-IN')}</td>
                 </tr>
               ))}
             </tbody>

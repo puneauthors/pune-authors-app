@@ -373,162 +373,173 @@ const BookPerformance: React.FC = () => {
         </div>
 
         {/* Chart Render */}
-        <div className="h-[220px] w-full pt-1">
-          {((chartTab === 'book' || chartTab === 'revenue') && groupedBooks.length === 0) || (chartTab === 'channel' && groupedChannels.length === 0) ? (
-            <div className="h-full flex flex-col items-center justify-center text-gray-400 text-xs">
-              <BookOpen size={28} className="mb-1.5 opacity-40" />
-              <span>No sales data found for the selected time period.</span>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              {chartTab === 'book' ? (
-                <BarChart data={groupedBooks} margin={{ top: 20, right: 15, left: -20, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis 
-                    dataKey="title" 
-                    fontSize={10} 
-                    tick={{ fill: '#475569', fontWeight: 600 }} 
-                    tickLine={false} 
-                    axisLine={{ stroke: '#e2e8f0' }}
-                    interval={0}
-                    tickFormatter={(val: string) => val.length > 16 ? val.substring(0, 14) + '…' : val}
-                  />
-                  <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const item = payload[0].payload;
-                        return (
-                          <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[170px]">
-                            <p className="font-bold text-gray-900 mb-1.5 border-b pb-1">{item.title}</p>
-                            <div className="flex justify-between items-center py-0.5">
-                              <span className="text-gray-500">Units Sold:</span>
-                              <span className="font-black text-indigo-600 text-xs">{item.totalSold} copies</span>
-                            </div>
-                            <div className="flex justify-between items-center py-0.5">
-                              <span className="text-gray-500">Total Revenue:</span>
-                              <span className="font-black text-emerald-600 text-xs">₹{item.totalRev.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center py-0.5 mt-1 pt-1 border-t text-[10px] text-gray-400">
-                              <span>Channels:</span>
-                              <span>{item.events?.length || 0} events</span>
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Bar dataKey="totalSold" radius={[6, 6, 0, 0]} maxBarSize={48}>
-                    <LabelList dataKey="totalSold" position="top" fill="#1e293b" fontSize={11} fontWeight={800} offset={6} />
-                    {groupedBooks.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={bookColors[index % bookColors.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              ) : chartTab === 'channel' ? (
-                <BarChart data={groupedChannels} margin={{ top: 20, right: 15, left: -20, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis 
-                    dataKey="name" 
-                    fontSize={10} 
-                    tick={{ fill: '#475569', fontWeight: 600 }} 
-                    tickLine={false} 
-                    axisLine={{ stroke: '#e2e8f0' }}
-                    interval={0}
-                    tickFormatter={(val: string) => val.length > 16 ? val.substring(0, 14) + '…' : val}
-                  />
-                  <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const item = payload[0].payload;
-                        return (
-                          <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[170px]">
-                            <p className="font-bold text-gray-900 mb-1.5 border-b pb-1">{item.name}</p>
-                            <div className="flex justify-between items-center py-0.5">
-                              <span className="text-gray-500">Units Sold:</span>
-                              <span className="font-black text-indigo-600 text-xs">{item.totalSold} copies</span>
-                            </div>
-                            <div className="flex justify-between items-center py-0.5">
-                              <span className="text-gray-500">Revenue:</span>
-                              <span className="font-black text-emerald-600 text-xs">₹{item.totalRev.toLocaleString()}</span>
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Bar dataKey="totalSold" radius={[6, 6, 0, 0]} maxBarSize={48}>
-                    <LabelList dataKey="totalSold" position="top" fill="#1e293b" fontSize={11} fontWeight={800} offset={6} />
-                    {groupedChannels.map((_, index) => (
-                      <Cell key={`cell-ch-${index}`} fill={bookColors[index % bookColors.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              ) : (
-                <BarChart data={groupedBooks} margin={{ top: 20, right: 15, left: 5, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis 
-                    dataKey="title" 
-                    fontSize={10} 
-                    tick={{ fill: '#475569', fontWeight: 600 }} 
-                    tickLine={false} 
-                    axisLine={{ stroke: '#e2e8f0' }}
-                    interval={0}
-                    tickFormatter={(val: string) => val.length > 16 ? val.substring(0, 14) + '…' : val}
-                  />
-                  <YAxis 
-                    fontSize={10} 
-                    tick={{ fill: '#64748b' }} 
-                    tickLine={false} 
-                    axisLine={false} 
-                    tickFormatter={(val: number) => `₹${val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val}`}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(16, 185, 129, 0.05)' }}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const item = payload[0].payload;
-                        return (
-                          <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[170px]">
-                            <p className="font-bold text-gray-900 mb-1.5 border-b pb-1">{item.title}</p>
-                            <div className="flex justify-between items-center py-0.5">
-                              <span className="text-gray-500">Revenue:</span>
-                              <span className="font-black text-emerald-600 text-xs">₹{item.totalRev.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center py-0.5">
-                              <span className="text-gray-500">Units Sold:</span>
-                              <span className="font-black text-indigo-600 text-xs">{item.totalSold} copies</span>
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Bar dataKey="totalRev" radius={[6, 6, 0, 0]} maxBarSize={48}>
-                    <LabelList 
-                      dataKey="totalRev" 
-                      position="top" 
-                      fill="#059669" 
-                      fontSize={11} 
-                      fontWeight={800} 
-                      offset={6} 
-                      formatter={(val: any) => typeof val === 'number' ? `₹${val.toLocaleString()}` : val}
+        {((chartTab === 'book' || chartTab === 'revenue') && groupedBooks.length === 0) || (chartTab === 'channel' && groupedChannels.length === 0) ? (
+          <div className="h-[220px] w-full flex flex-col items-center justify-center text-gray-400 text-xs">
+            <BookOpen size={28} className="mb-1.5 opacity-40" />
+            <span>No sales data found for the selected time period.</span>
+          </div>
+        ) : (
+          <div className="w-full overflow-x-auto pb-1">
+            <div 
+              style={{ 
+                minWidth: `${Math.max(100, (chartTab === 'channel' ? groupedChannels.length : groupedBooks.length) * 75)}px`, 
+                width: '100%', 
+                height: '240px' 
+              }}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                {chartTab === 'book' ? (
+                  <BarChart data={groupedBooks} margin={{ top: 20, right: 20, left: -15, bottom: 25 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="title" 
+                      fontSize={10} 
+                      tick={{ fill: '#334155', fontWeight: 600 }} 
+                      tickLine={false} 
+                      axisLine={{ stroke: '#cbd5e1' }}
+                      interval={0}
+                      height={40}
+                      tickFormatter={(val: string) => val.length > 18 ? val.substring(0, 16) + '…' : val}
                     />
-                    {groupedBooks.map((_, index) => (
-                      <Cell key={`cell-rev-${index}`} fill="#10b981" />
-                    ))}
-                  </Bar>
-                </BarChart>
-              )}
-            </ResponsiveContainer>
-          )}
-        </div>
+                    <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip 
+                      cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const item = payload[0].payload;
+                          return (
+                            <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[170px]">
+                              <p className="font-bold text-gray-900 mb-1.5 border-b pb-1">{item.title}</p>
+                              <div className="flex justify-between items-center py-0.5">
+                                <span className="text-gray-500">Units Sold:</span>
+                                <span className="font-black text-indigo-600 text-xs">{item.totalSold} copies</span>
+                              </div>
+                              <div className="flex justify-between items-center py-0.5">
+                                <span className="text-gray-500">Total Revenue:</span>
+                                <span className="font-black text-emerald-600 text-xs">₹{item.totalRev.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between items-center py-0.5 mt-1 pt-1 border-t text-[10px] text-gray-400">
+                                <span>Channels:</span>
+                                <span>{item.events?.length || 0} events</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="totalSold" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                      <LabelList dataKey="totalSold" position="top" fill="#1e293b" fontSize={11} fontWeight={800} offset={6} />
+                      {groupedBooks.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={bookColors[index % bookColors.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                ) : chartTab === 'channel' ? (
+                  <BarChart data={groupedChannels} margin={{ top: 20, right: 20, left: -15, bottom: 25 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="name" 
+                      fontSize={10} 
+                      tick={{ fill: '#334155', fontWeight: 600 }} 
+                      tickLine={false} 
+                      axisLine={{ stroke: '#cbd5e1' }}
+                      interval={0}
+                      height={40}
+                      tickFormatter={(val: string) => val.length > 18 ? val.substring(0, 16) + '…' : val}
+                    />
+                    <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip 
+                      cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const item = payload[0].payload;
+                          return (
+                            <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[170px]">
+                              <p className="font-bold text-gray-900 mb-1.5 border-b pb-1">{item.name}</p>
+                              <div className="flex justify-between items-center py-0.5">
+                                <span className="text-gray-500">Units Sold:</span>
+                                <span className="font-black text-indigo-600 text-xs">{item.totalSold} copies</span>
+                              </div>
+                              <div className="flex justify-between items-center py-0.5">
+                                <span className="text-gray-500">Revenue:</span>
+                                <span className="font-black text-emerald-600 text-xs">₹{item.totalRev.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="totalSold" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                      <LabelList dataKey="totalSold" position="top" fill="#1e293b" fontSize={11} fontWeight={800} offset={6} />
+                      {groupedChannels.map((_, index) => (
+                        <Cell key={`cell-ch-${index}`} fill={bookColors[index % bookColors.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                ) : (
+                  <BarChart data={groupedBooks} margin={{ top: 20, right: 20, left: 5, bottom: 25 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="title" 
+                      fontSize={10} 
+                      tick={{ fill: '#334155', fontWeight: 600 }} 
+                      tickLine={false} 
+                      axisLine={{ stroke: '#cbd5e1' }}
+                      interval={0}
+                      height={40}
+                      tickFormatter={(val: string) => val.length > 18 ? val.substring(0, 16) + '…' : val}
+                    />
+                    <YAxis 
+                      fontSize={10} 
+                      tick={{ fill: '#64748b' }} 
+                      tickLine={false} 
+                      axisLine={false} 
+                      tickFormatter={(val: number) => `₹${val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val}`}
+                    />
+                    <Tooltip 
+                      cursor={{ fill: 'rgba(16, 185, 129, 0.05)' }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const item = payload[0].payload;
+                          return (
+                            <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[170px]">
+                              <p className="font-bold text-gray-900 mb-1.5 border-b pb-1">{item.title}</p>
+                              <div className="flex justify-between items-center py-0.5">
+                                <span className="text-gray-500">Revenue:</span>
+                                <span className="font-black text-emerald-600 text-xs">₹{item.totalRev.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between items-center py-0.5">
+                                <span className="text-gray-500">Units Sold:</span>
+                                <span className="font-black text-indigo-600 text-xs">{item.totalSold} copies</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="totalRev" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                      <LabelList 
+                        dataKey="totalRev" 
+                        position="top" 
+                        fill="#059669" 
+                        fontSize={11} 
+                        fontWeight={800} 
+                        offset={6} 
+                        formatter={(val: any) => `₹${Number(val).toLocaleString()}`}
+                      />
+                      {groupedBooks.map((_, index) => (
+                        <Cell key={`cell-rev-${index}`} fill={bookColors[index % bookColors.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                )}
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Excel-Style Spreadsheet Matrix Table */}
@@ -545,14 +556,6 @@ const BookPerformance: React.FC = () => {
             <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
               {dynamicEventColumns.length} Events/Channels
             </span>
-            <button
-              onClick={exportTableToCSV}
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-[#107c41] hover:bg-[#0c5c30] text-white text-[11px] font-bold rounded-lg shadow-sm transition-colors cursor-pointer"
-              title="Download as Excel CSV"
-            >
-              <Download size={13} />
-              <span>Export Excel</span>
-            </button>
           </div>
         </div>
 

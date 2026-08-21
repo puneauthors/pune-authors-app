@@ -5400,6 +5400,8 @@ router.get('/api/author/book-performance', verifyToken, async (req, res) => {
       const bookDataMap = {}; // title -> data
       let hasPosData = false;
 
+      const effectiveInvestment = (ea.investment && ea.investment > 0) ? ea.investment : (ea.amountPaid || 0);
+
       eventOrders.forEach(po => {
         po.items.forEach(item => {
           hasPosData = true;
@@ -5412,7 +5414,7 @@ router.get('/api/author/book-performance', verifyToken, async (req, res) => {
               bookTitle: title,
               booksSold: 0,
               revenue: 0,
-              investment: ea.investment || 0
+              investment: effectiveInvestment
             };
           }
           bookDataMap[title].booksSold += item.quantity;
@@ -5429,7 +5431,7 @@ router.get('/api/author/book-performance', verifyToken, async (req, res) => {
             bookTitle: 'Manual Aggregation',
             booksSold: ea.manualTotalSold || 0,
             revenue: ea.manualTotalRevenue || 0,
-            investment: ea.investment || 0
+            investment: effectiveInvestment
           });
         } else {
           const eventBooks = listedBooks.filter(lb => lb.eventId === ea.eventId);
@@ -5445,7 +5447,7 @@ router.get('/api/author/book-performance', verifyToken, async (req, res) => {
                 bookTitle: eb.book?.title || 'Unknown Book',
                 booksSold: eb.soldStock,
                 revenue: eb.soldStock * price,
-                investment: ea.investment || 0
+                investment: effectiveInvestment
               });
             }
           });
@@ -5457,7 +5459,7 @@ router.get('/api/author/book-performance', verifyToken, async (req, res) => {
               bookTitle: 'No Sales Yet',
               booksSold: 0,
               revenue: 0,
-              investment: ea.investment || 0
+              investment: effectiveInvestment
             });
           }
         }
