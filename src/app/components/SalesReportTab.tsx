@@ -372,7 +372,7 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
       ) : (
         <div className="space-y-6 animate-in fade-in duration-300">
           {/* Row 1: KPI Summary Cards - rendered eagerly for LCP */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 relative">
             <div className="dash-kpi-card green flex flex-col justify-between" style={{ contentVisibility: 'auto', containIntrinsicSize: '140px' }}>
               <div>
                 <div className="flex items-start justify-between mb-4">
@@ -382,7 +382,7 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
                 <h3 className="text-3xl font-black text-paa-navy tracking-tight">₹{(salesData?.kpis?.totalRevenue || 0).toLocaleString()}</h3>
               </div>
               {salesData?.kpis?.splits && (
-                <div className="mt-4 pt-3 border-t border-green-100/50 flex justify-between text-[10px] font-bold uppercase tracking-widest text-green-800">
+                <div className="mt-4 pt-3 border-t border-white/20 flex justify-between text-[10px] font-bold uppercase tracking-widest text-white">
                   <span>Web: ₹{(salesData.kpis.splits.web?.revenue || 0).toLocaleString()}</span>
                   <span>Events: ₹{(salesData.kpis.splits.events?.revenue || 0).toLocaleString()}</span>
                   <span>Fairs: ₹{(salesData.kpis.splits.bookFairs?.revenue || 0).toLocaleString()}</span>
@@ -399,7 +399,7 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
                 <h3 className="text-3xl font-black text-paa-navy tracking-tight">{salesData?.kpis?.totalBooksSold || 0} <span className="text-xs font-medium text-gray-400 lowercase tracking-normal">units</span></h3>
               </div>
               {salesData?.kpis?.splits && (
-                <div className="mt-4 pt-3 border-t border-blue-100/50 flex justify-between text-[10px] font-bold uppercase tracking-widest text-blue-800">
+                <div className="mt-4 pt-3 border-t border-white/20 flex justify-between text-[10px] font-bold uppercase tracking-widest text-white">
                   <span>Web: {salesData.kpis.splits.web?.books || 0}</span>
                   <span>Events: {salesData.kpis.splits.events?.books || 0}</span>
                   <span>Fairs: {salesData.kpis.splits.bookFairs?.books || 0}</span>
@@ -416,7 +416,7 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
                 <h3 className="text-3xl font-black text-paa-navy tracking-tight">{salesData?.kpis?.totalOrders || 0}</h3>
               </div>
               {salesData?.kpis?.splits && (
-                <div className="mt-4 pt-3 border-t border-amber-100/50 flex justify-between text-[10px] font-bold uppercase tracking-widest text-amber-800">
+                <div className="mt-4 pt-3 border-t border-white/20 flex justify-between text-[10px] font-bold uppercase tracking-widest text-white">
                   <span>Web: {salesData.kpis.splits.web?.orders || 0}</span>
                   <span>Events: {salesData.kpis.splits.events?.orders || 0}</span>
                   <span>Fairs: {salesData.kpis.splits.bookFairs?.orders || 0}</span>
@@ -426,83 +426,7 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
           </div>
 
           {/* Row 2: Visualizations - Recharts */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 relative min-h-[300px]">
-              <div className="lg:col-span-2 border border-paa-navy/5 p-5 md:p-6 rounded-2xl bg-white shadow-sm flex flex-col">
-                <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-6">Revenue Over Time</h4>
-                <div className="flex-1 w-full min-h-[250px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={salesData?.chartData || []} margin={{ top: 35, right: 30, left: 10, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis
-                        dataKey="date"
-                        fontSize={10}
-                        tick={{ fill: '#94a3b8' }}
-                        axisLine={false}
-                        tickLine={false}
-                        tickMargin={15}
-                        minTickGap={20}
-                        tickFormatter={(val) => {
-                          if (typeof val === 'string' && val.length === 7) {
-                            const [y, m] = val.split('-');
-                            const d = new Date(parseInt(y), parseInt(m) - 1, 1);
-                            return d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
-                          }
-                          const d = new Date(val);
-                          return isNaN(d.getTime()) ? val : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-                        }}
-                      />
-                      <YAxis fontSize={10} tick={{ fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val}`} width={60} />
-                      <RechartsTooltip
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)', padding: '12px' }}
-                        itemStyle={{ fontSize: '13px', fontWeight: 'bold' }}
-                        labelStyle={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}
-                        formatter={(value: number) => [`₹${value}`, 'Revenue']}
-                        labelFormatter={(val) => {
-                          if (typeof val === 'string' && val.length === 7) {
-                            const [y, m] = val.split('-');
-                            const d = new Date(parseInt(y), parseInt(m) - 1, 1);
-                            return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-                          }
-                          const d = new Date(val as string);
-                          return isNaN(d.getTime()) ? val : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                        }}
-                      />
-                      <Line type="linear" dataKey="revenue" stroke="#06b6d4" strokeWidth={3} dot={(props: any) => { const { cx, cy, index } = props; const total = (salesData?.chartData || []).length; const maxLabels = typeof window !== 'undefined' && window.innerWidth < 768 ? 6 : 15; if (total <= maxLabels || index % Math.ceil(total / maxLabels) === 0 || index === total - 1) { return <circle cx={cx} cy={cy} r={4} fill="#fff" stroke="#06b6d4" strokeWidth={2} key={`dot-${index}`} />; } return null; }} activeDot={{ r: 6 }}>
-                        <LabelList dataKey="revenue" position="top" content={(props: any) => {
-                          const { x, y, value, index } = props;
-                          const data = salesData?.chartData || [];
-                          const total = data.length;
-                          const maxLabels = typeof window !== 'undefined' && window.innerWidth < 768 ? 6 : 15;
-                          if (total <= maxLabels || index % Math.ceil(total / maxLabels) === 0 || index === total - 1) {
-
-                            const prev = data[index - 1]?.revenue;
-                            const next = data[index + 1]?.revenue;
-
-                            // Default above
-                            let yPos = y - 12;
-
-                            // If it's a valley, place below so the line doesn't cut through
-                            if (prev !== undefined && next !== undefined && value <= prev && value <= next) {
-                              yPos = y + 20;
-                            } else if (prev !== undefined && value < prev && next === undefined) {
-                              yPos = y + 20;
-                            }
-
-                            return (
-                              <g>
-                                <text x={x} y={yPos} fill="none" stroke="#ffffff" strokeWidth={4} strokeLinejoin="round" fontSize="10px" fontWeight="bold" textAnchor="middle">₹{value}</text>
-                                <text x={x} y={yPos} fill="#06b6d4" fontSize="10px" fontWeight="bold" textAnchor="middle">₹{value}</text>
-                              </g>
-                            );
-                          }
-                          return null;
-                        }} />
-                      </Line>
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative min-h-[300px]">
               <div className="border border-paa-navy/5 p-5 md:p-6 rounded-2xl bg-white shadow-sm flex flex-col">
                 <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-4">Genre Insights</h4>
                 

@@ -279,7 +279,7 @@ function WebOrdersTab({
           <h3 className="text-[11px] font-bold tracking-widest uppercase text-paa-gray-text flex items-center gap-2">
             <Activity className="w-4 h-4 text-indigo-500" /> Order KPIs
           </h3>
-          <div className="grid grid-cols-2 gap-4 h-[calc(100%-2rem)]">
+          <div className="grid grid-cols-2 gap-3 h-[calc(100%-2rem)]">
             {[
               { label: 'Successful Orders', value: successfulOrders, breakdown: `${successfulWeb} Web • ${successfulBulk} Bulk`, icon: Check, colorClass: 'green' },
               { label: 'Pending Verification', value: toApproveOrders, breakdown: `${toApproveWeb} Web • ${toApproveBulk} Bulk`, icon: Clock, colorClass: 'amber' },
@@ -293,11 +293,7 @@ function WebOrdersTab({
                 <div>
                   <p className="text-[10px] font-bold tracking-widest uppercase text-paa-gray-text mb-0.5">{kpi.label}</p>
                   <h3 className="text-3xl font-black text-paa-navy tracking-tight leading-none mb-1">{kpi.value}</h3>
-                  <p className={`text-[9px] font-bold uppercase tracking-widest rounded-full inline-block px-1.5 py-0.5 ${
-                    kpi.colorClass === 'green' ? 'bg-green-100 text-green-700' :
-                    kpi.colorClass === 'amber' ? 'bg-amber-100 text-amber-700' :
-                    kpi.colorClass === 'blue' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
-                  }`}>
+                  <p className="text-[9px] font-bold uppercase tracking-widest rounded-full inline-block px-2 py-0.5 bg-white/20 text-white shadow-sm">
                     {kpi.breakdown}
                   </p>
                 </div>
