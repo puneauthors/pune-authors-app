@@ -779,10 +779,15 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
 
       {/* Donation History Section */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5">
+        <div className="px-4 py-3 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 bg-gray-50/70">
           <div>
-            <h3 className="text-sm font-bold text-paa-navy font-serif">Donation History & Tracker</h3>
-            <p className="text-[10px] text-gray-500">Real-time status updates of your library submissions</p>
+            <h3 className="text-sm font-bold text-paa-navy font-serif flex items-center gap-2">
+              Donation History & Tracker 
+              <span className="text-[10px] font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full border border-purple-200">
+                {filteredHistoryRegistrations.length} Records
+              </span>
+            </h3>
+            <p className="text-[10px] text-gray-500">Real-time status updates and submission records</p>
           </div>
           <div className="relative w-full sm:w-60">
             <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -791,50 +796,65 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
               placeholder="Search history..."
               value={historySearchTerm}
               onChange={(e) => setHistorySearchTerm(e.target.value)}
-              className="pl-7 pr-3 py-1 bg-white border border-gray-200 text-xs font-semibold outline-none focus:border-paa-navy transition-colors w-full rounded-full shadow-sm text-gray-700"
+              className="pl-7 pr-3 py-1 bg-white border border-gray-300 text-xs font-semibold outline-none focus:border-paa-navy transition-colors w-full rounded-full shadow-xs text-gray-700"
             />
           </div>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full text-left whitespace-nowrap min-w-max border-collapse">
-            <thead className="bg-indigo-50/80 border-b border-indigo-100">
+            <thead className="bg-[#ffd700] text-black border-b-2 border-amber-400">
               <tr>
-                <th className="px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-indigo-900">Date</th>
-                <th className="px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-indigo-900">Campaign / Library</th>
-                <th className="px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-indigo-900">Book Details</th>
-                <th className="px-3.5 py-2 text-center text-xs font-bold uppercase tracking-wider text-indigo-900">Qty &amp; Value</th>
-                <th className="px-3.5 py-2 text-right text-xs font-bold uppercase tracking-wider text-indigo-900">Actions</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-extrabold uppercase tracking-wider text-gray-900">#</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-extrabold uppercase tracking-wider text-gray-900">Date</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-extrabold uppercase tracking-wider text-gray-900">Campaign / Library</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-extrabold uppercase tracking-wider text-gray-900">Book Details</th>
+                <th className="px-3.5 py-2.5 text-center text-[11px] font-extrabold uppercase tracking-wider text-gray-900">Total Qty &amp; Value</th>
+                <th className="px-3.5 py-2.5 text-center text-[11px] font-extrabold uppercase tracking-wider text-gray-900">Status</th>
+                <th className="px-3.5 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-wider text-gray-900">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-200">
               {filteredHistoryRegistrations.map((reg: any, index: number) => {
                 const isEven = index % 2 === 0;
                 const totalBooksQty = reg.books?.reduce((sum: number, b: any) => sum + (b.quantityDonated || 0), 0) || 0;
+                const totalBooksVal = reg.books?.reduce((sum: number, b: any) => sum + ((b.quantityDonated || 0) * (b.book?.mrp || 0)), 0) || 0;
+                const pipeline = getPipelineStatus(reg);
+
                 return (
                   <tr 
                     key={reg.id} 
-                    className={`${isEven ? 'bg-white' : 'bg-amber-50/20'} hover:bg-amber-50/40 transition-colors`}
+                    className={`${isEven ? 'bg-white' : 'bg-slate-50/70'} hover:bg-amber-50/40 transition-colors border-b border-gray-100`}
                   >
-                    <td className="px-3.5 py-2.5 text-xs text-gray-600 font-medium">
-                      {new Date(reg.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    <td className="px-3.5 py-2.5 text-xs font-bold text-gray-500">
+                      {index + 1}
+                    </td>
+                    <td className="px-3.5 py-2.5 text-xs text-gray-800 font-semibold">
+                      <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md text-[11px]">
+                        <Calendar className="w-3 h-3 text-purple-600" />
+                        {new Date(reg.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </span>
                     </td>
                     <td className="px-3.5 py-2.5">
                       <div className="text-xs font-bold text-paa-navy">{reg.announcement?.title}</div>
-                      <div className="text-[10px] text-gray-500 flex items-center gap-1 mt-0.5">
-                        <MapPin className="w-2.5 h-2.5 text-gray-400" />
-                        <span>{reg.announcement?.library?.name} ({reg.announcement?.library?.city})</span>
+                      <div className="text-[10px] text-gray-600 flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3 h-3 text-blue-500 shrink-0" />
+                        <span className="font-medium">{reg.announcement?.library?.name}</span>
+                        {reg.announcement?.library?.city && (
+                          <span className="text-gray-400">({reg.announcement?.library?.city})</span>
+                        )}
                       </div>
                     </td>
-                    <td className="px-3.5 py-2.5 whitespace-normal max-w-xs">
+                    <td className="px-3.5 py-2.5 whitespace-normal max-w-sm">
                       <div className="flex flex-col gap-1">
                         {reg.books?.map((b: any, bi: number) => (
-                          <div key={bi} className="text-[11px] bg-white border border-gray-200 px-2 py-1 rounded-md flex justify-between items-center gap-2 shadow-2xs">
-                            <div className="flex flex-col min-w-0">
-                              <span className="font-semibold text-gray-800 truncate" title={b.book?.title}>{b.book?.title}</span>
-                              <span className="text-[9px] text-gray-400">MRP: ₹{b.book?.mrp}</span>
+                          <div key={bi} className="text-[11px] bg-indigo-50/70 border border-indigo-100 px-2 py-1 rounded-lg flex justify-between items-center gap-2 shadow-2xs">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <BookOpen className="w-3 h-3 text-indigo-600 shrink-0" />
+                              <span className="font-bold text-indigo-950 truncate max-w-[160px]" title={b.book?.title}>{b.book?.title}</span>
+                              <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.2 rounded shrink-0">₹{b.book?.mrp}</span>
                             </div>
-                            <span className="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">
+                            <span className="text-[10px] font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded shrink-0">
                               Qty: {b.quantityDonated}
                             </span>
                           </div>
@@ -842,29 +862,48 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
                       </div>
                     </td>
                     <td className="px-3.5 py-2.5 text-center">
-                       <div className="text-xs font-extrabold text-paa-navy">{totalBooksQty} copies</div>
-                       <div className="text-[10px] font-bold text-emerald-700 mt-0.5">₹{(reg.books?.reduce((sum: number, b: any) => sum + ((b.quantityDonated || 0) * (b.book?.mrp || 0)), 0) || 0).toLocaleString('en-IN')}</div>
+                      <div className="inline-flex flex-col items-center gap-0.5">
+                        <span className="text-xs font-extrabold text-purple-900 bg-purple-100 px-2 py-0.5 rounded-full border border-purple-200">
+                          {totalBooksQty} copies
+                        </span>
+                        <span className="text-[11px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-0.5">
+                          ₹{totalBooksVal.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3.5 py-2.5 text-center">
+                      <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full border shadow-2xs select-none ${pipeline.color}`}>
+                        {pipeline.label}
+                      </span>
                     </td>
                     <td className="px-3.5 py-2.5 text-xs text-right">
-                      {reg.status !== 'Approved' ? (
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() => handleDeleteRegistration(reg.id)}
-                          className="px-2 py-1 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-md transition-all cursor-pointer active:scale-95 inline-flex items-center gap-1 font-bold text-[10px] shadow-xs"
-                          title="Delete Donation Registration"
+                          onClick={() => setSelectedDetailRegistration(reg)}
+                          className="px-2.5 py-1 bg-paa-navy hover:bg-indigo-950 text-white rounded-md transition-all cursor-pointer active:scale-95 inline-flex items-center gap-1 font-bold text-[10px] shadow-xs"
+                          title="View Registration Details"
                         >
-                          <Trash2 className="w-3 h-3" />
-                          <span>Delete</span>
+                          <Eye className="w-3 h-3" />
+                          <span>Details</span>
                         </button>
-                      ) : (
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5 select-none">Verified</span>
-                      )}
+                        {reg.status !== 'Approved' && (
+                          <button
+                            onClick={() => handleDeleteRegistration(reg.id)}
+                            className="px-2 py-1 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-md transition-all cursor-pointer active:scale-95 inline-flex items-center gap-1 font-bold text-[10px] shadow-xs"
+                            title="Delete Donation Registration"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Delete</span>
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
               })}
               {filteredHistoryRegistrations.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-gray-400 text-xs">
+                  <td colSpan={7} className="py-6 text-center text-gray-400 text-xs">
                     {historySearchTerm ? 'No donation records match your search' : 'You haven\'t made any library donations yet. Active campaigns will appear above.'}
                   </td>
                 </tr>
