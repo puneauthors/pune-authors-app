@@ -100,8 +100,8 @@ const BookPerformance: React.FC = () => {
   let totalRevenue = 0;
   
   // Data for the Graph
-  const graphDataMap = new Map<string, any>();
-  const allBookTitles = new Set<string>();
+  const channelDataMap = new Map<string, { name: string, totalSold: number }>();
+  const bookDataMap = new Map<string, { name: string, totalSold: number }>();
 
   // First pass: collect all unique channels and books
   filteredData.forEach(row => {
@@ -109,33 +109,21 @@ const BookPerformance: React.FC = () => {
     uniqueEventNames.set(row.eventId, row.eventName);
     totalRevenue += row.revenue;
 
-    if (!graphDataMap.has(row.eventName)) {
-      graphDataMap.set(row.eventName, { name: row.eventName });
-    }
-
     if (row.bookTitle !== 'No Sales Yet' && row.booksSold > 0) {
-      allBookTitles.add(row.bookTitle);
+      if (!channelDataMap.has(row.eventName)) {
+        channelDataMap.set(row.eventName, { name: row.eventName, totalSold: 0 });
+      }
+      channelDataMap.get(row.eventName)!.totalSold += row.booksSold;
+
+      if (!bookDataMap.has(row.bookTitle)) {
+        bookDataMap.set(row.bookTitle, { name: row.bookTitle, totalSold: 0 });
+      }
+      bookDataMap.get(row.bookTitle)!.totalSold += row.booksSold;
     }
   });
 
-  const uniqueBookTitlesArray = Array.from(allBookTitles);
-
-  // Initialize all books to 0 for all channels to ensure continuous lines
-  graphDataMap.forEach(channelObj => {
-    uniqueBookTitlesArray.forEach(title => {
-      channelObj[title] = 0;
-    });
-  });
-
-  // Second pass: populate actual sales data
-  filteredData.forEach(row => {
-    if (row.bookTitle !== 'No Sales Yet' && row.booksSold > 0) {
-      const channelObj = graphDataMap.get(row.eventName);
-      channelObj[row.bookTitle] += row.booksSold;
-    }
-  });
-
-  const graphData = Array.from(graphDataMap.values());
+  const channelData = Array.from(channelDataMap.values()).sort((a, b) => b.totalSold - a.totalSold);
+  const bookData = Array.from(bookDataMap.values()).sort((a, b) => b.totalSold - a.totalSold);
   const bookColors = ['#16a34a', '#0284c7', '#9333ea', '#eab308', '#ec4899', '#f97316', '#14b8a6', '#6366f1', '#ef4444', '#8b5cf6'];
 
   const totalFairs = uniqueEvents.size;
@@ -258,35 +246,49 @@ const BookPerformance: React.FC = () => {
         </div>
       </div>
 
-      {/* Sales Channels Comparison Graph */}
-      {graphData.length > 0 && (
-        <div className="dash-panel p-6 mb-8 overflow-hidden">
-          <div className="mb-4 border-b border-gray-100 pb-4">
-            <h3 className="text-sm font-bold text-paa-navy uppercase tracking-widest">Sales Comparison by Channel</h3>
-            <p className="text-[11px] text-gray-500 mt-1">Quantity of books sold across different Fairs and Web Orders</p>
-          </div>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={graphData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
-                <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', fontSize: '12px' }} 
-                  cursor={{ fill: '#f8fafc' }}
-                />
-                <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                {uniqueBookTitlesArray.map((title, idx) => (
-                  <Bar 
-                    key={title} 
-                    dataKey={title} 
-                    stackId="a" 
-                    fill={bookColors[idx % bookColors.length]} 
-                    radius={[2, 2, 0, 0]} 
+      {/* Side by Side Simple Bar Charts */}
+      {(channelData.length > 0 || bookData.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="dash-panel p-6 overflow-hidden">
+            <div className="mb-4 border-b border-gray-100 pb-4">
+              <h3 className="text-sm font-bold text-paa-navy uppercase tracking-widest">Sales by Channel</h3>
+              <p className="text-[11px] text-gray-500 mt-1">Total units sold per event/channel</p>
+            </div>
+            <div className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={channelData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
+                  <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', fontSize: '12px' }} 
+                    cursor={{ fill: '#f8fafc' }}
                   />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
+                  <Bar dataKey="totalSold" name="Units Sold" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          
+          <div className="dash-panel p-6 overflow-hidden">
+            <div className="mb-4 border-b border-gray-100 pb-4">
+              <h3 className="text-sm font-bold text-paa-navy uppercase tracking-widest">Sales by Book</h3>
+              <p className="text-[11px] text-gray-500 mt-1">Total units sold per book title</p>
+            </div>
+            <div className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={bookData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
+                  <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', fontSize: '12px' }} 
+                    cursor={{ fill: '#f8fafc' }}
+                  />
+                  <Bar dataKey="totalSold" name="Units Sold" fill="#ec4899" radius={[4, 4, 0, 0]} barSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}
