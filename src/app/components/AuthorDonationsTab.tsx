@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Megaphone, MapPin, Calendar, Clock, BookOpen, CheckCircle2, Package, Upload, Download, FileText, Landmark, FileSpreadsheet, ShieldCheck, BadgeAlert, Sparkles, ChevronRight, ChevronDown, ChevronUp, X, User, Phone, Trash2, Search } from 'lucide-react';
+import { Megaphone, MapPin, Calendar, Clock, BookOpen, CheckCircle2, Package, Upload, Download, FileText, Landmark, FileSpreadsheet, ShieldCheck, BadgeAlert, Sparkles, ChevronRight, ChevronDown, ChevronUp, X, User, Phone, Trash2, Search, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 // exceljs and file-saver are dynamically imported inside export handlers
 import qrCode from "./data/qr_code.jpeg";
