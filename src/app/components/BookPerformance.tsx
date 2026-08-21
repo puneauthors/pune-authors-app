@@ -233,17 +233,17 @@ const BookPerformance: React.FC = () => {
   }
 
   return (
-    <div className="animate-fade-in-up pb-20">
-      <div className="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
+    <div className="animate-fade-in-up pb-10">
+      <div className="mb-5 flex flex-col md:flex-row justify-between md:items-end gap-3">
         <div>
-          <h2 className="text-3xl font-serif text-paa-navy font-bold tracking-tight mb-2">Book Performance</h2>
-          <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Analyze your ROI strictly by Book Title</p>
+          <h2 className="text-2xl font-serif text-paa-navy font-bold tracking-tight mb-1">Book Performance</h2>
+          <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest">Analyze your ROI strictly by Book Title</p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <select 
-            className="form-select text-sm rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 font-medium text-gray-700 bg-white shadow-sm"
+            className="form-select text-xs rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 font-medium text-gray-700 bg-white shadow-sm py-1.5"
             value={timeframe}
             onChange={(e) => setTimeframe(e.target.value as 'all' | 'year' | 'month')}
           >
@@ -254,7 +254,7 @@ const BookPerformance: React.FC = () => {
           
           {(timeframe === 'year' || timeframe === 'month') && (
             <select
-              className="form-select text-sm rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 font-medium text-gray-700 bg-white shadow-sm"
+              className="form-select text-xs rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 font-medium text-gray-700 bg-white shadow-sm py-1.5"
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
             >
@@ -266,7 +266,7 @@ const BookPerformance: React.FC = () => {
 
           {timeframe === 'month' && (
             <select
-              className="form-select text-sm rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 font-medium text-gray-700 bg-white shadow-sm"
+              className="form-select text-xs rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 font-medium text-gray-700 bg-white shadow-sm py-1.5"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
             >
@@ -279,55 +279,55 @@ const BookPerformance: React.FC = () => {
       </div>
 
       {/* KPI Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-[#2ecc71] rounded-2xl p-5 shadow-sm text-white flex flex-col justify-center">
-          <div className="flex items-center gap-2 mb-2">
-            <BookOpen size={16} />
-            <p className="text-xs font-bold uppercase tracking-widest">Sales Channels</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+        <div className="bg-[#2ecc71] rounded-xl p-3.5 shadow-sm text-white flex flex-col justify-center">
+          <div className="flex items-center gap-1.5 mb-1">
+            <BookOpen size={14} />
+            <p className="text-[10px] font-bold uppercase tracking-widest opacity-90">Sales Channels</p>
           </div>
-          <h3 className="text-3xl font-black">{totalFairs}</h3>
+          <h3 className="text-2xl font-black">{totalFairs}</h3>
         </div>
         
-        <div className="bg-[#a55eea] rounded-2xl p-5 shadow-sm text-white flex flex-col justify-center relative group">
-          <div className="flex items-center gap-2 mb-2">
-            <DollarSign size={16} />
-            <p className="text-xs font-bold uppercase tracking-widest">Total Investment</p>
+        <div className="bg-[#a55eea] rounded-xl p-3.5 shadow-sm text-white flex flex-col justify-center relative group">
+          <div className="flex items-center gap-1.5 mb-1">
+            <DollarSign size={14} />
+            <p className="text-[10px] font-bold uppercase tracking-widest opacity-90">Total Investment</p>
           </div>
-          <h3 className="text-3xl font-black">₹{totalInvestment.toLocaleString()}</h3>
+          <h3 className="text-2xl font-black">₹{totalInvestment.toLocaleString()}</h3>
         </div>
 
-        <div className="bg-[#4b7bec] rounded-2xl p-5 shadow-sm text-white flex flex-col justify-center">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp size={16} />
-            <p className="text-xs font-bold uppercase tracking-widest">Total Revenue</p>
+        <div className="bg-[#4b7bec] rounded-xl p-3.5 shadow-sm text-white flex flex-col justify-center">
+          <div className="flex items-center gap-1.5 mb-1">
+            <TrendingUp size={14} />
+            <p className="text-[10px] font-bold uppercase tracking-widest opacity-90">Total Revenue</p>
           </div>
-          <h3 className="text-3xl font-black">₹{totalRevenue.toLocaleString()}</h3>
+          <h3 className="text-2xl font-black">₹{totalRevenue.toLocaleString()}</h3>
         </div>
 
-        <div className={`rounded-2xl p-5 shadow-sm text-white flex flex-col justify-center ${parseFloat(netROI) >= 0 ? 'bg-[#20bf6b]' : 'bg-[#eb3b5a]'}`}>
-          <div className="flex items-center gap-2 mb-2">
-            <Activity size={16} />
-            <p className="text-xs font-bold uppercase tracking-widest">Net ROI</p>
+        <div className={`rounded-xl p-3.5 shadow-sm text-white flex flex-col justify-center ${parseFloat(netROI) >= 0 ? 'bg-[#20bf6b]' : 'bg-[#eb3b5a]'}`}>
+          <div className="flex items-center gap-1.5 mb-1">
+            <Activity size={14} />
+            <p className="text-[10px] font-bold uppercase tracking-widest opacity-90">Net ROI</p>
           </div>
-          <h3 className="text-3xl font-black">
+          <h3 className="text-2xl font-black">
             {parseFloat(netROI) > 0 && '+'}{netROI}%
           </h3>
         </div>
       </div>
 
       {/* Simple, Easy-to-Interpret Sales Performance Graph */}
-      <div className="dash-panel p-6 mb-8 overflow-hidden">
-        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-4">
+      <div className="dash-panel p-5 mb-5">
+        <div className="mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100 pb-3">
           <div>
             <div className="flex items-center gap-2">
-              <BarChart2 size={18} className="text-indigo-600" />
-              <h3 className="text-sm font-bold text-paa-navy uppercase tracking-widest">
+              <BarChart2 size={16} className="text-indigo-600" />
+              <h3 className="text-xs font-bold text-paa-navy uppercase tracking-widest">
                 {chartTab === 'book' && 'Sales by Book'}
                 {chartTab === 'channel' && 'Sales by Channel / Fair'}
                 {chartTab === 'revenue' && 'Revenue by Book'}
               </h3>
             </div>
-            <p className="text-[11px] text-gray-500 mt-1">
+            <p className="text-[10px] text-gray-500 mt-0.5">
               {chartTab === 'book' && 'Direct comparison of units sold across your titles'}
               {chartTab === 'channel' && 'Direct comparison of total units sold at each event/platform'}
               {chartTab === 'revenue' && 'Total earnings (₹) generated by each book'}
@@ -335,11 +335,11 @@ const BookPerformance: React.FC = () => {
           </div>
 
           {/* Simple View Switcher */}
-          <div className="flex items-center bg-gray-100 p-1 rounded-xl gap-1">
+          <div className="flex items-center bg-gray-100 p-0.5 rounded-lg gap-1">
             <button
               type="button"
               onClick={() => setChartTab('book')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
                 chartTab === 'book'
                   ? 'bg-white text-indigo-700 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
@@ -350,7 +350,7 @@ const BookPerformance: React.FC = () => {
             <button
               type="button"
               onClick={() => setChartTab('channel')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
                 chartTab === 'channel'
                   ? 'bg-white text-indigo-700 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
@@ -361,7 +361,7 @@ const BookPerformance: React.FC = () => {
             <button
               type="button"
               onClick={() => setChartTab('revenue')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
                 chartTab === 'revenue'
                   ? 'bg-white text-indigo-700 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
@@ -373,42 +373,42 @@ const BookPerformance: React.FC = () => {
         </div>
 
         {/* Chart Render */}
-        <div className="h-[320px] w-full pt-4">
+        <div className="h-[220px] w-full pt-1">
           {((chartTab === 'book' || chartTab === 'revenue') && groupedBooks.length === 0) || (chartTab === 'channel' && groupedChannels.length === 0) ? (
-            <div className="h-full flex flex-col items-center justify-center text-gray-400 text-sm">
-              <BookOpen size={32} className="mb-2 opacity-40" />
+            <div className="h-full flex flex-col items-center justify-center text-gray-400 text-xs">
+              <BookOpen size={28} className="mb-1.5 opacity-40" />
               <span>No sales data found for the selected time period.</span>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               {chartTab === 'book' ? (
-                <BarChart data={groupedBooks} margin={{ top: 25, right: 20, left: -20, bottom: 25 }}>
+                <BarChart data={groupedBooks} margin={{ top: 20, right: 15, left: -20, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis 
                     dataKey="title" 
-                    fontSize={11} 
+                    fontSize={10} 
                     tick={{ fill: '#475569', fontWeight: 600 }} 
                     tickLine={false} 
                     axisLine={{ stroke: '#e2e8f0' }}
                     interval={0}
-                    tickFormatter={(val: string) => val.length > 14 ? val.substring(0, 12) + '…' : val}
+                    tickFormatter={(val: string) => val.length > 16 ? val.substring(0, 14) + '…' : val}
                   />
-                  <YAxis fontSize={11} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip 
                     cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         const item = payload[0].payload;
                         return (
-                          <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[180px]">
-                            <p className="font-bold text-gray-900 mb-2 border-b pb-1.5">{item.title}</p>
+                          <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[170px]">
+                            <p className="font-bold text-gray-900 mb-1.5 border-b pb-1">{item.title}</p>
                             <div className="flex justify-between items-center py-0.5">
                               <span className="text-gray-500">Units Sold:</span>
-                              <span className="font-black text-indigo-600 text-sm">{item.totalSold} copies</span>
+                              <span className="font-black text-indigo-600 text-xs">{item.totalSold} copies</span>
                             </div>
                             <div className="flex justify-between items-center py-0.5">
                               <span className="text-gray-500">Total Revenue:</span>
-                              <span className="font-black text-emerald-600 text-sm">₹{item.totalRev.toLocaleString()}</span>
+                              <span className="font-black text-emerald-600 text-xs">₹{item.totalRev.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between items-center py-0.5 mt-1 pt-1 border-t text-[10px] text-gray-400">
                               <span>Channels:</span>
@@ -420,41 +420,41 @@ const BookPerformance: React.FC = () => {
                       return null;
                     }}
                   />
-                  <Bar dataKey="totalSold" radius={[8, 8, 0, 0]} maxBarSize={60}>
-                    <LabelList dataKey="totalSold" position="top" fill="#1e293b" fontSize={12} fontWeight={800} offset={8} />
+                  <Bar dataKey="totalSold" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                    <LabelList dataKey="totalSold" position="top" fill="#1e293b" fontSize={11} fontWeight={800} offset={6} />
                     {groupedBooks.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={bookColors[index % bookColors.length]} />
                     ))}
                   </Bar>
                 </BarChart>
               ) : chartTab === 'channel' ? (
-                <BarChart data={groupedChannels} margin={{ top: 25, right: 20, left: -20, bottom: 25 }}>
+                <BarChart data={groupedChannels} margin={{ top: 20, right: 15, left: -20, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis 
                     dataKey="name" 
-                    fontSize={11} 
+                    fontSize={10} 
                     tick={{ fill: '#475569', fontWeight: 600 }} 
                     tickLine={false} 
                     axisLine={{ stroke: '#e2e8f0' }}
                     interval={0}
-                    tickFormatter={(val: string) => val.length > 15 ? val.substring(0, 13) + '…' : val}
+                    tickFormatter={(val: string) => val.length > 16 ? val.substring(0, 14) + '…' : val}
                   />
-                  <YAxis fontSize={11} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip 
                     cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         const item = payload[0].payload;
                         return (
-                          <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[180px]">
-                            <p className="font-bold text-gray-900 mb-2 border-b pb-1.5">{item.name}</p>
+                          <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[170px]">
+                            <p className="font-bold text-gray-900 mb-1.5 border-b pb-1">{item.name}</p>
                             <div className="flex justify-between items-center py-0.5">
                               <span className="text-gray-500">Units Sold:</span>
-                              <span className="font-black text-indigo-600 text-sm">{item.totalSold} copies</span>
+                              <span className="font-black text-indigo-600 text-xs">{item.totalSold} copies</span>
                             </div>
                             <div className="flex justify-between items-center py-0.5">
                               <span className="text-gray-500">Revenue:</span>
-                              <span className="font-black text-emerald-600 text-sm">₹{item.totalRev.toLocaleString()}</span>
+                              <span className="font-black text-emerald-600 text-xs">₹{item.totalRev.toLocaleString()}</span>
                             </div>
                           </div>
                         );
@@ -462,27 +462,27 @@ const BookPerformance: React.FC = () => {
                       return null;
                     }}
                   />
-                  <Bar dataKey="totalSold" radius={[8, 8, 0, 0]} maxBarSize={60}>
-                    <LabelList dataKey="totalSold" position="top" fill="#1e293b" fontSize={12} fontWeight={800} offset={8} />
+                  <Bar dataKey="totalSold" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                    <LabelList dataKey="totalSold" position="top" fill="#1e293b" fontSize={11} fontWeight={800} offset={6} />
                     {groupedChannels.map((_, index) => (
                       <Cell key={`cell-ch-${index}`} fill={bookColors[index % bookColors.length]} />
                     ))}
                   </Bar>
                 </BarChart>
               ) : (
-                <BarChart data={groupedBooks} margin={{ top: 25, right: 20, left: 10, bottom: 25 }}>
+                <BarChart data={groupedBooks} margin={{ top: 20, right: 15, left: 5, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis 
                     dataKey="title" 
-                    fontSize={11} 
+                    fontSize={10} 
                     tick={{ fill: '#475569', fontWeight: 600 }} 
                     tickLine={false} 
                     axisLine={{ stroke: '#e2e8f0' }}
                     interval={0}
-                    tickFormatter={(val: string) => val.length > 14 ? val.substring(0, 12) + '…' : val}
+                    tickFormatter={(val: string) => val.length > 16 ? val.substring(0, 14) + '…' : val}
                   />
                   <YAxis 
-                    fontSize={11} 
+                    fontSize={10} 
                     tick={{ fill: '#64748b' }} 
                     tickLine={false} 
                     axisLine={false} 
@@ -494,15 +494,15 @@ const BookPerformance: React.FC = () => {
                       if (active && payload && payload.length) {
                         const item = payload[0].payload;
                         return (
-                          <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[180px]">
-                            <p className="font-bold text-gray-900 mb-2 border-b pb-1.5">{item.title}</p>
+                          <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[170px]">
+                            <p className="font-bold text-gray-900 mb-1.5 border-b pb-1">{item.title}</p>
                             <div className="flex justify-between items-center py-0.5">
                               <span className="text-gray-500">Revenue:</span>
-                              <span className="font-black text-emerald-600 text-sm">₹{item.totalRev.toLocaleString()}</span>
+                              <span className="font-black text-emerald-600 text-xs">₹{item.totalRev.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between items-center py-0.5">
                               <span className="text-gray-500">Units Sold:</span>
-                              <span className="font-black text-indigo-600 text-sm">{item.totalSold} copies</span>
+                              <span className="font-black text-indigo-600 text-xs">{item.totalSold} copies</span>
                             </div>
                           </div>
                         );
@@ -510,14 +510,14 @@ const BookPerformance: React.FC = () => {
                       return null;
                     }}
                   />
-                  <Bar dataKey="totalRev" radius={[8, 8, 0, 0]} maxBarSize={60}>
+                  <Bar dataKey="totalRev" radius={[6, 6, 0, 0]} maxBarSize={48}>
                     <LabelList 
                       dataKey="totalRev" 
                       position="top" 
                       fill="#059669" 
                       fontSize={11} 
                       fontWeight={800} 
-                      offset={8} 
+                      offset={6} 
                       formatter={(val: any) => typeof val === 'number' ? `₹${val.toLocaleString()}` : val}
                     />
                     {groupedBooks.map((_, index) => (
@@ -532,52 +532,52 @@ const BookPerformance: React.FC = () => {
       </div>
 
       {/* Excel-Style Spreadsheet Matrix Table */}
-      <div className="dash-panel p-6 mb-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+      <div className="dash-panel p-5 mb-5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
           <div>
-            <h2 className="text-lg font-serif font-bold text-paa-navy">Book Performance Matrix</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Excel-style breakdown showing units sold across all channels dynamically</p>
+            <h2 className="text-base font-serif font-bold text-paa-navy">Book Performance Matrix</h2>
+            <p className="text-[11px] text-gray-500">Excel-style breakdown showing units sold across all channels dynamically</p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
               {groupedBooks.length} Books
             </span>
-            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
               {dynamicEventColumns.length} Events/Channels
             </span>
             <button
               onClick={exportTableToCSV}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#107c41] hover:bg-[#0c5c30] text-white text-xs font-bold rounded-lg shadow-sm transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-[#107c41] hover:bg-[#0c5c30] text-white text-[11px] font-bold rounded-lg shadow-sm transition-colors cursor-pointer"
               title="Download as Excel CSV"
             >
-              <Download size={14} />
+              <Download size={13} />
               <span>Export Excel</span>
             </button>
           </div>
         </div>
 
-        <div className="w-full overflow-x-auto border-2 border-black rounded-lg shadow-sm bg-white">
+        <div className="w-full overflow-x-auto border border-black rounded-lg shadow-sm bg-white">
           <table className="min-w-full w-max border-collapse text-xs">
             <thead>
               <tr className="bg-[#ffd700] text-black">
-                <th className="border border-black px-3 py-3.5 font-extrabold text-center uppercase tracking-wider w-14 min-w-[50px] whitespace-nowrap">
+                <th className="border border-black px-2.5 py-2 font-extrabold text-center uppercase tracking-wider w-10 min-w-[42px] whitespace-nowrap text-[11px]">
                   S.No
                 </th>
-                <th className="border border-black px-4 py-3.5 font-extrabold text-left uppercase tracking-wider min-w-[180px] whitespace-nowrap">
+                <th className="border border-black px-3 py-2 font-extrabold text-left uppercase tracking-wider min-w-[160px] whitespace-nowrap text-[11px]">
                   Book Title
                 </th>
                 {dynamicEventColumns.map((col) => (
-                  <th key={col.eventName} className="border border-black px-3 py-3.5 font-extrabold text-center uppercase tracking-wider min-w-[130px] whitespace-nowrap">
+                  <th key={col.eventName} className="border border-black px-3 py-2 font-extrabold text-center uppercase tracking-wider min-w-[115px] whitespace-nowrap text-[11px]">
                     <div className="font-extrabold">{col.eventName}</div>
-                    <div className="text-[10px] font-semibold text-gray-800 opacity-90 normal-case mt-0.5">
+                    <div className="text-[9px] font-semibold text-gray-800 opacity-90 normal-case mt-0.5">
                       {col.eventName === 'Web Orders' ? 'Ongoing' : new Date(col.date).toLocaleDateString()}
                     </div>
                   </th>
                 ))}
-                <th className="border border-black px-4 py-3.5 font-black text-center uppercase tracking-wider min-w-[130px] bg-[#ffe135] whitespace-nowrap">
+                <th className="border border-black px-3 py-2 font-black text-center uppercase tracking-wider min-w-[110px] bg-[#ffe135] whitespace-nowrap text-[11px]">
                   Total Units Sold
                 </th>
-                <th className="border border-black px-4 py-3.5 font-black text-right uppercase tracking-wider min-w-[140px] bg-[#ffe135] whitespace-nowrap">
+                <th className="border border-black px-3 py-2 font-black text-right uppercase tracking-wider min-w-[120px] bg-[#ffe135] whitespace-nowrap text-[11px]">
                   Total Revenue (₹)
                 </th>
               </tr>
@@ -585,7 +585,7 @@ const BookPerformance: React.FC = () => {
             <tbody>
               {groupedBooks.length === 0 ? (
                 <tr>
-                  <td colSpan={dynamicEventColumns.length + 4} className="border border-black text-center py-12 text-gray-400 italic text-sm">
+                  <td colSpan={dynamicEventColumns.length + 4} className="border border-black text-center py-8 text-gray-400 italic text-xs">
                     No sales data available for the selected timeframe.
                   </td>
                 </tr>
@@ -593,22 +593,22 @@ const BookPerformance: React.FC = () => {
                 <>
                   {groupedBooks.map((group, index) => (
                     <tr key={group.title} className={`transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-amber-50/20'} hover:bg-yellow-50/70`}>
-                      <td className="border border-black px-3 py-3 font-bold text-center text-gray-700">
+                      <td className="border border-black px-2 py-1.5 font-bold text-center text-gray-700 text-xs">
                         {index + 1}
                       </td>
-                      <td className="border border-black px-4 py-3 font-bold text-paa-navy whitespace-normal">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md border text-xs font-black uppercase tracking-wider ${getBadgeColor(group.title)}`}>
+                      <td className="border border-black px-3 py-1.5 font-bold text-paa-navy whitespace-normal">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-bold uppercase tracking-wide ${getBadgeColor(group.title)}`}>
                           {group.title}
                         </span>
                       </td>
                       {dynamicEventColumns.map((col) => {
                         const sale = group.eventSales[col.eventName];
                         return (
-                          <td key={col.eventName} className="border border-black px-3 py-3 text-center">
+                          <td key={col.eventName} className="border border-black px-2.5 py-1.5 text-center">
                             {sale && sale.sold > 0 ? (
-                              <div className="font-bold text-gray-900">
-                                <span className="text-sm text-indigo-700 font-extrabold">{sale.sold}</span>
-                                <span className="block text-[10px] text-emerald-600 font-bold">₹{sale.rev.toLocaleString()}</span>
+                              <div className="font-bold text-gray-900 leading-tight">
+                                <span className="text-xs text-indigo-700 font-black">{sale.sold}</span>
+                                <span className="block text-[9px] text-emerald-600 font-bold">₹{sale.rev.toLocaleString()}</span>
                               </div>
                             ) : (
                               <span className="text-gray-300 font-semibold">-</span>
@@ -616,13 +616,13 @@ const BookPerformance: React.FC = () => {
                           </td>
                         );
                       })}
-                      <td className="border border-black px-4 py-3 text-center bg-indigo-50/40">
-                        <span className="font-black text-indigo-700 text-sm">
+                      <td className="border border-black px-3 py-1.5 text-center bg-indigo-50/40">
+                        <span className="font-black text-indigo-700 text-xs">
                           {group.totalSold}
                         </span>
                       </td>
-                      <td className="border border-black px-4 py-3 text-right bg-emerald-50/40">
-                        <span className="font-black text-emerald-700 text-sm">
+                      <td className="border border-black px-3 py-1.5 text-right bg-emerald-50/40">
+                        <span className="font-black text-emerald-700 text-xs">
                           ₹{group.totalRev.toLocaleString()}
                         </span>
                       </td>
@@ -631,28 +631,28 @@ const BookPerformance: React.FC = () => {
 
                   {/* Summary / Total Row */}
                   <tr className="bg-[#fff3b0] font-black border-t-2 border-black">
-                    <td className="border border-black px-3 py-3 text-center text-black font-extrabold">
+                    <td className="border border-black px-2 py-2 text-center text-black font-extrabold text-xs">
                       -
                     </td>
-                    <td className="border border-black px-4 py-3 font-black text-black tracking-wider uppercase text-xs">
+                    <td className="border border-black px-3 py-2 font-black text-black tracking-wider uppercase text-xs">
                       TOTAL
                     </td>
                     {dynamicEventColumns.map((col) => {
                       const colSold = groupedBooks.reduce((sum, b) => sum + (b.eventSales[col.eventName]?.sold || 0), 0);
                       const colRev = groupedBooks.reduce((sum, b) => sum + (b.eventSales[col.eventName]?.rev || 0), 0);
                       return (
-                        <td key={col.eventName} className="border border-black px-3 py-3 text-center">
-                          <div className="font-black text-black">
-                            <span className="text-sm font-black">{colSold}</span>
-                            <span className="block text-[10px] text-emerald-800 font-black">₹{colRev.toLocaleString()}</span>
+                        <td key={col.eventName} className="border border-black px-2.5 py-2 text-center">
+                          <div className="font-black text-black leading-tight">
+                            <span className="text-xs font-black">{colSold}</span>
+                            <span className="block text-[9px] text-emerald-800 font-black">₹{colRev.toLocaleString()}</span>
                           </div>
                         </td>
                       );
                     })}
-                    <td className="border border-black px-4 py-3 text-center bg-[#ffe66d] text-indigo-900 font-black text-base">
+                    <td className="border border-black px-3 py-2 text-center bg-[#ffe66d] text-indigo-900 font-black text-sm">
                       {grandTotalSold}
                     </td>
-                    <td className="border border-black px-4 py-3 text-right bg-[#ffe66d] text-emerald-900 font-black text-base">
+                    <td className="border border-black px-3 py-2 text-right bg-[#ffe66d] text-emerald-900 font-black text-sm">
                       ₹{grandTotalRev.toLocaleString()}
                     </td>
                   </tr>
