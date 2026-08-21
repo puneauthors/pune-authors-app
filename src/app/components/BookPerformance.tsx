@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { TrendingUp, DollarSign, BookOpen, Activity, ChevronDown, ChevronRight } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { TrendingUp, DollarSign, BookOpen, Activity, ChevronDown, ChevronRight, BarChart2 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -65,6 +65,7 @@ const BookPerformance: React.FC = () => {
   const [timeframe, setTimeframe] = useState<'all' | 'year' | 'month'>('year');
   const [selectedYear, setSelectedYear] = useState<string>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<string>((new Date().getMonth() + 1).toString().padStart(2, '0'));
+  const [chartTab, setChartTab] = useState<'book' | 'channel' | 'revenue'>('book');
 
   const availableYears = React.useMemo(() => {
     const years = Array.from(new Set(data.map(d => new Date(d.date).getFullYear().toString()))).sort((a, b) => b.localeCompare(a));
@@ -99,32 +100,13 @@ const BookPerformance: React.FC = () => {
   const uniqueEventNames = new Map<number, string>();
   let totalRevenue = 0;
   
-  // Data for the Graph
-  const channelDataMap = new Map<string, { name: string, totalSold: number }>();
-  const bookDataMap = new Map<string, { name: string, totalSold: number }>();
-
-  // First pass: collect all unique channels and books
   filteredData.forEach(row => {
     uniqueEvents.set(row.eventId, row.investment);
     uniqueEventNames.set(row.eventId, row.eventName);
     totalRevenue += row.revenue;
-
-    if (row.bookTitle !== 'No Sales Yet' && row.booksSold > 0) {
-      if (!channelDataMap.has(row.eventName)) {
-        channelDataMap.set(row.eventName, { name: row.eventName, totalSold: 0 });
-      }
-      channelDataMap.get(row.eventName)!.totalSold += row.booksSold;
-
-      if (!bookDataMap.has(row.bookTitle)) {
-        bookDataMap.set(row.bookTitle, { name: row.bookTitle, totalSold: 0 });
-      }
-      bookDataMap.get(row.bookTitle)!.totalSold += row.booksSold;
-    }
   });
 
-  const channelData = Array.from(channelDataMap.values()).sort((a, b) => b.totalSold - a.totalSold);
-  const bookData = Array.from(bookDataMap.values()).sort((a, b) => b.totalSold - a.totalSold);
-  const bookColors = ['#16a34a', '#0284c7', '#9333ea', '#eab308', '#ec4899', '#f97316', '#14b8a6', '#6366f1', '#ef4444', '#8b5cf6'];
+  const bookColors = ['#4f46e5', '#0284c7', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#3b82f6', '#14b8a6', '#f97316', '#e11d48'];
 
   const totalFairs = uniqueEvents.size;
   let totalInvestment = 0;
@@ -140,6 +122,7 @@ const BookPerformance: React.FC = () => {
   const groupedBooks = React.useMemo(() => {
     const map: Record<string, { title: string; totalSold: number; totalRev: number; events: PerformanceData[] }> = {};
     filteredData.forEach(row => {
+      if (row.bookTitle === 'No Sales Yet') return;
       if (!map[row.bookTitle]) {
         map[row.bookTitle] = { title: row.bookTitle, totalSold: 0, totalRev: 0, events: [] };
       }
@@ -147,7 +130,20 @@ const BookPerformance: React.FC = () => {
       map[row.bookTitle].totalRev += row.revenue;
       map[row.bookTitle].events.push(row);
     });
-    return Object.values(map).sort((a, b) => b.totalRev - a.totalRev);
+    return Object.values(map).sort((a, b) => b.totalSold - a.totalSold);
+  }, [filteredData]);
+
+  // Group data by channel / event
+  const groupedChannels = React.useMemo(() => {
+    const map: Record<string, { name: string; totalSold: number; totalRev: number }> = {};
+    filteredData.forEach(row => {
+      if (!map[row.eventName]) {
+        map[row.eventName] = { name: row.eventName, totalSold: 0, totalRev: 0 };
+      }
+      map[row.eventName].totalSold += row.booksSold;
+      map[row.eventName].totalRev += row.revenue;
+    });
+    return Object.values(map).sort((a, b) => b.totalSold - a.totalSold);
   }, [filteredData]);
 
   const [expandedBooks, setExpandedBooks] = useState<Record<string, boolean>>({});
@@ -246,52 +242,221 @@ const BookPerformance: React.FC = () => {
         </div>
       </div>
 
-      {/* Side by Side Simple Bar Charts */}
-      {(channelData.length > 0 || bookData.length > 0) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="dash-panel p-6 overflow-hidden">
-            <div className="mb-4 border-b border-gray-100 pb-4">
-              <h3 className="text-sm font-bold text-paa-navy uppercase tracking-widest">Sales by Channel</h3>
-              <p className="text-[11px] text-gray-500 mt-1">Total units sold per event/channel</p>
+      {/* Simple, Easy-to-Interpret Sales Performance Graph */}
+      <div className="dash-panel p-6 mb-8 overflow-hidden">
+        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <BarChart2 size={18} className="text-indigo-600" />
+              <h3 className="text-sm font-bold text-paa-navy uppercase tracking-widest">
+                {chartTab === 'book' && 'Sales by Book'}
+                {chartTab === 'channel' && 'Sales by Channel / Fair'}
+                {chartTab === 'revenue' && 'Revenue by Book'}
+              </h3>
             </div>
-            <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={channelData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
-                  <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', fontSize: '12px' }} 
-                    cursor={{ fill: '#f8fafc' }}
-                  />
-                  <Bar dataKey="totalSold" name="Units Sold" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={40} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <p className="text-[11px] text-gray-500 mt-1">
+              {chartTab === 'book' && 'Direct comparison of units sold across your titles'}
+              {chartTab === 'channel' && 'Direct comparison of total units sold at each event/platform'}
+              {chartTab === 'revenue' && 'Total earnings (₹) generated by each book'}
+            </p>
           </div>
-          
-          <div className="dash-panel p-6 overflow-hidden">
-            <div className="mb-4 border-b border-gray-100 pb-4">
-              <h3 className="text-sm font-bold text-paa-navy uppercase tracking-widest">Sales by Book</h3>
-              <p className="text-[11px] text-gray-500 mt-1">Total units sold per book title</p>
-            </div>
-            <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={bookData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
-                  <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', fontSize: '12px' }} 
-                    cursor={{ fill: '#f8fafc' }}
-                  />
-                  <Bar dataKey="totalSold" name="Units Sold" fill="#ec4899" radius={[4, 4, 0, 0]} barSize={40} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+
+          {/* Simple View Switcher */}
+          <div className="flex items-center bg-gray-100 p-1 rounded-xl gap-1">
+            <button
+              type="button"
+              onClick={() => setChartTab('book')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                chartTab === 'book'
+                  ? 'bg-white text-indigo-700 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              📚 By Book
+            </button>
+            <button
+              type="button"
+              onClick={() => setChartTab('channel')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                chartTab === 'channel'
+                  ? 'bg-white text-indigo-700 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              🎪 By Event
+            </button>
+            <button
+              type="button"
+              onClick={() => setChartTab('revenue')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                chartTab === 'revenue'
+                  ? 'bg-white text-indigo-700 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              💰 Revenue (₹)
+            </button>
           </div>
         </div>
-      )}
+
+        {/* Chart Render */}
+        <div className="h-[320px] w-full pt-4">
+          {((chartTab === 'book' || chartTab === 'revenue') && groupedBooks.length === 0) || (chartTab === 'channel' && groupedChannels.length === 0) ? (
+            <div className="h-full flex flex-col items-center justify-center text-gray-400 text-sm">
+              <BookOpen size={32} className="mb-2 opacity-40" />
+              <span>No sales data found for the selected time period.</span>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              {chartTab === 'book' ? (
+                <BarChart data={groupedBooks} margin={{ top: 25, right: 20, left: -20, bottom: 25 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="title" 
+                    fontSize={11} 
+                    tick={{ fill: '#475569', fontWeight: 600 }} 
+                    tickLine={false} 
+                    axisLine={{ stroke: '#e2e8f0' }}
+                    interval={0}
+                    tickFormatter={(val: string) => val.length > 14 ? val.substring(0, 12) + '…' : val}
+                  />
+                  <YAxis fontSize={11} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const item = payload[0].payload;
+                        return (
+                          <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[180px]">
+                            <p className="font-bold text-gray-900 mb-2 border-b pb-1.5">{item.title}</p>
+                            <div className="flex justify-between items-center py-0.5">
+                              <span className="text-gray-500">Units Sold:</span>
+                              <span className="font-black text-indigo-600 text-sm">{item.totalSold} copies</span>
+                            </div>
+                            <div className="flex justify-between items-center py-0.5">
+                              <span className="text-gray-500">Total Revenue:</span>
+                              <span className="font-black text-emerald-600 text-sm">₹{item.totalRev.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-0.5 mt-1 pt-1 border-t text-[10px] text-gray-400">
+                              <span>Channels:</span>
+                              <span>{item.events?.length || 0} events</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="totalSold" radius={[8, 8, 0, 0]} maxBarSize={60}>
+                    <LabelList dataKey="totalSold" position="top" fill="#1e293b" fontSize={12} fontWeight={800} offset={8} />
+                    {groupedBooks.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={bookColors[index % bookColors.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              ) : chartTab === 'channel' ? (
+                <BarChart data={groupedChannels} margin={{ top: 25, right: 20, left: -20, bottom: 25 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="name" 
+                    fontSize={11} 
+                    tick={{ fill: '#475569', fontWeight: 600 }} 
+                    tickLine={false} 
+                    axisLine={{ stroke: '#e2e8f0' }}
+                    interval={0}
+                    tickFormatter={(val: string) => val.length > 15 ? val.substring(0, 13) + '…' : val}
+                  />
+                  <YAxis fontSize={11} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const item = payload[0].payload;
+                        return (
+                          <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[180px]">
+                            <p className="font-bold text-gray-900 mb-2 border-b pb-1.5">{item.name}</p>
+                            <div className="flex justify-between items-center py-0.5">
+                              <span className="text-gray-500">Units Sold:</span>
+                              <span className="font-black text-indigo-600 text-sm">{item.totalSold} copies</span>
+                            </div>
+                            <div className="flex justify-between items-center py-0.5">
+                              <span className="text-gray-500">Revenue:</span>
+                              <span className="font-black text-emerald-600 text-sm">₹{item.totalRev.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="totalSold" radius={[8, 8, 0, 0]} maxBarSize={60}>
+                    <LabelList dataKey="totalSold" position="top" fill="#1e293b" fontSize={12} fontWeight={800} offset={8} />
+                    {groupedChannels.map((_, index) => (
+                      <Cell key={`cell-ch-${index}`} fill={bookColors[index % bookColors.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              ) : (
+                <BarChart data={groupedBooks} margin={{ top: 25, right: 20, left: 10, bottom: 25 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="title" 
+                    fontSize={11} 
+                    tick={{ fill: '#475569', fontWeight: 600 }} 
+                    tickLine={false} 
+                    axisLine={{ stroke: '#e2e8f0' }}
+                    interval={0}
+                    tickFormatter={(val: string) => val.length > 14 ? val.substring(0, 12) + '…' : val}
+                  />
+                  <YAxis 
+                    fontSize={11} 
+                    tick={{ fill: '#64748b' }} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickFormatter={(val: number) => `₹${val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val}`}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(16, 185, 129, 0.05)' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const item = payload[0].payload;
+                        return (
+                          <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xl text-xs min-w-[180px]">
+                            <p className="font-bold text-gray-900 mb-2 border-b pb-1.5">{item.title}</p>
+                            <div className="flex justify-between items-center py-0.5">
+                              <span className="text-gray-500">Revenue:</span>
+                              <span className="font-black text-emerald-600 text-sm">₹{item.totalRev.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-0.5">
+                              <span className="text-gray-500">Units Sold:</span>
+                              <span className="font-black text-indigo-600 text-sm">{item.totalSold} copies</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="totalRev" radius={[8, 8, 0, 0]} maxBarSize={60}>
+                    <LabelList 
+                      dataKey="totalRev" 
+                      position="top" 
+                      fill="#059669" 
+                      fontSize={11} 
+                      fontWeight={800} 
+                      offset={8} 
+                      formatter={(val: any) => typeof val === 'number' ? `₹${val.toLocaleString()}` : val}
+                    />
+                    {groupedBooks.map((_, index) => (
+                      <Cell key={`cell-rev-${index}`} fill="#10b981" />
+                    ))}
+                  </Bar>
+                </BarChart>
+              )}
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
 
       {/* High-Contrast Vibrant Data Table */}
       <div className="dash-panel overflow-hidden mb-7">
