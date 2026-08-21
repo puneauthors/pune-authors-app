@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { TrendingUp, DollarSign, BookOpen, Activity, ChevronDown, ChevronRight } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -267,18 +267,25 @@ const BookPerformance: React.FC = () => {
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={graphData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart data={graphData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
                 <YAxis fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} />
                 <Tooltip 
                   contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', fontSize: '12px' }} 
+                  cursor={{ fill: '#f8fafc' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
                 {uniqueBookTitlesArray.map((title, idx) => (
-                  <Line key={title} type="linear" dataKey={title} stroke={bookColors[idx % bookColors.length]} strokeWidth={3} activeDot={{ r: 6 }} dot={{ strokeWidth: 2, r: 4 }} />
+                  <Bar 
+                    key={title} 
+                    dataKey={title} 
+                    stackId="a" 
+                    fill={bookColors[idx % bookColors.length]} 
+                    radius={[2, 2, 0, 0]} 
+                  />
                 ))}
-              </LineChart>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
