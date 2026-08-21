@@ -238,7 +238,7 @@ setInterval(async () => {
           status: { in: ['Pending', 'Pending Verification', 'Accepted'] },
           createdAt: { lt: new Date(now.getTime() - 24 * 60 * 60 * 1000) }
         },
-        include: { author: true, order: true, book: true }
+        include: { order: true, book: { include: { author: true } } }
       });
 
       const actuallyLate = lateItems.filter(it => {
