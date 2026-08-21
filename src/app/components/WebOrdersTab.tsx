@@ -12,14 +12,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import {
-  Check, Clock, Package, Users, Activity, PieChart,
+  Check, Clock, Package, Users, Activity,
   Search, CalendarIcon, ChevronDown, CheckCircle2, XCircle,
   Trash2, Truck, PackageCheck, ClipboardList
 } from 'lucide-react';
-import {
-  ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell,
-  Tooltip as RechartsTooltip
-} from 'recharts';
 import { toast } from 'sonner';
 import FocusTrap from 'focus-trap-react';
 import { X } from 'lucide-react';
@@ -245,55 +241,30 @@ function WebOrdersTab({
     }
   };
 
-  // State Distribution Extraction
-  const stateCounts: Record<string, number> = {};
-  filteredOrders.forEach((o: any) => {
-    if (o.address) {
-      const parts = o.address.split(',');
-      const lastPart = parts[parts.length - 1]; // e.g. " Maharashtra - 411001"
-      if (lastPart) {
-        const stateStr = lastPart.split('-')[0].trim();
-        if (stateStr) {
-          stateCounts[stateStr] = (stateCounts[stateStr] || 0) + 1;
-        }
-      }
-    }
-  });
-
-  const sortedStates = Object.entries(stateCounts)
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value);
-
-  const topStates = sortedStates.slice(0, 6);
-  const othersCount = sortedStates.slice(6).reduce((sum, s) => sum + s.value, 0);
-  if (othersCount > 0) {
-    topStates.push({ name: 'Others', value: othersCount });
-  }
-  const pieColors = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6', '#9CA3AF'];
-
   return (
     <div className="space-y-6">
-      {/* Order Tracking KPIs & State Distribution */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
-          <h3 className="text-[11px] font-bold tracking-widest uppercase text-paa-gray-text flex items-center gap-2">
-            <Activity className="w-4 h-4 text-indigo-500" /> Order KPIs
-          </h3>
-          <div className="grid grid-cols-2 gap-3 h-[calc(100%-2rem)]">
+      {/* Order Tracking KPIs */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-bold tracking-widest uppercase text-paa-gray-text flex items-center gap-2">
+          <Activity className="w-4 h-4 text-indigo-500" /> Order KPIs
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { label: 'Successful Orders', value: successfulOrders, breakdown: `${successfulWeb} Web • ${successfulBulk} Bulk`, icon: Check, colorClass: 'green' },
               { label: 'Pending Verification', value: toApproveOrders, breakdown: `${toApproveWeb} Web • ${toApproveBulk} Bulk`, icon: Clock, colorClass: 'amber' },
               { label: 'Under Delivery', value: underDeliveryOrders, breakdown: `${underDeliveryWeb} Web • ${underDeliveryBulk} Bulk`, icon: Package, colorClass: 'blue' },
               { label: 'Total Customers', value: totalCustomers, breakdown: `${totalCustomersWeb} Web • ${totalCustomersBulk} Bulk`, icon: Users, colorClass: 'red' },
             ].map((kpi, i) => (
-              <div key={i} className={`dash-kpi-card ${kpi.colorClass} flex flex-col justify-center items-start gap-1`}>
-                <div className={`dash-kpi-icon ${kpi.colorClass} mb-1`}>
-                  <kpi.icon size={20} />
+              <div key={i} className={`dash-kpi-card ${kpi.colorClass} flex flex-col justify-between !py-3 !px-4 !min-h-0`}>
+                <div className="flex justify-between items-center w-full mb-1">
+                  <p className="text-xs font-bold tracking-widest uppercase text-white/90">{kpi.label}</p>
+                  <div className={`dash-kpi-icon ${kpi.colorClass} !bg-white/20 !mb-0 !p-1.5`}>
+                    <kpi.icon size={16} className="text-white" />
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold tracking-widest uppercase text-paa-gray-text mb-0.5">{kpi.label}</p>
-                  <h3 className="text-3xl font-black text-paa-navy tracking-tight leading-none mb-1">{kpi.value}</h3>
-                  <p className="text-[9px] font-bold uppercase tracking-widest rounded-full inline-block px-2 py-0.5 bg-white/20 text-white shadow-sm">
+                <div className="flex items-end gap-2">
+                  <h3 className="text-2xl font-black text-white tracking-tight leading-none">{kpi.value}</h3>
+                  <p className="text-xs font-bold uppercase tracking-widest rounded-md px-1.5 py-0.5 bg-white/20 text-white shadow-sm mb-0.5">
                     {kpi.breakdown}
                   </p>
                 </div>
@@ -302,62 +273,17 @@ function WebOrdersTab({
           </div>
         </div>
 
-        <div className="lg:col-span-1 bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow">
-          <h3 className="text-[11px] font-bold tracking-widest uppercase text-paa-gray-text mb-4 flex items-center gap-2">
-            <PieChart className="w-4 h-4 text-indigo-500" /> State Distribution (Current Page)
-          </h3>
-          <div className="flex-1 w-full min-h-[160px]">
-            {topStates.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                  <Pie
-                    data={topStates}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={75}
-                    paddingAngle={2}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {topStates.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontWeight: 'bold' }}
-                    itemStyle={{ color: '#1a1a2e' }}
-                  />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 font-medium">No location data available</div>
-            )}
-          </div>
-          {topStates.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2 justify-center">
-              {topStates.map((entry, idx) => (
-                <div key={idx} className="flex items-center gap-1.5 text-[10px] font-bold text-gray-600">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: pieColors[idx % pieColors.length] }}></span>
-                  {entry.name} ({entry.value})
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
       {[{ title: 'Bulk Orders', data: filteredBulkOrders, showFilters: true, isBulkSection: true, searchTerm: bulkSearchTerm, setSearchTerm: setBulkSearchTerm, statusFilter: bulkStatusFilter, setStatusFilter: setBulkStatusFilter }, { title: 'Web Orders', data: filteredWebOrders, showFilters: true, isBulkSection: false, searchTerm: webSearchTerm, setSearchTerm: setWebSearchTerm, statusFilter: webStatusFilter, setStatusFilter: setWebStatusFilter }].map((section, sectionIdx) => {
         const displayData = (section.isBulkSection && !showAllBulkOrders) ? section.data.slice(0, 5) : section.data;
         return (
       <div key={sectionIdx} className="bg-white border border-paa-navy/5 shadow-premium hover:shadow-premium-hover transition-all duration-500 ease-out flex flex-col mb-8">
-        <div className="p-4 border-b border-paa-navy/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#f0f4f8]">
+        <div className="p-4 border-b border-paa-navy/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#f0f4f8]">
           <div className="flex items-center gap-2">
-            <h3 className="text-2xl font-serif font-semibold text-paa-navy tracking-tight">{section.title}</h3>
+            <h3 className="text-[10px] font-bold uppercase text-paa-navy tracking-widest whitespace-nowrap">{section.title}</h3>
           </div>
           {section.showFilters && (
-            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
-              <div className="flex flex-wrap bg-white rounded-lg p-1 border border-paa-navy/10 shadow-sm">
+            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2">
+              <div className="flex flex-wrap bg-white rounded-md p-1 border border-paa-navy/10 shadow-sm">
                 {['All', 'Pending', 'Accepted', 'Dispatched', 'Completed'].map((st) => {
                   const tabCount = st === 'All' ? section.data.length : section.data.filter((ord: any) => {
                     const statusText = getAggregateStatus(ord).text;
@@ -371,38 +297,38 @@ function WebOrdersTab({
                   <button
                     key={st}
                     onClick={() => section.setStatusFilter(st)}
-                    className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest rounded-md transition-all flex items-center gap-1.5 ${section.statusFilter === st ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-50'}`}
+                    className={`px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded transition-all flex items-center gap-1.5 ${section.statusFilter === st ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-50'}`}
                   >
                     {st} <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${section.statusFilter === st ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-500'}`}>{tabCount}</span>
                   </button>
                 )})}
               </div>
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-paa-gray-text" />
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-paa-gray-text" />
                 <input
                   type="text"
-                  placeholder="SEARCH ORDERS..."
+                  placeholder="SEARCH..."
                   value={section.searchTerm}
                   onChange={(e) => section.setSearchTerm(e.target.value)}
-                  className="pl-9 pr-4 py-2 bg-white border border-paa-navy/20 text-xs font-bold tracking-widest uppercase outline-none focus:border-paa-navy transition-colors w-full sm:w-64 rounded-full"
+                  className="pl-7 pr-3 py-1 bg-white border border-paa-navy/20 text-[10px] font-bold tracking-widest uppercase outline-none focus:border-paa-navy transition-colors w-full sm:w-40 rounded-full"
                 />
               </div>
               {section.isBulkSection ? (
-                <button onClick={handleExportBulkCSV} className="flex items-center justify-center gap-2 px-4 py-2 bg-[#5cb85c] text-white text-xs font-bold tracking-widest uppercase hover:bg-green-600 transition-colors shadow-premium rounded-full whitespace-nowrap">
-                  <ClipboardList className="w-4 h-4" /> Bulk Orders Summary
+                <button onClick={handleExportBulkCSV} className="flex items-center justify-center gap-1.5 px-3 py-1 bg-[#5cb85c] text-white text-[10px] font-bold tracking-widest uppercase hover:bg-green-600 transition-colors shadow-premium rounded-full whitespace-nowrap">
+                  <ClipboardList className="w-3.5 h-3.5" /> Summary
                 </button>
               ) : (
-                <button onClick={handleExportCSV} className="flex items-center justify-center gap-2 px-4 py-2 bg-[#5cb85c] text-white text-xs font-bold tracking-widest uppercase hover:bg-green-600 transition-colors shadow-premium rounded-full whitespace-nowrap">
-                  <ClipboardList className="w-4 h-4" /> Web Orders Summary
+                <button onClick={handleExportCSV} className="flex items-center justify-center gap-1.5 px-3 py-1 bg-[#5cb85c] text-white text-[10px] font-bold tracking-widest uppercase hover:bg-green-600 transition-colors shadow-premium rounded-full whitespace-nowrap">
+                  <ClipboardList className="w-3.5 h-3.5" /> Summary
                 </button>
               )}
-              <div className="w-[1px] h-6 bg-gray-300 mx-1 hidden sm:block"></div>
+              <div className="w-[1px] h-5 bg-gray-300 mx-1 hidden sm:block"></div>
               <div 
                 onClick={() => section.isBulkSection ? setShowArchivedBulk(!showArchivedBulk) : setShowArchivedWeb(!showArchivedWeb)}
                 className="flex items-center gap-2 cursor-pointer shrink-0 ml-1"
               >
-                <div className={`relative w-8 h-4 rounded-full transition-colors ${(section.isBulkSection ? showArchivedBulk : showArchivedWeb) ? 'bg-red-500' : 'bg-gray-300'}`}>
-                  <div className={`absolute top-0.5 left-0.5 bg-white w-3 h-3 rounded-full transition-transform duration-200 ${(section.isBulkSection ? showArchivedBulk : showArchivedWeb) ? 'translate-x-4' : 'translate-x-0'} shadow-sm`}></div>
+                <div className={`relative w-7 h-3.5 rounded-full transition-colors ${(section.isBulkSection ? showArchivedBulk : showArchivedWeb) ? 'bg-red-500' : 'bg-gray-300'}`}>
+                  <div className={`absolute top-0.5 left-0.5 bg-white w-2.5 h-2.5 rounded-full transition-transform duration-200 ${(section.isBulkSection ? showArchivedBulk : showArchivedWeb) ? 'translate-x-3.5' : 'translate-x-0'} shadow-sm`}></div>
                 </div>
                 <span className="text-[10px] font-bold tracking-wider uppercase text-gray-600">Archived</span>
               </div>
@@ -414,13 +340,13 @@ function WebOrdersTab({
           <table className="dash-table w-full table-auto xl:table-fixed min-w-[900px] xl:min-w-0">
             <thead>
               <tr className="bg-indigo-50 border-b-2 border-indigo-100">
-                <th className="w-[5%] !text-indigo-800 !bg-transparent !text-[14px]">S.No</th>
-                <th className="w-[15%] !text-indigo-800 !bg-transparent !text-[14px]">Order ID & Date</th>
-                <th className="w-[15%] !text-indigo-800 !bg-transparent !text-[14px]">Customer</th>
-                <th className="w-[25%] !text-indigo-800 !bg-transparent !text-[14px]">Items / Books</th>
-                <th className="w-[8%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Amount</th>
-                <th className="w-[17%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Status</th>
-                <th className="w-[15%] !text-indigo-800 !bg-transparent !text-[14px]" style={{ textAlign: 'center' }}>Actions</th>
+                <th className="w-[5%] !text-indigo-800 !bg-transparent !text-sm">S.No</th>
+                <th className="w-[15%] !text-indigo-800 !bg-transparent !text-sm">Order ID & Date</th>
+                <th className="w-[15%] !text-indigo-800 !bg-transparent !text-sm">Customer</th>
+                <th className="w-[25%] !text-indigo-800 !bg-transparent !text-sm">Items / Books</th>
+                <th className="w-[8%] !text-indigo-800 !bg-transparent !text-sm" style={{ textAlign: 'center' }}>Amount</th>
+                <th className="w-[17%] !text-indigo-800 !bg-transparent !text-sm" style={{ textAlign: 'center' }}>Status</th>
+                <th className="w-[15%] !text-indigo-800 !bg-transparent !text-sm" style={{ textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -443,7 +369,7 @@ function WebOrdersTab({
                               <span className="truncate">{it.title} <span className="text-gray-400 italic">by {it.authorName}</span></span>
                             </li>
                           ))}
-                          {ord.items.length > 2 && <li className="text-indigo-500 font-bold text-[10px] uppercase tracking-widest">+ {ord.items.length - 2} more items</li>}
+                          {ord.items.length > 2 && <li className="text-indigo-500 font-bold text-xs uppercase tracking-widest">+ {ord.items.length - 2} more items</li>}
                         </ul>
                       </td>
                       <td style={{ textAlign: 'center' }} className="font-bold text-paa-navy">₹{ord.total}</td>
@@ -462,7 +388,7 @@ function WebOrdersTab({
                                   handleUpdateBulkStatus(ord.dbId, val, `Change bulk order status to ${val}?`);
                                 }
                               }}
-                              className={`w-full text-[9px] font-bold uppercase tracking-widest px-2 py-1.5 rounded-full border text-center outline-none cursor-pointer appearance-none ${getAggregateStatus(ord).style}`}
+                              className={`w-full text-xs font-bold uppercase tracking-widest px-2 py-1.5 rounded-full border text-center outline-none cursor-pointer appearance-none ${getAggregateStatus(ord).style}`}
                             >
                               <option value="Bulk Request Pending" className="bg-white text-gray-800">Bulk Req Pending</option>
                               <option value="Approved - Pending Payment" className="bg-white text-gray-800">Pending Payment</option>
@@ -472,17 +398,17 @@ function WebOrdersTab({
                               <option value="Cancelled" className="bg-white text-gray-800">Cancelled</option>
                             </select>
                           ) : (
-                            <span className={`inline-flex items-center justify-center w-full px-2 py-1 text-[9px] font-bold uppercase tracking-widest rounded-full border ${getAggregateStatus(ord).style}`}>
+                            <span className={`inline-flex items-center justify-center w-full px-2 py-1 text-xs font-bold uppercase tracking-widest rounded-full border ${getAggregateStatus(ord).style}`}>
                               {statusText}
                             </span>
                           )}
                           {['Dispatched', 'Delivered', 'Completed'].includes(statusText) && ord.items.some((it: any) => it.dispatchedAt) && (
-                            <span className="text-[9px] text-gray-500 font-bold tracking-wider uppercase">
+                            <span className="text-xs text-gray-500 font-bold tracking-wider uppercase">
                               Disp: {new Date(Math.max(...ord.items.filter((it: any) => it.dispatchedAt).map((it: any) => new Date(it.dispatchedAt).getTime()))).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                             </span>
                           )}
                           {['Delivered', 'Completed'].includes(statusText) && ord.items.some((it: any) => it.deliveredAt) && (
-                            <span className="text-[9px] text-gray-500 font-bold tracking-wider uppercase">
+                            <span className="text-xs text-gray-500 font-bold tracking-wider uppercase">
                               Del: {new Date(Math.max(...ord.items.filter((it: any) => it.deliveredAt).map((it: any) => new Date(it.deliveredAt).getTime()))).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                             </span>
                           )}
@@ -491,28 +417,28 @@ function WebOrdersTab({
                       <td style={{ textAlign: 'center' }} className="px-2">
                         <div className="flex flex-wrap items-center justify-center gap-1.5">
                           {ord.isBulk && statusText === 'Bulk Request Pending' && (
-                            <button onClick={(e) => { e.stopPropagation(); handleApproveBulk(ord.dbId); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-indigo-600 text-white border-none rounded shadow hover:bg-indigo-700 transition-colors" title="Approve Bulk Order">
+                            <button onClick={(e) => { e.stopPropagation(); handleApproveBulk(ord.dbId); }} className="px-2 py-1 text-xs uppercase tracking-widest font-bold bg-indigo-600 text-white border-none rounded shadow hover:bg-indigo-700 transition-colors" title="Approve Bulk Order">
                               Approve Request
                             </button>
                           )}
                           {ord.isBulk && statusText === 'Approved - Pending Payment' && (
-                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Payment Verified', 'Verify Payment for this bulk order?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-emerald-600 text-white border-none rounded shadow hover:bg-emerald-700 transition-colors" title="Verify Payment">
+                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Payment Verified', 'Verify Payment for this bulk order?'); }} className="px-2 py-1 text-xs uppercase tracking-widest font-bold bg-emerald-600 text-white border-none rounded shadow hover:bg-emerald-700 transition-colors" title="Verify Payment">
                               Verify Payment
                             </button>
                           )}
                           {ord.isBulk && statusText === 'Payment Verified' && (
-                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Dispatched', 'Mark this bulk order as Dispatched?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-blue-600 text-white border-none rounded shadow hover:bg-blue-700 transition-colors" title="Mark as Dispatched">
+                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Dispatched', 'Mark this bulk order as Dispatched?'); }} className="px-2 py-1 text-xs uppercase tracking-widest font-bold bg-blue-600 text-white border-none rounded shadow hover:bg-blue-700 transition-colors" title="Mark as Dispatched">
                               Dispatch
                             </button>
                           )}
                           {ord.isBulk && statusText === 'Dispatched' && (
-                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Delivered', 'Mark this bulk order as Delivered?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-purple-600 text-white border-none rounded shadow hover:bg-purple-700 transition-colors" title="Mark as Delivered">
+                            <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Delivered', 'Mark this bulk order as Delivered?'); }} className="px-2 py-1 text-xs uppercase tracking-widest font-bold bg-purple-600 text-white border-none rounded shadow hover:bg-purple-700 transition-colors" title="Mark as Delivered">
                               Deliver
                             </button>
                           )}
 
                           {ord.isArchived ? (
-                            <button onClick={(e) => { e.stopPropagation(); handleRestoreOrder(ord.dbId); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-amber-100 text-amber-800 border-none rounded shadow hover:bg-amber-200 transition-colors" title="Restore Order">
+                            <button onClick={(e) => { e.stopPropagation(); handleRestoreOrder(ord.dbId); }} className="px-2 py-1 text-xs uppercase tracking-widest font-bold bg-amber-100 text-amber-800 border-none rounded shadow hover:bg-amber-200 transition-colors" title="Restore Order">
                               Restore
                             </button>
                           ) : (
@@ -552,7 +478,7 @@ function WebOrdersTab({
                                   </div>
                                 )}
                                 <div className="mt-4 border-t border-gray-100 pt-4 space-y-2">
-                                  <h5 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Order Timeline</h5>
+                                  <h5 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Order Timeline</h5>
                                   <div className="flex justify-between items-center text-xs">
                                     <span className="text-gray-500 font-medium">Placed On</span>
                                     <span className="font-bold text-paa-navy">{new Date(ord.date).toLocaleString('en-IN')}</span>
@@ -623,7 +549,7 @@ function WebOrdersTab({
                               
                               {ord.isBulk && (
                                 <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 shadow-sm mt-4">
-                                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-3 border-b border-indigo-200 pb-2">Author Amount Split</h4>
+                                  <h4 className="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-3 border-b border-indigo-200 pb-2">Author Amount Split</h4>
                                   <div className="space-y-2 text-xs">
                                     {Object.entries(
                                       ord.items.reduce((acc: any, it: any) => {
@@ -669,14 +595,14 @@ function WebOrdersTab({
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-bold text-paa-navy text-sm">{ord.id}</p>
-                    <p className="text-[10px] text-paa-gray-text flex items-center gap-1 font-medium"><CalendarIcon className="w-3 h-3" /> {ord.date}</p>
+                    <p className="text-xs text-paa-gray-text flex items-center gap-1 font-medium"><CalendarIcon className="w-3 h-3" /> {ord.date}</p>
                     {['Dispatched', 'Delivered', 'Completed'].includes(statusText) && ord.items.some((it: any) => it.dispatchedAt) && (
-                      <span className="text-[10px] text-gray-500 font-bold uppercase block">
+                      <span className="text-xs text-gray-500 font-bold uppercase block">
                         Disp: {new Date(Math.max(...ord.items.filter((it: any) => it.dispatchedAt).map((it: any) => new Date(it.dispatchedAt).getTime()))).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                       </span>
                     )}
                     {['Delivered', 'Completed'].includes(statusText) && ord.items.some((it: any) => it.deliveredAt) && (
-                      <span className="text-[10px] text-gray-500 font-bold uppercase block">
+                      <span className="text-xs text-gray-500 font-bold uppercase block">
                         Del: {new Date(Math.max(...ord.items.filter((it: any) => it.deliveredAt).map((it: any) => new Date(it.deliveredAt).getTime()))).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                       </span>
                     )}
@@ -695,7 +621,7 @@ function WebOrdersTab({
                             handleUpdateBulkStatus(ord.dbId, val, `Change bulk order status to ${val}?`);
                           }
                         }}
-                        className={`text-[9px] px-2 py-1.5 rounded-full font-bold uppercase tracking-widest border text-center outline-none cursor-pointer appearance-none ${getAggregateStatus(ord).style}`}
+                        className={`text-xs px-2 py-1.5 rounded-full font-bold uppercase tracking-widest border text-center outline-none cursor-pointer appearance-none ${getAggregateStatus(ord).style}`}
                       >
                         <option value="Bulk Request Pending" className="bg-white text-gray-800">Bulk Req Pending</option>
                         <option value="Approved - Pending Payment" className="bg-white text-gray-800">Pending Payment</option>
@@ -705,18 +631,18 @@ function WebOrdersTab({
                         <option value="Cancelled" className="bg-white text-gray-800">Cancelled</option>
                       </select>
                     ) : (
-                      <span className={`text-[9px] px-2 py-1 rounded-full font-bold uppercase tracking-widest border ${getAggregateStatus(ord).style}`}>
+                      <span className={`text-xs px-2 py-1 rounded-full font-bold uppercase tracking-widest border ${getAggregateStatus(ord).style}`}>
                         {statusText}
                       </span>
                     )}
                   </div>
                 </div>
                 <div>
-                  <p className="text-[10px] text-paa-gray-text font-bold uppercase tracking-widest mb-0.5">Customer</p>
+                  <p className="text-xs text-paa-gray-text font-bold uppercase tracking-widest mb-0.5">Customer</p>
                   <p className="text-sm font-bold text-paa-navy">{ord.customer}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-paa-gray-text font-bold uppercase tracking-widest mb-1">Items</p>
+                  <p className="text-xs text-paa-gray-text font-bold uppercase tracking-widest mb-1">Items</p>
                   <ul className="text-xs text-paa-gray-text font-medium space-y-1 bg-gray-50/50 p-2 rounded-lg border border-gray-100">
                     {ord.items.map((it: any, idx: number) => (
                       <li key={idx} className="flex gap-2"><span className="text-paa-navy font-bold">{it.qty}x</span> <span>{it.title}</span></li>
@@ -727,28 +653,28 @@ function WebOrdersTab({
                   <div className="text-base font-black text-indigo-600">₹{ord.total}</div>
                   <div className="flex items-center gap-2">
                     {ord.isBulk && statusText === 'Bulk Request Pending' && (
-                      <button onClick={(e) => { e.stopPropagation(); handleApproveBulk(ord.dbId); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-indigo-600 text-white border-none rounded shadow hover:bg-indigo-700 transition-colors" title="Approve Bulk Order">
+                      <button onClick={(e) => { e.stopPropagation(); handleApproveBulk(ord.dbId); }} className="px-2 py-1 text-xs uppercase tracking-widest font-bold bg-indigo-600 text-white border-none rounded shadow hover:bg-indigo-700 transition-colors" title="Approve Bulk Order">
                         Approve Request
                       </button>
                     )}
                     {ord.isBulk && statusText === 'Approved - Pending Payment' && (
-                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Payment Verified', 'Verify Payment for this bulk order?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-emerald-600 text-white border-none rounded shadow hover:bg-emerald-700 transition-colors" title="Verify Payment">
+                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Payment Verified', 'Verify Payment for this bulk order?'); }} className="px-2 py-1 text-xs uppercase tracking-widest font-bold bg-emerald-600 text-white border-none rounded shadow hover:bg-emerald-700 transition-colors" title="Verify Payment">
                         Verify Payment
                       </button>
                     )}
                     {ord.isBulk && statusText === 'Payment Verified' && (
-                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Dispatched', 'Mark this bulk order as Dispatched?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-blue-600 text-white border-none rounded shadow hover:bg-blue-700 transition-colors" title="Mark as Dispatched">
+                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Dispatched', 'Mark this bulk order as Dispatched?'); }} className="px-2 py-1 text-xs uppercase tracking-widest font-bold bg-blue-600 text-white border-none rounded shadow hover:bg-blue-700 transition-colors" title="Mark as Dispatched">
                         Dispatch
                       </button>
                     )}
                     {ord.isBulk && statusText === 'Dispatched' && (
-                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Delivered', 'Mark this bulk order as Delivered?'); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-purple-600 text-white border-none rounded shadow hover:bg-purple-700 transition-colors" title="Mark as Delivered">
+                      <button onClick={(e) => { e.stopPropagation(); handleUpdateBulkStatus(ord.dbId, 'Delivered', 'Mark this bulk order as Delivered?'); }} className="px-2 py-1 text-xs uppercase tracking-widest font-bold bg-purple-600 text-white border-none rounded shadow hover:bg-purple-700 transition-colors" title="Mark as Delivered">
                         Deliver
                       </button>
                     )}
 
                     {ord.isArchived ? (
-                      <button onClick={(e) => { e.stopPropagation(); handleRestoreOrder(ord.dbId); }} className="px-2 py-1 text-[9px] uppercase tracking-widest font-bold bg-amber-100 text-amber-800 border-none rounded shadow hover:bg-amber-200 transition-colors" title="Restore Order">
+                      <button onClick={(e) => { e.stopPropagation(); handleRestoreOrder(ord.dbId); }} className="px-2 py-1 text-xs uppercase tracking-widest font-bold bg-amber-100 text-amber-800 border-none rounded shadow hover:bg-amber-200 transition-colors" title="Restore Order">
                         Restore
                       </button>
                     ) : (
@@ -756,7 +682,7 @@ function WebOrdersTab({
                         <Trash2 size={16} />
                       </button>
                     )}
-                    <button className="p-1 rounded-full hover:bg-gray-100 text-paa-navy font-bold flex items-center gap-1 text-[10px] uppercase tracking-wider" title="Toggle Details">
+                    <button className="p-1 rounded-full hover:bg-gray-100 text-paa-navy font-bold flex items-center gap-1 text-xs uppercase tracking-wider" title="Toggle Details">
                       Details
                       <ChevronDown size={14} className={`transition-transform duration-200 ${expandedOrderId === ord.dbId ? 'rotate-180' : ''}`} />
                     </button>
@@ -767,11 +693,11 @@ function WebOrdersTab({
                 {expandedOrderId === ord.dbId && (
                   <div className="mt-2 pt-4 border-t border-dashed border-gray-200 space-y-4 animate-fade-in-up">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-1">Shipping Details</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-1">Shipping Details</p>
                       <p className="text-xs text-gray-500">{ord.customerEmail} • {ord.customerPhone}</p>
                       <p className="text-xs text-gray-600 mt-1 bg-gray-50 p-2.5 rounded-lg border border-gray-100 mb-2">{ord.address}</p>
                       {ord.items.some((it: any) => it.trackingNumber && it.trackingNumber !== 'N/A') && (
-                        <div className="text-[11px] text-indigo-800 bg-indigo-50/50 p-2.5 rounded-lg border border-indigo-100">
+                        <div className="text-sm text-indigo-800 bg-indigo-50/50 p-2.5 rounded-lg border border-indigo-100">
                           <span className="font-bold block mb-1">Tracking Numbers:</span>
                           <ul className="space-y-1">
                             {ord.items.filter((it: any) => it.trackingNumber && it.trackingNumber !== 'N/A').map((it: any, idx: number) => (
@@ -781,25 +707,25 @@ function WebOrdersTab({
                         </div>
                       )}
                       <div className="mt-4 border-t border-gray-100 pt-4 space-y-2">
-                        <h5 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Order Timeline</h5>
-                        <div className="flex justify-between items-center text-[11px]">
+                        <h5 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Order Timeline</h5>
+                        <div className="flex justify-between items-center text-sm">
                           <span className="text-gray-500 font-medium">Placed On</span>
                           <span className="font-bold text-paa-navy">{new Date(ord.date).toLocaleString('en-IN')}</span>
                         </div>
                         {ord.items.some((it: any) => it.acceptedAt) && (
-                          <div className="flex justify-between items-center text-[11px]">
+                          <div className="flex justify-between items-center text-sm">
                             <span className="text-gray-500 font-medium">Accepted</span>
                             <span className="font-bold text-paa-navy">{new Date(Math.max(...ord.items.filter((it: any) => it.acceptedAt).map((it: any) => new Date(it.acceptedAt).getTime()))).toLocaleString('en-IN')}</span>
                           </div>
                         )}
                         {ord.items.some((it: any) => it.dispatchedAt) && (
-                          <div className="flex justify-between items-center text-[11px]">
+                          <div className="flex justify-between items-center text-sm">
                             <span className="text-gray-500 font-medium">Dispatched</span>
                             <span className="font-bold text-paa-navy">{new Date(Math.max(...ord.items.filter((it: any) => it.dispatchedAt).map((it: any) => new Date(it.dispatchedAt).getTime()))).toLocaleString('en-IN')}</span>
                           </div>
                         )}
                         {ord.items.some((it: any) => it.deliveredAt) && (
-                          <div className="flex justify-between items-center text-[11px]">
+                          <div className="flex justify-between items-center text-sm">
                             <span className="text-gray-500 font-medium">Delivered</span>
                             <span className="font-bold text-green-600">{new Date(Math.max(...ord.items.filter((it: any) => it.deliveredAt).map((it: any) => new Date(it.deliveredAt).getTime()))).toLocaleString('en-IN')}</span>
                           </div>
@@ -807,7 +733,7 @@ function WebOrdersTab({
                       </div>
                     </div>
                     <div className="space-y-1.5 text-xs">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-2">Bill Summary</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-2">Bill Summary</p>
                       <div className="flex justify-between text-gray-600"><span>Subtotal</span> <span className="font-semibold text-paa-navy">₹{ord.subtotal}</span></div>
                       <div className="flex justify-between text-gray-600"><span>Delivery</span> <span className="font-semibold text-paa-navy">₹{ord.deliveryCharges}</span></div>
                       {ord.bundleDiscount > 0 && <div className="flex justify-between text-green-600"><span>Discount</span> <span className="font-semibold">-₹{ord.bundleDiscount}</span></div>}
@@ -815,7 +741,7 @@ function WebOrdersTab({
 
                     {ord.isBulk && (
                       <div className="mt-4 pt-4 border-t border-dashed border-gray-200">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-2">Author Amount Split</p>
+                        <p className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-2">Author Amount Split</p>
                         <div className="space-y-2 text-xs bg-indigo-50/50 p-3 rounded-lg border border-indigo-100">
                           {Object.entries(
                             ord.items.reduce((acc: any, it: any) => {
