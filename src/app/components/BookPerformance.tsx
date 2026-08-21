@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { TrendingUp, DollarSign, BookOpen, Activity, ChevronDown, ChevronRight, BarChart2 } from 'lucide-react';
+import { TrendingUp, DollarSign, BookOpen, Activity, BarChart2, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -17,20 +17,20 @@ interface PerformanceData {
 }
 
 const getBadgeColor = (title: string) => {
-  if (title === 'Manual Aggregation' || title === 'No Sales Yet') return 'bg-gray-100 text-gray-700';
+  if (title === 'Manual Aggregation' || title === 'No Sales Yet') return 'bg-gray-100 text-gray-700 border-gray-300';
   let hash = 0;
   for (let i = 0; i < title.length; i++) {
     hash = title.charCodeAt(i) + ((hash << 5) - hash);
   }
   const colors = [
-    'bg-pink-100 text-pink-700',
-    'bg-blue-100 text-blue-700',
-    'bg-amber-100 text-amber-700',
-    'bg-emerald-100 text-emerald-700',
-    'bg-purple-100 text-purple-700',
-    'bg-indigo-100 text-indigo-700',
-    'bg-rose-100 text-rose-700',
-    'bg-cyan-100 text-cyan-700'
+    'bg-pink-100 text-pink-800 border-pink-300',
+    'bg-blue-100 text-blue-800 border-blue-300',
+    'bg-amber-100 text-amber-800 border-amber-300',
+    'bg-emerald-100 text-emerald-800 border-emerald-300',
+    'bg-purple-100 text-purple-800 border-purple-300',
+    'bg-indigo-100 text-indigo-800 border-indigo-300',
+    'bg-rose-100 text-rose-800 border-rose-300',
+    'bg-cyan-100 text-cyan-800 border-cyan-300'
   ];
   return colors[Math.abs(hash) % colors.length];
 };
@@ -118,22 +118,51 @@ const BookPerformance: React.FC = () => {
     ? (((totalRevenue - totalInvestment) / totalInvestment) * 100).toFixed(2) 
     : '0.00';
 
-  // Group data by book
+  // Dynamic Unique Event / Channel Columns
+  const dynamicEventColumns = React.useMemo(() => {
+    const map = new Map<string, { eventId: number; eventName: string; date: string }>();
+    filteredData.forEach(row => {
+      if (!map.has(row.eventName)) {
+        map.set(row.eventName, { eventId: row.eventId, eventName: row.eventName, date: row.date });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => {
+      if (a.eventName === 'Web Orders') return 1;
+      if (b.eventName === 'Web Orders') return -1;
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+  }, [filteredData]);
+
+  // Group data by book for graph and Excel matrix table
   const groupedBooks = React.useMemo(() => {
-    const map: Record<string, { title: string; totalSold: number; totalRev: number; events: PerformanceData[] }> = {};
+    const map: Record<string, { 
+      title: string; 
+      totalSold: number; 
+      totalRev: number; 
+      eventSales: Record<string, { sold: number; rev: number; date: string }>;
+      events: PerformanceData[];
+    }> = {};
+    
     filteredData.forEach(row => {
       if (row.bookTitle === 'No Sales Yet') return;
       if (!map[row.bookTitle]) {
-        map[row.bookTitle] = { title: row.bookTitle, totalSold: 0, totalRev: 0, events: [] };
+        map[row.bookTitle] = { title: row.bookTitle, totalSold: 0, totalRev: 0, eventSales: {}, events: [] };
       }
       map[row.bookTitle].totalSold += row.booksSold;
       map[row.bookTitle].totalRev += row.revenue;
       map[row.bookTitle].events.push(row);
+
+      if (!map[row.bookTitle].eventSales[row.eventName]) {
+        map[row.bookTitle].eventSales[row.eventName] = { sold: 0, rev: 0, date: row.date };
+      }
+      map[row.bookTitle].eventSales[row.eventName].sold += row.booksSold;
+      map[row.bookTitle].eventSales[row.eventName].rev += row.revenue;
     });
+
     return Object.values(map).sort((a, b) => b.totalSold - a.totalSold);
   }, [filteredData]);
 
-  // Group data by channel / event
+  // Group data by channel / event for graph
   const groupedChannels = React.useMemo(() => {
     const map: Record<string, { name: string; totalSold: number; totalRev: number }> = {};
     filteredData.forEach(row => {
@@ -146,9 +175,53 @@ const BookPerformance: React.FC = () => {
     return Object.values(map).sort((a, b) => b.totalSold - a.totalSold);
   }, [filteredData]);
 
-  const [expandedBooks, setExpandedBooks] = useState<Record<string, boolean>>({});
-  const toggleBook = (title: string) => {
-    setExpandedBooks(prev => ({ ...prev, [title]: !prev[title] }));
+  // Grand totals
+  const grandTotalSold = groupedBooks.reduce((sum, b) => sum + b.totalSold, 0);
+  const grandTotalRev = groupedBooks.reduce((sum, b) => sum + b.totalRev, 0);
+
+  // CSV Export for Excel
+  const exportTableToCSV = () => {
+    if (groupedBooks.length === 0) {
+      toast.error('No data available to export');
+      return;
+    }
+    const headers = [
+      'S.No',
+      'Book Title',
+      ...dynamicEventColumns.map(e => `"${e.eventName} (Units)"`),
+      ...dynamicEventColumns.map(e => `"${e.eventName} (Revenue INR)"`),
+      'Total Units Sold',
+      'Total Revenue (INR)'
+    ];
+
+    const rows = groupedBooks.map((b, idx) => [
+      idx + 1,
+      `"${b.title.replace(/"/g, '""')}"`,
+      ...dynamicEventColumns.map(e => b.eventSales[e.eventName]?.sold || 0),
+      ...dynamicEventColumns.map(e => b.eventSales[e.eventName]?.rev || 0),
+      b.totalSold,
+      b.totalRev
+    ]);
+
+    const totalRow = [
+      '',
+      '"TOTAL"',
+      ...dynamicEventColumns.map(e => groupedBooks.reduce((sum, b) => sum + (b.eventSales[e.eventName]?.sold || 0), 0)),
+      ...dynamicEventColumns.map(e => groupedBooks.reduce((sum, b) => sum + (b.eventSales[e.eventName]?.rev || 0), 0)),
+      grandTotalSold,
+      grandTotalRev
+    ];
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(',')), totalRow.join(',')].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `book_performance_${timeframe}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Excel CSV downloaded successfully');
   };
 
   if (loading) {
@@ -458,85 +531,132 @@ const BookPerformance: React.FC = () => {
         </div>
       </div>
 
-      {/* High-Contrast Vibrant Data Table */}
-      <div className="dash-panel overflow-hidden mb-7">
-        <div className="dash-panel-header">
-          <h2 className="dash-panel-title">Book Performance Details</h2>
-          <div className="flex items-center gap-4">
-            <span className="dash-badge info">{groupedBooks.length} books</span>
+      {/* Excel-Style Spreadsheet Matrix Table */}
+      <div className="dash-panel p-6 overflow-hidden mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <div>
+            <h2 className="text-lg font-serif font-bold text-paa-navy">Book Performance Matrix</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Excel-style breakdown showing units sold across all channels dynamically</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              {groupedBooks.length} Books
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+              {dynamicEventColumns.length} Events/Channels
+            </span>
+            <button
+              onClick={exportTableToCSV}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#107c41] hover:bg-[#0c5c30] text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
+              title="Download as Excel CSV"
+            >
+              <Download size={14} />
+              <span>Export Excel</span>
+            </button>
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="dash-table">
-            <thead className="bg-indigo-50 border-b-2 border-indigo-100">
-              <tr>
-                <th className="!text-[14px] !text-indigo-800 !bg-transparent text-left w-10"></th>
-                <th className="!text-[14px] !text-indigo-800 !bg-transparent text-left">Book Title</th>
-                <th className="!text-[14px] !text-indigo-800 !bg-transparent text-center">Channels Participated</th>
-                <th className="!text-[14px] !text-indigo-800 !bg-transparent text-center">Total Units Sold</th>
-                <th className="!text-[14px] !text-indigo-800 !bg-transparent text-right">Total Revenue (₹)</th>
+
+        <div className="overflow-x-auto border-2 border-black rounded-lg shadow-sm bg-white">
+          <table className="w-full border-collapse text-xs">
+            <thead>
+              <tr className="bg-[#ffd700] text-black">
+                <th className="border border-black px-3 py-3 font-extrabold text-center uppercase tracking-wider w-12 whitespace-nowrap">
+                  S.No
+                </th>
+                <th className="border border-black px-4 py-3 font-extrabold text-left uppercase tracking-wider min-w-[200px] whitespace-nowrap">
+                  Book Title
+                </th>
+                {dynamicEventColumns.map((col) => (
+                  <th key={col.eventName} className="border border-black px-3 py-3 font-extrabold text-center uppercase tracking-wider min-w-[130px] whitespace-nowrap">
+                    <div>{col.eventName}</div>
+                    <div className="text-[10px] font-medium text-gray-800 opacity-80 normal-case">
+                      {col.eventName === 'Web Orders' ? 'Ongoing' : new Date(col.date).toLocaleDateString()}
+                    </div>
+                  </th>
+                ))}
+                <th className="border border-black px-4 py-3 font-black text-center uppercase tracking-wider min-w-[120px] bg-[#ffe135] whitespace-nowrap">
+                  Total Units Sold
+                </th>
+                <th className="border border-black px-4 py-3 font-black text-right uppercase tracking-wider min-w-[130px] bg-[#ffe135] whitespace-nowrap">
+                  Total Revenue (₹)
+                </th>
               </tr>
             </thead>
             <tbody>
               {groupedBooks.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-10 text-paa-gray-text italic text-sm">
-                    No Book Fair performance data available.
+                  <td colSpan={dynamicEventColumns.length + 4} className="border border-black text-center py-12 text-gray-400 italic text-sm">
+                    No sales data available for the selected timeframe.
                   </td>
                 </tr>
               ) : (
-                groupedBooks.map((group, index) => (
-                  <React.Fragment key={group.title}>
-                    <tr onClick={() => toggleBook(group.title)} className={`transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-[#ebd8c0]'}  cursor-pointer`}>
-                      <td className="text-center text-indigo-600 pl-4">
-                        {expandedBooks[group.title] ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                <>
+                  {groupedBooks.map((group, index) => (
+                    <tr key={group.title} className={`transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-amber-50/20'} hover:bg-yellow-50/70`}>
+                      <td className="border border-black px-3 py-3 font-bold text-center text-gray-700">
+                        {index + 1}
                       </td>
-                      <td className="font-semibold text-paa-navy whitespace-normal py-4">
+                      <td className="border border-black px-4 py-3 font-bold text-paa-navy whitespace-normal">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-md border text-xs font-black uppercase tracking-wider ${getBadgeColor(group.title)}`}>
                           {group.title}
                         </span>
                       </td>
-                      <td className="font-bold text-gray-700 text-center">
-                        {group.events.length} Channels
+                      {dynamicEventColumns.map((col) => {
+                        const sale = group.eventSales[col.eventName];
+                        return (
+                          <td key={col.eventName} className="border border-black px-3 py-3 text-center">
+                            {sale && sale.sold > 0 ? (
+                              <div className="font-bold text-gray-900">
+                                <span className="text-sm text-indigo-700">{sale.sold}</span>
+                                <span className="block text-[10px] text-emerald-600 font-bold">₹{sale.rev.toLocaleString()}</span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-300 font-semibold">-</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                      <td className="border border-black px-4 py-3 text-center bg-indigo-50/30">
+                        <span className="font-black text-indigo-700 text-sm">
+                          {group.totalSold}
+                        </span>
                       </td>
-                      <td className="font-bold text-indigo-600 text-center text-lg">
-                        {group.totalSold}
-                      </td>
-                      <td className="font-black text-emerald-600 text-right text-xl pr-4">
-                        ₹{group.totalRev.toLocaleString()}
+                      <td className="border border-black px-4 py-3 text-right bg-emerald-50/30">
+                        <span className="font-black text-emerald-700 text-sm">
+                          ₹{group.totalRev.toLocaleString()}
+                        </span>
                       </td>
                     </tr>
-                    {expandedBooks[group.title] && (
-                      <tr className="bg-indigo-50/30">
-                        <td></td>
-                        <td colSpan={4} className="p-0 border-b border-indigo-100">
-                          <div className="py-4 pr-4 pl-0">
-                            <table className="w-full text-sm rounded-lg overflow-hidden border border-indigo-100/50 bg-white">
-                              <thead className="text-indigo-900 bg-indigo-50/50 text-[10px] uppercase tracking-widest border-b border-indigo-100/50">
-                                <tr>
-                                  <th className="text-left py-2 px-3 font-bold">Channel Name</th>
-                                  <th className="text-center py-2 px-3 font-bold">Date</th>
-                                  <th className="text-center py-2 px-3 font-bold">Units Sold</th>
-                                  <th className="text-right py-2 px-3 font-bold">Revenue</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {group.events.map((ev, i) => (
-                                  <tr key={i} className="border-b border-indigo-50 last:border-0 hover:bg-indigo-50/20 transition-colors">
-                                    <td className="py-2.5 px-3 font-semibold text-gray-700">{ev.eventName}</td>
-                                    <td className="py-2.5 px-3 text-center text-gray-500 font-medium">{ev.eventName === 'Web Orders' ? 'Ongoing' : new Date(ev.date).toLocaleDateString()}</td>
-                                    <td className="py-2.5 px-3 text-center font-bold text-indigo-600">{ev.booksSold}</td>
-                                    <td className="py-2.5 px-3 text-right font-bold text-emerald-600">₹{ev.revenue.toLocaleString()}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
+                  ))}
+
+                  {/* Summary / Total Row */}
+                  <tr className="bg-[#fff3b0] font-black border-t-2 border-black">
+                    <td className="border border-black px-3 py-3 text-center text-black font-extrabold">
+                      -
+                    </td>
+                    <td className="border border-black px-4 py-3 font-black text-black tracking-wider uppercase text-sm">
+                      TOTAL
+                    </td>
+                    {dynamicEventColumns.map((col) => {
+                      const colSold = groupedBooks.reduce((sum, b) => sum + (b.eventSales[col.eventName]?.sold || 0), 0);
+                      const colRev = groupedBooks.reduce((sum, b) => sum + (b.eventSales[col.eventName]?.rev || 0), 0);
+                      return (
+                        <td key={col.eventName} className="border border-black px-3 py-3 text-center">
+                          <div className="font-black text-black">
+                            <span className="text-sm font-black">{colSold}</span>
+                            <span className="block text-[10px] text-emerald-800 font-black">₹{colRev.toLocaleString()}</span>
                           </div>
                         </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))
+                      );
+                    })}
+                    <td className="border border-black px-4 py-3 text-center bg-[#ffe66d] text-indigo-900 font-black text-base">
+                      {grandTotalSold}
+                    </td>
+                    <td className="border border-black px-4 py-3 text-right bg-[#ffe66d] text-emerald-900 font-black text-base">
+                      ₹{grandTotalRev.toLocaleString()}
+                    </td>
+                  </tr>
+                </>
               )}
             </tbody>
           </table>
