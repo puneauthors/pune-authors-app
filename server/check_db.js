@@ -1,21 +1,26 @@
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function main() {
-  const gEvents = await prisma.galleryEvent.findMany({
-    where: {
-      OR: [
-        { location: { contains: "Airport" } },
-        { place: { contains: "Airport" } }
-      ]
-    }
-  });
-
-  console.log(`Found ${gEvents.length} GalleryEvents for Airport.`);
-  for(let ev of gEvents) {
-    console.log(`GalleryEvent: ${ev.location} @ ${ev.place}, Date: ${ev.date}`);
+async function checkDb() {
+  try {
+    const allDocs = await prisma.notification.findMany({
+      where: {
+        documentUrl: {
+          not: null
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    console.log("=== ALL ADMIN DOCUMENTS IN DB ===");
+    console.log(`Total Documents Found: ${allDocs.length}`);
+    console.log(JSON.stringify(allDocs, null, 2));
+    
+  } catch (err) {
+    console.error("Error querying DB:", err);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
-main().finally(() => prisma.$disconnect());
-
+checkDb();
