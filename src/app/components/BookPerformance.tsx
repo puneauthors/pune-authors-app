@@ -556,14 +556,6 @@ const BookPerformance: React.FC = () => {
             <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
               {dynamicEventColumns.length} Events/Channels
             </span>
-            <button
-              onClick={exportTableToCSV}
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-[#107c41] hover:bg-[#0c5c30] text-white text-[11px] font-bold rounded-lg shadow-sm transition-colors cursor-pointer"
-              title="Download as Excel CSV"
-            >
-              <Download size={13} />
-              <span>Export Excel</span>
-            </button>
           </div>
         </div>
 
