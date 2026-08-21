@@ -532,13 +532,13 @@ const BookPerformance: React.FC = () => {
       </div>
 
       {/* Excel-Style Spreadsheet Matrix Table */}
-      <div className="dash-panel p-6 overflow-hidden mb-8">
+      <div className="dash-panel p-6 mb-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div>
             <h2 className="text-lg font-serif font-bold text-paa-navy">Book Performance Matrix</h2>
             <p className="text-xs text-gray-500 mt-0.5">Excel-style breakdown showing units sold across all channels dynamically</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
               {groupedBooks.length} Books
             </span>
@@ -547,7 +547,7 @@ const BookPerformance: React.FC = () => {
             </span>
             <button
               onClick={exportTableToCSV}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#107c41] hover:bg-[#0c5c30] text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#107c41] hover:bg-[#0c5c30] text-white text-xs font-bold rounded-lg shadow-sm transition-colors cursor-pointer"
               title="Download as Excel CSV"
             >
               <Download size={14} />
@@ -556,28 +556,28 @@ const BookPerformance: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto border-2 border-black rounded-lg shadow-sm bg-white">
-          <table className="w-full border-collapse text-xs">
+        <div className="w-full overflow-x-auto border-2 border-black rounded-lg shadow-sm bg-white">
+          <table className="min-w-full w-max border-collapse text-xs">
             <thead>
               <tr className="bg-[#ffd700] text-black">
-                <th className="border border-black px-3 py-3 font-extrabold text-center uppercase tracking-wider w-12 whitespace-nowrap">
+                <th className="border border-black px-3 py-3.5 font-extrabold text-center uppercase tracking-wider w-14 min-w-[50px] whitespace-nowrap">
                   S.No
                 </th>
-                <th className="border border-black px-4 py-3 font-extrabold text-left uppercase tracking-wider min-w-[200px] whitespace-nowrap">
+                <th className="border border-black px-4 py-3.5 font-extrabold text-left uppercase tracking-wider min-w-[180px] whitespace-nowrap">
                   Book Title
                 </th>
                 {dynamicEventColumns.map((col) => (
-                  <th key={col.eventName} className="border border-black px-3 py-3 font-extrabold text-center uppercase tracking-wider min-w-[130px] whitespace-nowrap">
-                    <div>{col.eventName}</div>
-                    <div className="text-[10px] font-medium text-gray-800 opacity-80 normal-case">
+                  <th key={col.eventName} className="border border-black px-3 py-3.5 font-extrabold text-center uppercase tracking-wider min-w-[130px] whitespace-nowrap">
+                    <div className="font-extrabold">{col.eventName}</div>
+                    <div className="text-[10px] font-semibold text-gray-800 opacity-90 normal-case mt-0.5">
                       {col.eventName === 'Web Orders' ? 'Ongoing' : new Date(col.date).toLocaleDateString()}
                     </div>
                   </th>
                 ))}
-                <th className="border border-black px-4 py-3 font-black text-center uppercase tracking-wider min-w-[120px] bg-[#ffe135] whitespace-nowrap">
+                <th className="border border-black px-4 py-3.5 font-black text-center uppercase tracking-wider min-w-[130px] bg-[#ffe135] whitespace-nowrap">
                   Total Units Sold
                 </th>
-                <th className="border border-black px-4 py-3 font-black text-right uppercase tracking-wider min-w-[130px] bg-[#ffe135] whitespace-nowrap">
+                <th className="border border-black px-4 py-3.5 font-black text-right uppercase tracking-wider min-w-[140px] bg-[#ffe135] whitespace-nowrap">
                   Total Revenue (₹)
                 </th>
               </tr>
@@ -607,7 +607,7 @@ const BookPerformance: React.FC = () => {
                           <td key={col.eventName} className="border border-black px-3 py-3 text-center">
                             {sale && sale.sold > 0 ? (
                               <div className="font-bold text-gray-900">
-                                <span className="text-sm text-indigo-700">{sale.sold}</span>
+                                <span className="text-sm text-indigo-700 font-extrabold">{sale.sold}</span>
                                 <span className="block text-[10px] text-emerald-600 font-bold">₹{sale.rev.toLocaleString()}</span>
                               </div>
                             ) : (
@@ -616,12 +616,12 @@ const BookPerformance: React.FC = () => {
                           </td>
                         );
                       })}
-                      <td className="border border-black px-4 py-3 text-center bg-indigo-50/30">
+                      <td className="border border-black px-4 py-3 text-center bg-indigo-50/40">
                         <span className="font-black text-indigo-700 text-sm">
                           {group.totalSold}
                         </span>
                       </td>
-                      <td className="border border-black px-4 py-3 text-right bg-emerald-50/30">
+                      <td className="border border-black px-4 py-3 text-right bg-emerald-50/40">
                         <span className="font-black text-emerald-700 text-sm">
                           ₹{group.totalRev.toLocaleString()}
                         </span>
@@ -634,7 +634,7 @@ const BookPerformance: React.FC = () => {
                     <td className="border border-black px-3 py-3 text-center text-black font-extrabold">
                       -
                     </td>
-                    <td className="border border-black px-4 py-3 font-black text-black tracking-wider uppercase text-sm">
+                    <td className="border border-black px-4 py-3 font-black text-black tracking-wider uppercase text-xs">
                       TOTAL
                     </td>
                     {dynamicEventColumns.map((col) => {
