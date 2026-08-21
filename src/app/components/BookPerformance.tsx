@@ -61,6 +61,39 @@ const BookPerformance: React.FC = () => {
     fetchData();
   }, []);
 
+  const currentYear = new Date().getFullYear().toString();
+  const [timeframe, setTimeframe] = useState<'all' | 'year' | 'month'>('year');
+  const [selectedYear, setSelectedYear] = useState<string>(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState<string>((new Date().getMonth() + 1).toString().padStart(2, '0'));
+
+  const availableYears = React.useMemo(() => {
+    const years = Array.from(new Set(data.map(d => new Date(d.date).getFullYear().toString()))).sort((a, b) => b.localeCompare(a));
+    if (!years.includes(currentYear)) years.unshift(currentYear);
+    return years;
+  }, [data, currentYear]);
+
+  const availableMonths = [
+    { value: '01', label: 'January' }, { value: '02', label: 'February' },
+    { value: '03', label: 'March' }, { value: '04', label: 'April' },
+    { value: '05', label: 'May' }, { value: '06', label: 'June' },
+    { value: '07', label: 'July' }, { value: '08', label: 'August' },
+    { value: '09', label: 'September' }, { value: '10', label: 'October' },
+    { value: '11', label: 'November' }, { value: '12', label: 'December' }
+  ];
+
+  const filteredData = React.useMemo(() => {
+    return data.filter(row => {
+      const rowDate = new Date(row.date);
+      const rowYear = rowDate.getFullYear().toString();
+      const rowMonth = (rowDate.getMonth() + 1).toString().padStart(2, '0');
+
+      if (timeframe === 'all') return true;
+      if (timeframe === 'year') return rowYear === selectedYear;
+      if (timeframe === 'month') return rowYear === selectedYear && rowMonth === selectedMonth;
+      return true;
+    });
+  }, [data, timeframe, selectedYear, selectedMonth]);
+
   // KPIs Calculation
   const uniqueEvents = new Map<number, number>();
   const uniqueEventNames = new Map<number, string>();
@@ -71,7 +104,7 @@ const BookPerformance: React.FC = () => {
   const allBookTitles = new Set<string>();
 
   // First pass: collect all unique channels and books
-  data.forEach(row => {
+  filteredData.forEach(row => {
     uniqueEvents.set(row.eventId, row.investment);
     uniqueEventNames.set(row.eventId, row.eventName);
     totalRevenue += row.revenue;
@@ -95,7 +128,7 @@ const BookPerformance: React.FC = () => {
   });
 
   // Second pass: populate actual sales data
-  data.forEach(row => {
+  filteredData.forEach(row => {
     if (row.bookTitle !== 'No Sales Yet' && row.booksSold > 0) {
       const channelObj = graphDataMap.get(row.eventName);
       channelObj[row.bookTitle] += row.booksSold;
@@ -118,7 +151,7 @@ const BookPerformance: React.FC = () => {
   // Group data by book
   const groupedBooks = React.useMemo(() => {
     const map: Record<string, { title: string; totalSold: number; totalRev: number; events: PerformanceData[] }> = {};
-    data.forEach(row => {
+    filteredData.forEach(row => {
       if (!map[row.bookTitle]) {
         map[row.bookTitle] = { title: row.bookTitle, totalSold: 0, totalRev: 0, events: [] };
       }
@@ -127,7 +160,7 @@ const BookPerformance: React.FC = () => {
       map[row.bookTitle].events.push(row);
     });
     return Object.values(map).sort((a, b) => b.totalRev - a.totalRev);
-  }, [data]);
+  }, [filteredData]);
 
   const [expandedBooks, setExpandedBooks] = useState<Record<string, boolean>>({});
   const toggleBook = (title: string) => {
@@ -144,10 +177,47 @@ const BookPerformance: React.FC = () => {
 
   return (
     <div className="animate-fade-in-up pb-20">
-      <div className="mb-8 flex justify-between items-end">
+      <div className="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
         <div>
           <h2 className="text-3xl font-serif text-paa-navy font-bold tracking-tight mb-2">Book Performance</h2>
           <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Analyze your ROI strictly by Book Title</p>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          <select 
+            className="form-select text-sm rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 font-medium text-gray-700 bg-white shadow-sm"
+            value={timeframe}
+            onChange={(e) => setTimeframe(e.target.value as 'all' | 'year' | 'month')}
+          >
+            <option value="year">Year Wise</option>
+            <option value="month">Month Wise</option>
+            <option value="all">All Time</option>
+          </select>
+          
+          {(timeframe === 'year' || timeframe === 'month') && (
+            <select
+              className="form-select text-sm rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 font-medium text-gray-700 bg-white shadow-sm"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+            >
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          )}
+
+          {timeframe === 'month' && (
+            <select
+              className="form-select text-sm rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 font-medium text-gray-700 bg-white shadow-sm"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+            >
+              {availableMonths.map(month => (
+                <option key={month.value} value={month.value}>{month.label}</option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
@@ -206,7 +276,7 @@ const BookPerformance: React.FC = () => {
                 />
                 <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
                 {uniqueBookTitlesArray.map((title, idx) => (
-                  <Line key={title} type="monotone" dataKey={title} stroke={bookColors[idx % bookColors.length]} strokeWidth={3} activeDot={{ r: 6 }} dot={{ strokeWidth: 2, r: 4 }} />
+                  <Line key={title} type="linear" dataKey={title} stroke={bookColors[idx % bookColors.length]} strokeWidth={3} activeDot={{ r: 6 }} dot={{ strokeWidth: 2, r: 4 }} />
                 ))}
               </LineChart>
             </ResponsiveContainer>

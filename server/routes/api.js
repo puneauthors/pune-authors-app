@@ -5472,25 +5472,33 @@ router.get('/api/author/book-performance', verifyToken, async (req, res) => {
         book: { authorId: author.id },
         status: { in: ['Pending Verification', 'Accepted', 'Dispatched', 'Completed', 'Delivered'] }
       },
-      include: { book: true }
+      include: { 
+        book: true,
+        order: { select: { createdAt: true } }
+      }
     });
 
     const webOrderMap = {};
     webOrderItems.forEach(item => {
       const title = item.book ? item.book.title : 'Unknown Book';
-      if (!webOrderMap[title]) {
-        webOrderMap[title] = {
+      // Default to today if order.createdAt is missing
+      const orderDate = item.order?.createdAt ? new Date(item.order.createdAt) : new Date();
+      const dateStr = orderDate.toISOString().split('T')[0];
+      const key = `${title}_${dateStr}`;
+      
+      if (!webOrderMap[key]) {
+        webOrderMap[key] = {
           eventId: 999999, // Dummy ID for Web Orders
           eventName: 'Web Orders',
-          date: new Date().toISOString(),
+          date: orderDate.toISOString(),
           bookTitle: title,
           booksSold: 0,
           revenue: 0,
           investment: 0
         };
       }
-      webOrderMap[title].booksSold += item.quantity;
-      webOrderMap[title].revenue += (item.book?.mrp || 0) * item.quantity;
+      webOrderMap[key].booksSold += item.quantity;
+      webOrderMap[key].revenue += (item.book?.mrp || 0) * item.quantity;
     });
 
     Object.values(webOrderMap).forEach(wo => performanceData.push(wo));
