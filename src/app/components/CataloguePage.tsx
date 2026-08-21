@@ -5,51 +5,51 @@ import { ShoppingCart, Search, SlidersHorizontal, Star, ChevronRight, ChevronLef
 import { toast } from "sonner";
 // ── Category config ─────────────────────────────────────────────────────────
 export const getCategoryColor = (cat: string) => {
-    // Large, vibrant consistent palette to prevent repetition
-    const colors = [
-        { color: "#FF7A00", bg: "#fff3e6", border: "#FF7A00" }, // 0: Orange
-        { color: "#00C2FF", bg: "#e6f9ff", border: "#00C2FF" }, // 1: Cyan
-        { color: "#00D084", bg: "#e6faf3", border: "#00D084" }, // 2: Green
-        { color: "#FF4FA3", bg: "#ffeef6", border: "#FF4FA3" }, // 3: Pink
-        { color: "#7B61FF", bg: "#f2efff", border: "#7B61FF" }, // 4: Purple
-        { color: "#eab308", bg: "#fefce8", border: "#eab308" }, // 5: Yellow
-        { color: "#E11D48", bg: "#fff1f2", border: "#E11D48" }, // 6: Rose Red
-        { color: "#2563EB", bg: "#eff6ff", border: "#2563EB" }, // 7: Royal Blue
-        { color: "#14B8A6", bg: "#f0fdfa", border: "#14B8A6" }, // 8: Teal
-        { color: "#D946EF", bg: "#fdf4ff", border: "#D946EF" }, // 9: Fuchsia
-        { color: "#65a30d", bg: "#f7fee7", border: "#65a30d" }, // 10: Lime Green
-        { color: "#475569", bg: "#f1f5f9", border: "#475569" }, // 11: Slate
-        { color: "#06B6D4", bg: "#ecfeff", border: "#06B6D4" }, // 12: Light Blue
-        { color: "#991B1B", bg: "#fef2f2", border: "#991B1B" }, // 13: Dark Red
-        { color: "#10B981", bg: "#ecfdf5", border: "#10B981" }, // 14: Emerald
-        { color: "#4338CA", bg: "#eef2ff", border: "#4338CA" }, // 15: Indigo
-        { color: "#9D174D", bg: "#fdf2f8", border: "#9D174D" }, // 16: Dark Pink
-        { color: "#047857", bg: "#ecfdf5", border: "#047857" }, // 17: Dark Emerald
-    ];
-    
-    if (cat === "All" || !cat) return { color: "#111", bg: "#f3f3f7", border: "transparent" };
-    
-    // Make sure we have a stable deterministic color per category without repeating
-    const knownCats = [
-        "Fiction", "Non-Fiction", "Children's Books", "Poetry", 
-        "Academic & Educational", "Comics & Graphic Novels", "Reference", 
-        "Arts & Entertainment", "Lifestyle", "Sports & Outdoors", 
-        "Regional & Language Literature", "Action & Adventure", "Mystery & Thriller", 
-        "Business & Economics", "Biography & Memoir", "Health & Wellness", 
-        "History", "Science & Technology"
-    ];
-    
-    const idx = knownCats.indexOf(cat);
-    
-    if (idx !== -1) {
-       return colors[idx % colors.length];
-    }
-    
-    let hash = 0;
-    for (let i = 0; i < cat.length; i++) {
-        hash = cat.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
+  // Large, vibrant consistent palette to prevent repetition
+  const colors = [
+    { color: "#FF7A00", bg: "#fff3e6", border: "#FF7A00" }, // 0: Orange
+    { color: "#00C2FF", bg: "#e6f9ff", border: "#00C2FF" }, // 1: Cyan
+    { color: "#00D084", bg: "#e6faf3", border: "#00D084" }, // 2: Green
+    { color: "#FF4FA3", bg: "#ffeef6", border: "#FF4FA3" }, // 3: Pink
+    { color: "#7B61FF", bg: "#f2efff", border: "#7B61FF" }, // 4: Purple
+    { color: "#eab308", bg: "#fefce8", border: "#eab308" }, // 5: Yellow
+    { color: "#E11D48", bg: "#fff1f2", border: "#E11D48" }, // 6: Rose Red
+    { color: "#2563EB", bg: "#eff6ff", border: "#2563EB" }, // 7: Royal Blue
+    { color: "#14B8A6", bg: "#f0fdfa", border: "#14B8A6" }, // 8: Teal
+    { color: "#D946EF", bg: "#fdf4ff", border: "#D946EF" }, // 9: Fuchsia
+    { color: "#65a30d", bg: "#f7fee7", border: "#65a30d" }, // 10: Lime Green
+    { color: "#475569", bg: "#f1f5f9", border: "#475569" }, // 11: Slate
+    { color: "#06B6D4", bg: "#ecfeff", border: "#06B6D4" }, // 12: Light Blue
+    { color: "#991B1B", bg: "#fef2f2", border: "#991B1B" }, // 13: Dark Red
+    { color: "#10B981", bg: "#ecfdf5", border: "#10B981" }, // 14: Emerald
+    { color: "#4338CA", bg: "#eef2ff", border: "#4338CA" }, // 15: Indigo
+    { color: "#9D174D", bg: "#fdf2f8", border: "#9D174D" }, // 16: Dark Pink
+    { color: "#047857", bg: "#ecfdf5", border: "#047857" }, // 17: Dark Emerald
+  ];
+
+  if (cat === "All" || !cat) return { color: "#111", bg: "#f3f3f7", border: "transparent" };
+
+  // Make sure we have a stable deterministic color per category without repeating
+  const knownCats = [
+    "Fiction", "Non-Fiction", "Children's Books", "Poetry",
+    "Academic & Educational", "Comics & Graphic Novels", "Reference",
+    "Arts & Entertainment", "Lifestyle", "Sports & Outdoors",
+    "Regional & Language Literature", "Action & Adventure", "Mystery & Thriller",
+    "Business & Economics", "Biography & Memoir", "Health & Wellness",
+    "History", "Science & Technology"
+  ];
+
+  const idx = knownCats.indexOf(cat);
+
+  if (idx !== -1) {
+    return colors[idx % colors.length];
+  }
+
+  let hash = 0;
+  for (let i = 0; i < cat.length; i++) {
+    hash = cat.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
 };
 
 // ── Normalise both JSON files into one flat list ─────────────────────────────
@@ -90,10 +90,10 @@ export interface CatalogueBook {
 
 
 // ── Custom Modern Dropdown ───────────────────────────────────────────────────
-const CustomSelect = ({ value, onChange, options, color = "#111", filled = false }: { value: string, onChange: (v: string) => void, options: {label: string, value: string}[], color?: string, filled?: boolean }) => {
+const CustomSelect = ({ value, onChange, options, color = "#111", filled = false }: { value: string, onChange: (v: string) => void, options: { label: string, value: string }[], color?: string, filled?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -103,35 +103,35 @@ const CustomSelect = ({ value, onChange, options, color = "#111", filled = false
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
-  
+
   const selectedLabel = options.find(o => o.value === value)?.label || value;
-  
+
   return (
     <div ref={ref} style={{ position: "relative", minWidth: "220px", flexShrink: 0 }}>
-      <div 
-        onClick={() => setIsOpen(!isOpen)} 
+      <div
+        onClick={() => setIsOpen(!isOpen)}
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.8rem 1.5rem", borderRadius: "50px", border: isOpen || filled ? `2px solid ${color}` : "2px solid #eaeaea", cursor: "pointer", background: filled ? color : "#fff", fontSize: 14, fontWeight: 700, color: filled ? (color === "#eab308" || color === "#FFD400" ? "#111" : "#fff") : "#111", gap: "1rem", transition: "all 0.2s ease" }}
       >
-         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-           {selectedLabel}
-         </div>
-         <ChevronRight size={16} style={{ transform: isOpen ? "rotate(90deg)" : "rotate(0)", transition: "transform 0.2s ease" }} color={filled ? (color === "#eab308" || color === "#FFD400" ? "#111" : "#fff") : (isOpen ? color : "#94a3b8")} />
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          {selectedLabel}
+        </div>
+        <ChevronRight size={16} style={{ transform: isOpen ? "rotate(90deg)" : "rotate(0)", transition: "transform 0.2s ease" }} color={filled ? (color === "#eab308" || color === "#FFD400" ? "#111" : "#fff") : (isOpen ? color : "#94a3b8")} />
       </div>
-      
+
       {isOpen && (
         <div style={{ position: "absolute", top: "100%", left: 0, right: 0, marginTop: "0.8rem", background: "#fff", borderRadius: "16px", boxShadow: "0 10px 40px rgba(0,0,0,0.1)", border: "1px solid #eaeaea", padding: "0.6rem", zIndex: 50, maxHeight: "300px", overflowY: "auto", animation: "fadeIn 0.2s ease" }}>
-           <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-           {options.map(o => (
-             <div 
-               key={o.value} 
-               onClick={() => { onChange(o.value); setIsOpen(false); }} 
-               style={{ padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer", fontSize: 14, fontWeight: value === o.value ? 800 : 600, color: value === o.value ? color : "#475569", background: value === o.value ? `${color}15` : "transparent", transition: "all 0.1s ease", marginBottom: "0.2rem" }} 
-               onMouseEnter={e => { if(value !== o.value) e.currentTarget.style.background = "#f8f9fa"; }} 
-               onMouseLeave={e => { if(value !== o.value) e.currentTarget.style.background = "transparent"; }}
-             >
-                {o.label}
-             </div>
-           ))}
+          <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+          {options.map(o => (
+            <div
+              key={o.value}
+              onClick={() => { onChange(o.value); setIsOpen(false); }}
+              style={{ padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer", fontSize: 14, fontWeight: value === o.value ? 800 : 600, color: value === o.value ? color : "#475569", background: value === o.value ? `${color}15` : "transparent", transition: "all 0.1s ease", marginBottom: "0.2rem" }}
+              onMouseEnter={e => { if (value !== o.value) e.currentTarget.style.background = "#f8f9fa"; }}
+              onMouseLeave={e => { if (value !== o.value) e.currentTarget.style.background = "transparent"; }}
+            >
+              {o.label}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -172,15 +172,15 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
     // All server-hosted relative/absolute URLs are accepted; broken images are handled
     // gracefully by the onerror attributes in the HTML template.
     const isRenderableUrl = (url: string) => {
-        if (!url) return true; // empty = no image, still renderable (shows placeholder)
-        if (url.startsWith('blob:') || url.startsWith('data:')) return false;
-        return true;
+      if (!url) return true; // empty = no image, still renderable (shows placeholder)
+      if (url.startsWith('blob:') || url.startsWith('data:')) return false;
+      return true;
     };
 
     const validBooks = books.filter(b => {
-        if (b.authorPhotoUrl && !isRenderableUrl(b.authorPhotoUrl)) return false;
-        if (b.id !== 'NO_BOOK' && b.coverUrl && !isRenderableUrl(b.coverUrl)) return false;
-        return true;
+      if (b.authorPhotoUrl && !isRenderableUrl(b.authorPhotoUrl)) return false;
+      if (b.id !== 'NO_BOOK' && b.coverUrl && !isRenderableUrl(b.coverUrl)) return false;
+      return true;
     });
 
     const { jsPDF, html2canvas } = await loadPdfLibs();
@@ -190,7 +190,7 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
     const highlightColor = isPrintable ? '#0284c7' : '#b44d28';
     const invertedFilter = isPrintable ? '' : '${invertedFilter}';
 
-    
+
     // Group books by author
     const byAuthor: Record<string, { name: string; bio: string; photoUrl: string; instagram: string; facebook: string; linkedin: string; youtube: string; whatsapp: string; qualification?: string; age?: string; experience?: string; skills?: string; hobbies?: string; books: CatalogueBook[] }> = {};
     validBooks.forEach(b => {
@@ -224,89 +224,89 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
         byAuthor[bClone.authorName].books.push(bClone);
       }
     });
-    
-      let currentPage = 4; // Cover is page 1, Intro is page 2, Progress is page 3
-      
-      const sortedAuthors = Object.values(byAuthor).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-      const contentHtml = sortedAuthors.map((author, index) => {
-        // Calculate age if it's a DOB
-        let ageStr = author.age && author.age !== 'NA' ? String(author.age) : '—';
-        if (ageStr.includes('-')) {
-           const birthDate = new Date(ageStr);
-           if (!isNaN(birthDate.getTime())) {
-               const ageNum = new Date().getFullYear() - birthDate.getFullYear();
-               ageStr = ageNum.toString();
-           }
+
+    let currentPage = 4; // Cover is page 1, Intro is page 2, Progress is page 3
+
+    const sortedAuthors = Object.values(byAuthor).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    const contentHtml = sortedAuthors.map((author, index) => {
+      // Calculate age if it's a DOB
+      let ageStr = author.age && author.age !== 'NA' ? String(author.age) : '—';
+      if (ageStr.includes('-')) {
+        const birthDate = new Date(ageStr);
+        if (!isNaN(birthDate.getTime())) {
+          const ageNum = new Date().getFullYear() - birthDate.getFullYear();
+          ageStr = ageNum.toString();
         }
-  
-        // Parse JSON for qualifications
-        let qualStr = '—';
-        if (author.qualification && author.qualification !== 'NA') {
-           try {
-              const parsed = JSON.parse(author.qualification);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                 qualStr = parsed.map((q: any) => {
-                    let str = q.qualification || '';
-                    if (q.subject) str += ` in ${q.subject}`;
-                    if (q.institution) str += ` from ${q.institution}`;
-                    if (q.mode) str += ` (${q.mode})`;
-                    return str;
-                 }).filter(Boolean).join('; ');
-              } else {
-                 qualStr = author.qualification;
-              }
-           } catch(e) { qualStr = author.qualification; }
-        }
-  
-        // Parse JSON for skills
-        let skillsStr = '—';
-        if (author.skills && author.skills !== 'NA') {
-           try {
-              const parsed = JSON.parse(author.skills);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                 skillsStr = parsed.filter(Boolean).join(', ');
-              } else {
-                 skillsStr = author.skills;
-              }
-           } catch(e) { skillsStr = author.skills; }
-        }
-  
-        // Parse JSON for hobbies
-        let hobbiesStr = '—';
-        if (author.hobbies && author.hobbies !== 'NA') {
-           try {
-              const parsed = JSON.parse(author.hobbies);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                 hobbiesStr = parsed.filter(Boolean).join(', ');
-              } else {
-                 hobbiesStr = author.hobbies;
-              }
-           } catch(e) { hobbiesStr = author.hobbies; }
-        }
-        
-        const expStr = author.experience && author.experience !== 'NA' && author.experience !== '0' ? author.experience + ' Years' : '—';
-  
-        // Social links block
-        const socials = [];
-        if (author.whatsapp && author.whatsapp !== 'NA') socials.push(`<a href="https://wa.me/${author.whatsapp.replace(/\D/g,'')}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+      }
+
+      // Parse JSON for qualifications
+      let qualStr = '—';
+      if (author.qualification && author.qualification !== 'NA') {
+        try {
+          const parsed = JSON.parse(author.qualification);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            qualStr = parsed.map((q: any) => {
+              let str = q.qualification || '';
+              if (q.subject) str += ` in ${q.subject}`;
+              if (q.institution) str += ` from ${q.institution}`;
+              if (q.mode) str += ` (${q.mode})`;
+              return str;
+            }).filter(Boolean).join('; ');
+          } else {
+            qualStr = author.qualification;
+          }
+        } catch (e) { qualStr = author.qualification; }
+      }
+
+      // Parse JSON for skills
+      let skillsStr = '—';
+      if (author.skills && author.skills !== 'NA') {
+        try {
+          const parsed = JSON.parse(author.skills);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            skillsStr = parsed.filter(Boolean).join(', ');
+          } else {
+            skillsStr = author.skills;
+          }
+        } catch (e) { skillsStr = author.skills; }
+      }
+
+      // Parse JSON for hobbies
+      let hobbiesStr = '—';
+      if (author.hobbies && author.hobbies !== 'NA') {
+        try {
+          const parsed = JSON.parse(author.hobbies);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            hobbiesStr = parsed.filter(Boolean).join(', ');
+          } else {
+            hobbiesStr = author.hobbies;
+          }
+        } catch (e) { hobbiesStr = author.hobbies; }
+      }
+
+      const expStr = author.experience && author.experience !== 'NA' && author.experience !== '0' ? author.experience + ' Years' : '—';
+
+      // Social links block
+      const socials = [];
+      if (author.whatsapp && author.whatsapp !== 'NA') socials.push(`<a href="https://wa.me/${author.whatsapp.replace(/\D/g, '')}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
           &#128222; WhatsApp
         </a>`);
-        if (author.linkedin && author.linkedin !== 'NA') socials.push(`<a href="${author.linkedin.startsWith('http') ? author.linkedin : 'https://linkedin.com/in/'+author.linkedin}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+      if (author.linkedin && author.linkedin !== 'NA') socials.push(`<a href="${author.linkedin.startsWith('http') ? author.linkedin : 'https://linkedin.com/in/' + author.linkedin}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
           &#128188; LinkedIn
         </a>`);
-        if (author.youtube && author.youtube !== 'NA') socials.push(`<a href="${author.youtube.startsWith('http') ? author.youtube : 'https://youtube.com/'+author.youtube}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+      if (author.youtube && author.youtube !== 'NA') socials.push(`<a href="${author.youtube.startsWith('http') ? author.youtube : 'https://youtube.com/' + author.youtube}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
           &#128250; YouTube
         </a>`);
-        if (author.instagram && author.instagram !== 'NA') socials.push(`<a href="${author.instagram.startsWith('http') ? author.instagram : 'https://instagram.com/'+author.instagram}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+      if (author.instagram && author.instagram !== 'NA') socials.push(`<a href="${author.instagram.startsWith('http') ? author.instagram : 'https://instagram.com/' + author.instagram}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
           &#128247; Instagram
         </a>`);
-        if (author.facebook && author.facebook !== 'NA') socials.push(`<a href="${author.facebook.startsWith('http') ? author.facebook : 'https://facebook.com/'+author.facebook}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+      if (author.facebook && author.facebook !== 'NA') socials.push(`<a href="${author.facebook.startsWith('http') ? author.facebook : 'https://facebook.com/' + author.facebook}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
           &#128101; Facebook
         </a>`);
-        
-        const socialHtml = socials.length > 0 ? `<div style="margin-top: 25px; font-size: 11px; display: flex; gap: 10px; flex-wrap: wrap;">${socials.join('')}</div>` : '';
-  
-        const authorPageHtml = `
+
+      const socialHtml = socials.length > 0 ? `<div style="margin-top: 25px; font-size: 11px; display: flex; gap: 10px; flex-wrap: wrap;">${socials.join('')}</div>` : '';
+
+      const authorPageHtml = `
            <div class="pdf-page" style="width: 802px; height: 1120px; position: relative; background: ${bgColor}; color: ${textColor}; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: 60px;">
              <div style="position: absolute; top: 40px; right: 40px;">
                 <img src="${window.location.origin}/logo.webp" crossorigin="anonymous" style="height: 60px; ${invertedFilter}" />
@@ -343,14 +343,14 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
              <div style="position: absolute; bottom: 40px; right: 40px; font-size: 12px; color: rgba(255,255,255,0.5); font-family: system-ui, sans-serif;">Page ${currentPage++}</div>
            </div>
          `;
-  
-        const bookChunks = [];
-        for (let i = 0; i < author.books.length; i += 3) {
-           bookChunks.push(author.books.slice(i, i + 3));
-        }
-  
-        const bookPagesHtml = bookChunks.map((chunk) => {
-           const booksHtml = chunk.map((b, bIdx) => `
+
+      const bookChunks = [];
+      for (let i = 0; i < author.books.length; i += 3) {
+        bookChunks.push(author.books.slice(i, i + 3));
+      }
+
+      const bookPagesHtml = bookChunks.map((chunk) => {
+        const booksHtml = chunk.map((b, bIdx) => `
            <div style="display: flex; gap: 22px; padding-bottom: ${chunk.length > 1 && bIdx < chunk.length - 1 ? '22px' : '0'}; border-bottom: ${chunk.length > 1 && bIdx < chunk.length - 1 ? '1px solid #cbd5e1' : 'none'}; break-inside: avoid;">
              <div style="flex-shrink: 0; width: 155px;">
                ${b.coverUrl ? `<img src="${b.coverUrl.startsWith('http') ? b.coverUrl : (import.meta.env.VITE_API_URL || 'http://localhost:3001').trim() + (b.coverUrl.startsWith('/') ? b.coverUrl : '/' + b.coverUrl)}" crossorigin="anonymous" style="width: 100%; height: 220px; object-fit: cover; border-radius: 4px; box-shadow: 10px 10px 20px rgba(0,0,0,0.1); border: 1px solid #94a3b8;" onerror="this.style.opacity='0';" />` : `<div style="width: 100%; height: 220px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: 1px dashed #94a3b8;"><span style="color:#64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">No Cover</span></div>`}
@@ -384,8 +384,8 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
              </div>
            </div>
            ` ).join("");
-  
-           return `
+
+        return `
            <div class="pdf-page" style="width: 802px; height: 1120px; position: relative; background: #f0f9ff; color: #0f172a; box-sizing: border-box; padding: 45px 50px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-start;">
               <!-- Branding Header -->
               <div style="position: absolute; top: 28px; right: 32px;">
@@ -404,22 +404,22 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
               <div style="position: absolute; bottom: 40px; right: 40px; font-size: 12px; color: #64748b; font-family: system-ui, sans-serif;">Page ${currentPage++}</div>
            </div>
            `;
-        }).join('');
-  
-        return authorPageHtml + bookPagesHtml;
-      }).join("");
-  
-      const container = document.createElement('div');
-      container.style.position = 'fixed';
-      container.style.left = '0';
-      container.style.top = '0';
-      container.style.width = '802px';
-      container.style.height = '1120px';
-      container.style.overflow = 'hidden';
-      container.style.zIndex = '-9999';
-      document.body.appendChild(container);
-  
-      container.innerHTML = `
+      }).join('');
+
+      return authorPageHtml + bookPagesHtml;
+    }).join("");
+
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '0';
+    container.style.top = '0';
+    container.style.width = '802px';
+    container.style.height = '1120px';
+    container.style.overflow = 'hidden';
+    container.style.zIndex = '-9999';
+    document.body.appendChild(container);
+
+    container.innerHTML = `
         <div id="pdf-content-wrapper" style="width: 802px; background: ${bgColor};">
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap');
@@ -441,9 +441,9 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
               </p>
               <p style="color: rgba(255,255,255,0.4); font-size: 10px; text-transform: uppercase; letter-spacing: 2px; font-family: system-ui, sans-serif; margin-top: 15px;">
                 Generated: ${(() => {
-                  const d = new Date();
-                  return d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
-                })()} ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+        const d = new Date();
+        return d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+      })()} ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
             <!-- Page Number -->
@@ -521,39 +521,39 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
 
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pages = container.querySelectorAll('.pdf-page');
-    
+
     // Hide all pages initially to speed up html2canvas DOM parsing and reset Y-coordinates
     for (let i = 0; i < pages.length; i++) {
-        (pages[i] as HTMLElement).style.display = 'none';
+      (pages[i] as HTMLElement).style.display = 'none';
     }
-    
+
     for (let i = 0; i < pages.length; i++) {
-        const page = pages[i] as HTMLElement;
-        page.style.display = 'flex'; // show only this page during capture
-        
-        const canvas = await html2canvas(page, { 
-            scale: 1.5, 
-            useCORS: true, 
-            logging: false,
-            backgroundColor: bgColor,
-            width: 802,
-            height: 1120,
-            windowWidth: 802,
-            windowHeight: 1120
-        });
-        const imgData = canvas.toDataURL('image/jpeg', 0.80);
-        
-        if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-        
-        page.style.display = 'none'; // hide it again
+      const page = pages[i] as HTMLElement;
+      page.style.display = 'flex'; // show only this page during capture
+
+      const canvas = await html2canvas(page, {
+        scale: 1.5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: bgColor,
+        width: 802,
+        height: 1120,
+        windowWidth: 802,
+        windowHeight: 1120
+      });
+      const imgData = canvas.toDataURL('image/jpeg', 0.80);
+
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+
+      page.style.display = 'none'; // hide it again
     }
 
     if (autoUpload) {
       const blob = pdf.output('blob');
       const formData = new FormData();
       formData.append('pdf', blob, `PAA_Catalogue.pdf`);
-      
+
       const axios = (await import('axios')).default;
       const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const endpoint = isPublicFallback ? `${API}/api/public/catalogue-pdf` : `${API}/api/admin/catalogue-pdf`;
@@ -562,13 +562,13 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
       if (token && !isPublicFallback) headers['Authorization'] = `Bearer ${token}`;
 
       await axios.post(endpoint, formData, { headers }).catch(console.error);
-      
+
       // Save locally only if not silent
       if (!silentSave) pdf.save(`PAA_${label.replace(/s+/g, '_')}_Catalogue.pdf`);
     } else {
       if (!silentSave) pdf.save(`PAA_${label.replace(/s+/g, '_')}_Catalogue.pdf`);
     }
-    
+
     document.body.removeChild(container);
     setDownloading(null);
   } catch (err) {
@@ -647,13 +647,13 @@ export function CataloguePage() {
     const params = new URLSearchParams(location.search);
     const cat = params.get("category");
     if (cat) setActiveCategory(cat);
-    
+
     const subCat = params.get("subcategory");
     if (subCat) setActiveSubcategory(subCat);
-    
+
     const subSubCat = params.get("subsubcategory");
     if (subSubCat) setActiveSubSubcategory(subSubCat);
-    
+
     const search = params.get("search");
     if (search !== null) setSearchQuery(search);
   }, [location.search]);
@@ -661,7 +661,7 @@ export function CataloguePage() {
   useEffect(() => {
     const w = window as any;
     w.__apiCache = w.__apiCache || {};
-    
+
     if (w.__apiCache.publicStats) {
       setPublicStats(w.__apiCache.publicStats);
       return;
@@ -679,19 +679,19 @@ export function CataloguePage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     let changed = false;
-    
-    if (activeCategory !== "All") { if(params.get("category") !== activeCategory) { params.set("category", activeCategory); changed = true; } }
+
+    if (activeCategory !== "All") { if (params.get("category") !== activeCategory) { params.set("category", activeCategory); changed = true; } }
     else if (params.has("category")) { params.delete("category"); changed = true; }
-    
-    if (activeSubcategory !== "All") { if(params.get("subcategory") !== activeSubcategory) { params.set("subcategory", activeSubcategory); changed = true; } }
+
+    if (activeSubcategory !== "All") { if (params.get("subcategory") !== activeSubcategory) { params.set("subcategory", activeSubcategory); changed = true; } }
     else if (params.has("subcategory")) { params.delete("subcategory"); changed = true; }
-    
-    if (activeSubSubcategory !== "All") { if(params.get("subsubcategory") !== activeSubSubcategory) { params.set("subsubcategory", activeSubSubcategory); changed = true; } }
+
+    if (activeSubSubcategory !== "All") { if (params.get("subsubcategory") !== activeSubSubcategory) { params.set("subsubcategory", activeSubSubcategory); changed = true; } }
     else if (params.has("subsubcategory")) { params.delete("subsubcategory"); changed = true; }
-    
-    if (searchQuery) { if(params.get("search") !== searchQuery) { params.set("search", searchQuery); changed = true; } }
+
+    if (searchQuery) { if (params.get("search") !== searchQuery) { params.set("search", searchQuery); changed = true; } }
     else if (params.has("search")) { params.delete("search"); changed = true; }
-    
+
     if (changed) {
       window.history.replaceState(null, '', '?' + params.toString());
     }
@@ -708,7 +708,7 @@ export function CataloguePage() {
       try {
         const saved = localStorage.getItem('checkout_cart');
         if (saved) setCart(JSON.parse(saved).map(String));
-      } catch (e) {}
+      } catch (e) { }
     };
     window.addEventListener('cart_updated', handleCartUpdate);
     // Also listen to storage events if updated in another tab
@@ -728,7 +728,7 @@ export function CataloguePage() {
   useEffect(() => {
     const w = window as any;
     w.__apiCache = w.__apiCache || {};
-    
+
     if (w.__apiCache.catalogueBooks) {
       setAllBooks(w.__apiCache.catalogueBooks);
     }
@@ -794,10 +794,10 @@ export function CataloguePage() {
     const authorsParam = params.get('authors');
     let baseAllBooks = allBooks;
     if (authorsParam) {
-        const ids = authorsParam.split(',').map(Number);
-        baseAllBooks = allBooks.filter((b: any) => ids.includes(b.authorId));
+      const ids = authorsParam.split(',').map(Number);
+      baseAllBooks = allBooks.filter((b: any) => ids.includes(b.authorId));
     }
-        let list = baseAllBooks;
+    let list = baseAllBooks;
 
     const langParam = params.get('language');
     if (langParam) {
@@ -837,7 +837,7 @@ export function CataloguePage() {
           (b.language || "").toLowerCase().includes(q)
       );
     }
-    
+
     if (minPrice !== '') {
       list = list.filter(b => b.mrp !== null && b.mrp >= minPrice);
     }
@@ -848,7 +848,7 @@ export function CataloguePage() {
       list = list.filter(b => b.format === formatFilter);
     }
     if (ratingFilter > 0) {
-       list = list.filter(b => b.rating >= ratingFilter);
+      list = list.filter(b => b.rating >= ratingFilter);
     }
 
     if (sortBy === "price_asc") list.sort((a, b) => (a.mrp ?? 0) - (b.mrp ?? 0));
@@ -864,22 +864,22 @@ export function CataloguePage() {
   const addToCart = (id: string) => {
     setCart((prev) => {
       const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-      
+
       // Update local storage synchronously before dispatching event to prevent BFCache/Listener race conditions
       localStorage.setItem('checkout_cart', JSON.stringify(next));
 
       if (prev.includes(id)) {
-         try {
-           const qs = JSON.parse(localStorage.getItem('checkout_quantities') || '{}');
-           delete qs[id];
-           localStorage.setItem('checkout_quantities', JSON.stringify(qs));
-         } catch {}
+        try {
+          const qs = JSON.parse(localStorage.getItem('checkout_quantities') || '{}');
+          delete qs[id];
+          localStorage.setItem('checkout_quantities', JSON.stringify(qs));
+        } catch { }
       } else {
-         try {
-           const qs = JSON.parse(localStorage.getItem('checkout_quantities') || '{}');
-           qs[id] = 1;
-           localStorage.setItem('checkout_quantities', JSON.stringify(qs));
-         } catch {}
+        try {
+          const qs = JSON.parse(localStorage.getItem('checkout_quantities') || '{}');
+          qs[id] = 1;
+          localStorage.setItem('checkout_quantities', JSON.stringify(qs));
+        } catch { }
       }
       return next;
     });
@@ -1077,16 +1077,16 @@ export function CataloguePage() {
           }
         }
       `}</style>
-      
+
       {/* ════════════════════════════════════════════
           CATALOGUE HEADER & HERO (BRIGHT)
       ════════════════════════════════════════════ */}
       <section style={{ position: "relative", padding: "11.5rem 2rem 4rem", zIndex: 30 }}>
-        
+
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 10 }}>
           <div className="catalogue-header-wrapper" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "2rem", marginBottom: "2rem" }}>
             <div style={{ flex: 1, minWidth: "300px", maxWidth: 650 }}>
-              <h1 style={{ 
+              <h1 style={{
                 fontFamily: "'Playfair Display', serif",
                 fontSize: "clamp(2rem, 5vw, 4.5rem)",
                 fontWeight: 800,
@@ -1097,10 +1097,10 @@ export function CataloguePage() {
               }}>
                 Browse & Buy Books
               </h1>
-              <p style={{ 
-                fontSize: 18, 
-                color: "#64748b", 
-                margin: 0, 
+              <p style={{
+                fontSize: 18,
+                color: "#64748b",
+                margin: 0,
                 fontWeight: 600,
                 fontStyle: "italic",
                 display: "inline-flex",
@@ -1113,7 +1113,7 @@ export function CataloguePage() {
             </div>
 
             <div className="catalogue-actions-container" style={{ display: "flex", flexDirection: "column", gap: "0.8rem", alignItems: "flex-end", flexShrink: 0 }}>
-              <button 
+              <button
                 onClick={() => {
                   if (activeCategory === "All") {
                     handleDownloadPublicCatalogue();
@@ -1125,7 +1125,7 @@ export function CataloguePage() {
                 style={{
                   display: "flex", alignItems: "center", gap: "0.8rem",
                   padding: "1rem 2.5rem", borderRadius: "50px",
-                  background: downloadingType === "standard" ? "#eee" : "#1e40af", 
+                  background: downloadingType === "standard" ? "#eee" : "#1e40af",
                   color: downloadingType === "standard" ? "#888" : "#fff",
                   fontWeight: 800, fontSize: 15,
                   textTransform: "uppercase", letterSpacing: "0.02em",
@@ -1134,16 +1134,16 @@ export function CataloguePage() {
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                   boxShadow: "0 8px 20px rgba(30,64,175,0.4)",
                 }}
-                onMouseEnter={e => { 
-                  e.currentTarget.style.transform = "translateY(-2px)"; 
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.filter = "brightness(1.1)";
                 }}
-                onMouseLeave={e => { 
-                  e.currentTarget.style.transform = "translateY(0)"; 
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = "translateY(0)";
                   e.currentTarget.style.filter = "brightness(1)";
                 }}
               >
-                {downloadingType === 'standard' ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />} 
+                {downloadingType === 'standard' ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                 {downloadingType === 'standard' ? "Generating..." : `Download ${activeCategory === "All" ? "Complete" : activeCategoryDisplay} Catalogue`}
               </button>
               <div style={{ position: "relative" }}>
@@ -1283,7 +1283,7 @@ export function CataloguePage() {
             <div className="category-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "1.8rem", paddingBottom: "4rem" }}>
               {(Object.keys(bookCategories).filter(cat => allBooks.some(b => b.genre === cat))).map((cat, idx) => {
                 const catBooksCount = allBooks.filter(b => b.genre === cat).length;
-                
+
                 const c = getCategoryColor(cat);
                 const textColor = c.color === "#eab308" || c.color === "#FFD400" ? "#111" : "#fff";
                 const displayName = cat === "Regional & Language Literature" ? "Regional Literature" : cat;
@@ -1320,7 +1320,7 @@ export function CataloguePage() {
                     <div style={{ width: 52, height: 52, borderRadius: "10px", overflow: "hidden", flexShrink: 0, position: "relative" }}>
                       <img src={getCatImg(cat)} alt={cat} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
-                    
+
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="google-sans-title" style={{ margin: 0, color: textColor, fontSize: "1.4rem", fontWeight: 800, letterSpacing: "-0.01em", lineHeight: 1.15 }}>{displayName}</div>
                     </div>
@@ -1331,7 +1331,7 @@ export function CataloguePage() {
           ) : (
             <div style={{ background: "#fff", borderRadius: "24px", padding: "1.5rem 2rem", boxShadow: "0 10px 30px rgba(0,0,0,0.05)", marginBottom: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-                <button 
+                <button
                   className="filter-btn-mobile"
                   onClick={() => {
                     handleCategoryChange("All");
@@ -1397,14 +1397,14 @@ export function CataloguePage() {
                   )}
                 </div>
 
-                <button 
+                <button
                   className="filter-btn-mobile"
                   onClick={() => setShowFilters(!showFilters)}
                   style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.8rem 1.5rem", borderRadius: "50px", border: showFilters ? `2px solid ${getCategoryColor(activeCategory).color}` : "2px solid #eaeaea", background: showFilters ? getCategoryColor(activeCategory).color : "#fff", color: showFilters ? "#fff" : "#111", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}
                 >
                   <SlidersHorizontal size={16} /> Filters
                 </button>
-                
+
                 <CustomSelect
                   value={sortBy}
                   onChange={(val) => setSortBy(val as any)}
@@ -1428,12 +1428,12 @@ export function CataloguePage() {
                     </div>
                     <input type="range" min="0" max="2000" step="50" value={maxPrice === '' ? 2000 : maxPrice} onChange={e => setMaxPrice(Number(e.target.value) === 2000 ? '' : Number(e.target.value))} style={{ width: "100%", accentColor: getCategoryColor(activeCategory).color }} />
                   </div>
-                  
+
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                     <span style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "#888" }}>Format</span>
-                    <CustomSelect 
-                      value={formatFilter} 
-                      onChange={setFormatFilter} 
+                    <CustomSelect
+                      value={formatFilter}
+                      onChange={setFormatFilter}
                       options={[
                         { label: "All Formats", value: "All" },
                         { label: "Paperback", value: "Paperback" },
@@ -1443,12 +1443,12 @@ export function CataloguePage() {
                       color={getCategoryColor(activeCategory).color}
                     />
                   </div>
-                  
+
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                     <span style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "#888" }}>Rating</span>
-                    <CustomSelect 
-                      value={ratingFilter.toString()} 
-                      onChange={(val) => setRatingFilter(Number(val))} 
+                    <CustomSelect
+                      value={ratingFilter.toString()}
+                      onChange={(val) => setRatingFilter(Number(val))}
                       options={[
                         { label: "Any Rating", value: "0" },
                         { label: "4+ Stars", value: "4" },
@@ -1469,7 +1469,7 @@ export function CataloguePage() {
             <>
               {isLoading ? (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "2rem", padding: "2rem 0 6rem" }}>
-                  {[1,2,3,4,5,6,7,8].map(i => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                     <div key={i} style={{ background: "#fff", borderRadius: "24px", padding: "1.2rem", height: 380, border: "1px solid #eaeaea", display: "flex", flexDirection: "column" }}>
                       <div style={{ width: "100%", flex: 1, background: "#f5f5f5", borderRadius: "12px", marginBottom: "1rem" }} className="skeleton-pulse"></div>
                       <div style={{ height: 20, width: "80%", background: "#f5f5f5", borderRadius: 4, marginBottom: "0.5rem" }} className="skeleton-pulse"></div>
@@ -1484,8 +1484,8 @@ export function CataloguePage() {
                   </div>
                   <h3 style={{ fontSize: "2rem", fontWeight: 900, color: "#1e293b", marginBottom: "0.8rem", fontFamily: "'Playfair Display', serif" }}>No books found</h3>
                   <p style={{ color: "#64748b", fontSize: 16, fontWeight: 500, marginBottom: "2.5rem", maxWidth: 400, textAlign: "center", lineHeight: 1.6 }}>We couldn't find any titles matching your current filters. Try adjusting your search criteria.</p>
-                  <button 
-                    onClick={() => { setSearchQuery(""); setMaxPrice(''); setFormatFilter("All"); setRatingFilter(0); setActiveSubcategory("All"); setActiveSubSubcategory("All"); }} 
+                  <button
+                    onClick={() => { setSearchQuery(""); setMaxPrice(''); setFormatFilter("All"); setRatingFilter(0); setActiveSubcategory("All"); setActiveSubSubcategory("All"); }}
                     style={{ padding: "1.2rem 3rem", background: getCategoryColor(activeCategory).color, color: "#fff", borderRadius: "50px", fontSize: 14, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", border: "none", cursor: "pointer", transition: "all 0.3s ease", boxShadow: `0 10px 25px ${getCategoryColor(activeCategory).color}40` }}
                     onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.filter = "brightness(1.1)"; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.filter = "brightness(1)"; }}
@@ -1498,103 +1498,103 @@ export function CataloguePage() {
                   <div className="book-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 py-4 items-stretch">
                     {filteredBooks.map((book) => {
                       const inCart = cart.includes(book.id);
-                    const isSelected = selectedBooksForCatalogue.includes(book.id);
-                    const isBulkSelected = !!selectedBooksForBulk.find(b => b.id === book.id);
-                    return (
-                      <div key={book.id} style={{ height: "100%", background: "transparent", display: "flex", flexDirection: "column", transition: "all 0.2s ease", position: "relative", borderRadius: "12px", padding: "0.5rem" }} className="book-card-minimal" onMouseEnter={e => { if(!selectionMode && !bulkSelectionMode) { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.08)"; e.currentTarget.style.background = "#fff"; } }} onMouseLeave={e => { if(!selectionMode && !bulkSelectionMode) { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.background = "transparent"; } }}>
-                        
-                        {(selectionMode || bulkSelectionMode) && (
-                          <div 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (bulkSelectionMode) {
-                                if (isBulkSelected) {
-                                  setSelectedBooksForBulk(prev => prev.filter(b => b.id !== book.id));
+                      const isSelected = selectedBooksForCatalogue.includes(book.id);
+                      const isBulkSelected = !!selectedBooksForBulk.find(b => b.id === book.id);
+                      return (
+                        <div key={book.id} style={{ height: "100%", background: "transparent", display: "flex", flexDirection: "column", transition: "all 0.2s ease", position: "relative", borderRadius: "12px", padding: "0.5rem" }} className="book-card-minimal" onMouseEnter={e => { if (!selectionMode && !bulkSelectionMode) { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.08)"; e.currentTarget.style.background = "#fff"; } }} onMouseLeave={e => { if (!selectionMode && !bulkSelectionMode) { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.background = "transparent"; } }}>
+
+                          {(selectionMode || bulkSelectionMode) && (
+                            <div
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (bulkSelectionMode) {
+                                  if (isBulkSelected) {
+                                    setSelectedBooksForBulk(prev => prev.filter(b => b.id !== book.id));
+                                  } else {
+                                    setSelectedBooksForBulk(prev => [...prev, book]);
+                                  }
                                 } else {
-                                  setSelectedBooksForBulk(prev => [...prev, book]);
+                                  setSelectedBooksForCatalogue(prev =>
+                                    prev.includes(book.id) ? prev.filter(id => id !== book.id) : [...prev, book.id]
+                                  );
                                 }
-                              } else {
-                                setSelectedBooksForCatalogue(prev => 
-                                  prev.includes(book.id) ? prev.filter(id => id !== book.id) : [...prev, book.id]
-                                );
-                              }
-                            }}
-                            style={{
-                              position: "absolute", top: 10, right: 10, zIndex: 10, cursor: "pointer",
-                              background: (isSelected || isBulkSelected) ? "#fff" : "rgba(255,255,255,0.8)",
-                              borderRadius: "50%", transition: "all 0.2s",
-                              display: "flex", alignItems: "center", justifyContent: "center", padding: "0.2rem",
-                              boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-                            }}
-                          >
-                            {(isSelected || isBulkSelected) ? (
-                              <CheckCircle2 size={24} color={getCategoryColor(activeCategory).color} fill="#fff" />
-                            ) : (
-                              <Circle size={24} color="#94a3b8" fill="transparent" />
-                            )}
-                          </div>
-                        )}
+                              }}
+                              style={{
+                                position: "absolute", top: 10, right: 10, zIndex: 10, cursor: "pointer",
+                                background: (isSelected || isBulkSelected) ? "#fff" : "rgba(255,255,255,0.8)",
+                                borderRadius: "50%", transition: "all 0.2s",
+                                display: "flex", alignItems: "center", justifyContent: "center", padding: "0.2rem",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                              }}
+                            >
+                              {(isSelected || isBulkSelected) ? (
+                                <CheckCircle2 size={24} color={getCategoryColor(activeCategory).color} fill="#fff" />
+                              ) : (
+                                <Circle size={24} color="#94a3b8" fill="transparent" />
+                              )}
+                            </div>
+                          )}
 
-                        <Link to={`/book/${book.id}`} style={{ textDecoration: "none", flex: 1, display: "flex", flexDirection: "column" }}>
-                          <div className="book-cover-container" style={{ width: "100%", height: "240px", background: "#f8f9fa", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "0.8rem", overflow: "hidden", borderRadius: "8px" }}>
-                            <img 
-                               src={book.coverUrl || getCatImg(activeCategory === "All" ? book.genre : activeCategory)} 
-                               alt={book.title} 
-                               onError={(e) => { e.currentTarget.src = getCatImg(activeCategory === "All" ? book.genre : activeCategory); }}
-                               style={{ width: "100%", height: "100%", objectFit: "contain", mixBlendMode: "multiply", padding: "0.5rem" }} 
-                               className="book-cover-img" 
-                            />
-                          </div>
-                          
-                          <div className="book-genre-block" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
-                             <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b" }}>{book.subGenre ? book.subGenre.split(" > ")[0] : book.genre}</div>
-                             {book.rating > 0 && (
-                               <div style={{ display: "flex", alignItems: "center", gap: "0.2rem", fontSize: 12, fontWeight: 600, color: "#475569" }}>
+                          <Link to={`/book/${book.id}`} style={{ textDecoration: "none", flex: 1, display: "flex", flexDirection: "column" }}>
+                            <div className="book-cover-container" style={{ width: "100%", height: "240px", background: "#f8f9fa", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "0.8rem", overflow: "hidden", borderRadius: "8px" }}>
+                              <img
+                                src={book.coverUrl || getCatImg(activeCategory === "All" ? book.genre : activeCategory)}
+                                alt={book.title}
+                                onError={(e) => { e.currentTarget.src = getCatImg(activeCategory === "All" ? book.genre : activeCategory); }}
+                                style={{ width: "100%", height: "100%", objectFit: "contain", mixBlendMode: "multiply", padding: "0.5rem" }}
+                                className="book-cover-img"
+                              />
+                            </div>
+
+                            <div className="book-genre-block" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
+                              <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b" }}>{book.subGenre ? book.subGenre.split(" > ")[0] : book.genre}</div>
+                              {book.rating > 0 && (
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.2rem", fontSize: 12, fontWeight: 600, color: "#475569" }}>
                                   <Star size={12} fill="#fbbf24" color="#fbbf24" /> {book.rating.toFixed(1)}
-                               </div>
-                             )}
-                          </div>
-                          
-                          <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: "0 0 0.3rem 0", lineHeight: 1.3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", fontFamily: "'Google Sans', sans-serif" }}>{book.title}</h3>
-                          
-                          <div className="book-author-block" style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                            <span style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>by {book.authorName}</span>
-                          </div>
+                                </div>
+                              )}
+                            </div>
 
-                          <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", marginBottom: "0.5rem" }}>
-                            {book.language && (
-                               <span style={{ fontSize: 12, color: "#94a3b8", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                                 Language: <strong style={{color:"#475569"}}>{book.language}</strong>
-                               </span>
-                            )}
-                            {book.bundleRules && book.bundleRules.length > 0 && book.bundleRules.some(r => r.enabled) && !book.bundleRule && (
-                              <div style={{ color: "#d97706", fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>
-                                Bundle Offer Available
+                            <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: "0 0 0.3rem 0", lineHeight: 1.3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", fontFamily: "'Google Sans', sans-serif" }}>{book.title}</h3>
+
+                            <div className="book-author-block" style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                              <span style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>by {book.authorName}</span>
+                            </div>
+
+                            <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", marginBottom: "0.5rem" }}>
+                              {book.language && (
+                                <span style={{ fontSize: 12, color: "#94a3b8", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                                  Language: <strong style={{ color: "#475569" }}>{book.language}</strong>
+                                </span>
+                              )}
+                              {book.bundleRules && book.bundleRules.length > 0 && book.bundleRules.some(r => r.enabled) && !book.bundleRule && (
+                                <div style={{ color: "#d97706", fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>
+                                  Bundle Offer Available
+                                </div>
+                              )}
+                            </div>
+                          </Link>
+
+                          <div className="bottom-row" style={{ marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "0.8rem", borderTop: "1px solid #f1f5f9" }}>
+                            <div>
+                              <div className="price-val" style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", lineHeight: 1 }}>{book.mrp != null ? `₹${book.mrp}` : book.mrpRaw || "TBD"}</div>
+                            </div>
+
+                            {!selectionMode && !bulkSelectionMode && (
+                              <div>
+                                {inCart ? (
+                                  <button onClick={(e) => { e.preventDefault(); addToCart(book.id); }} style={{ padding: "0.6rem 1rem", background: "#f1f5f9", color: "#0f172a", border: "none", borderRadius: "6px", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}><ShoppingCart size={14} fill="#0f172a" /> Added</button>
+                                ) : (
+                                  <button onClick={(e) => { e.preventDefault(); addToCart(book.id); }} style={{ padding: "0.6rem 1rem", background: "#0f172a", color: "#fff", border: "none", borderRadius: "6px", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", transition: "all 0.2s" }} onMouseEnter={e => { e.currentTarget.style.background = getCategoryColor(activeCategory).color || "#3b82f6"; e.currentTarget.style.transform = "scale(1.05)"; }} onMouseLeave={e => { e.currentTarget.style.background = "#0f172a"; e.currentTarget.style.transform = "scale(1)"; }}><ShoppingCart size={14} /> Add</button>
+                                )}
                               </div>
                             )}
                           </div>
-                        </Link>
-                        
-                        <div className="bottom-row" style={{ marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "0.8rem", borderTop: "1px solid #f1f5f9" }}>
-                           <div>
-                             <div className="price-val" style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", lineHeight: 1 }}>{book.mrp != null ? `₹${book.mrp}` : book.mrpRaw || "TBD"}</div>
-                           </div>
-                           
-                           {!selectionMode && !bulkSelectionMode && (
-                             <div>
-                               {inCart ? (
-                                 <button onClick={(e) => { e.preventDefault(); addToCart(book.id); }} style={{ padding: "0.6rem 1rem", background: "#f1f5f9", color: "#0f172a", border: "none", borderRadius: "6px", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}><ShoppingCart size={14} fill="#0f172a" /> Added</button>
-                               ) : (
-                                 <button onClick={(e) => { e.preventDefault(); addToCart(book.id); }} style={{ padding: "0.6rem 1rem", background: "#0f172a", color: "#fff", border: "none", borderRadius: "6px", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", transition: "all 0.2s" }} onMouseEnter={e => { e.currentTarget.style.background = getCategoryColor(activeCategory).color || "#3b82f6"; e.currentTarget.style.transform = "scale(1.05)"; }} onMouseLeave={e => { e.currentTarget.style.background = "#0f172a"; e.currentTarget.style.transform = "scale(1)"; }}><ShoppingCart size={14} /> Add</button>
-                               )}
-                             </div>
-                           )}
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
 
                 </div>
               )}
@@ -1624,7 +1624,7 @@ export function CataloguePage() {
           </div>
           <div style={{ width: 1, height: 30, background: "rgba(255,255,255,0.1)" }}></div>
           <div style={{ display: "flex", gap: "0.75rem" }}>
-            <button 
+            <button
               onClick={() => {
                 setSelectionMode(false);
                 setSelectedBooksForCatalogue([]);
@@ -1635,7 +1635,7 @@ export function CataloguePage() {
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={() => {
                 if (selectedBooksForCatalogue.length === 0) {
                   toast.error("Please select at least one book.");
@@ -1667,9 +1667,9 @@ export function CataloguePage() {
             <span style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.7)", fontWeight: 700 }}>Bulk Order</span>
             <span style={{ fontSize: 18, fontWeight: 800 }}>{selectedBooksForBulk.length} Books Selected</span>
           </div>
-          
+
           <div style={{ display: "flex", gap: "0.75rem" }}>
-            <button 
+            <button
               onClick={() => {
                 setBulkSelectionMode(false);
                 setSelectedBooksForBulk([]);
@@ -1678,9 +1678,9 @@ export function CataloguePage() {
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={() => {
-                if(selectedBooksForBulk.length === 0) { toast.error("Please select at least one book."); return; }
+                if (selectedBooksForBulk.length === 0) { toast.error("Please select at least one book."); return; }
                 localStorage.setItem("bulk_checkout_items", JSON.stringify(selectedBooksForBulk));
                 window.location.href = "/bulk-checkout";
               }}
@@ -1705,21 +1705,21 @@ export function CataloguePage() {
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>Total: ₹{cartTotal}</div>
           </div>
           <button onClick={() => {
-              const token = localStorage.getItem("token");
-              const role = localStorage.getItem("userRole");
-              if (!token || role !== "CUSTOMER") {
-                navigate("/login?role=CUSTOMER&redirect=/checkout");
-              } else {
-                navigate("/checkout");
-              }
-            }}
-            style={{ 
-              background: getCategoryColor(activeCategory).color, 
-              border: "none", cursor: "pointer", color: "#fff", 
-              padding: "0.8rem 1.8rem", borderRadius: 40, 
+            const token = localStorage.getItem("token");
+            const role = localStorage.getItem("userRole");
+            if (!token || role !== "CUSTOMER") {
+              navigate("/login?role=CUSTOMER&redirect=/checkout");
+            } else {
+              navigate("/checkout");
+            }
+          }}
+            style={{
+              background: getCategoryColor(activeCategory).color,
+              border: "none", cursor: "pointer", color: "#fff",
+              padding: "0.8rem 1.8rem", borderRadius: 40,
               fontWeight: 800, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.05em",
               display: "flex", alignItems: "center", gap: "0.5rem",
-              transition: "transform 0.2s, filter 0.2s" 
+              transition: "transform 0.2s, filter 0.2s"
             }}
             onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.filter = "brightness(1.1)"; }}
             onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.filter = "brightness(1)"; }}

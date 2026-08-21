@@ -572,7 +572,12 @@ export function AuthorDashboardPage() {
             <img src="/logo.webp" alt="PAA Logo" className="h-6 w-auto object-contain md:hidden mr-1" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
             <div className="hidden md:hidden w-6 h-6 rounded-full bg-[#b44d28] items-center justify-center text-white text-[10px] font-bold mr-1">P</div>
             <div className="flex items-center gap-2 text-xs font-medium">
-              <span className="text-paa-gray-text">Author Portal</span>
+              {location.pathname !== '/dashboard' && (
+                <button onClick={() => navigate(-1)} className="p-1 hover:bg-black/5 rounded-md text-paa-gray-text hover:text-paa-navy transition-colors flex items-center justify-center -ml-1 mr-0.5" title="Go Back">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              )}
+              <span className="text-paa-gray-text cursor-pointer hover:text-paa-navy transition-colors" onClick={() => navigate('/dashboard')}>Author Portal</span>
               <span className="text-paa-navy/20">/</span>
               <span className="font-semibold text-paa-navy capitalize">{
                 location.pathname === '/dashboard' ? 'Overview' :
@@ -585,7 +590,9 @@ export function AuthorDashboardPage() {
                 location.pathname.includes('/reviews') ? 'Reviews & Ratings' :
                 location.pathname.includes('/queries') ? 'Queries & Issues' :
                 location.pathname.includes('/gallery') ? 'Event Gallery' :
-                location.pathname.includes('/profile') ? 'Profile Settings' : 'Overview'
+                location.pathname.includes('/profile') ? 'Profile Settings' : 
+                location.pathname.includes('/bundle-offers') ? 'Bundle Offers' :
+                location.pathname.includes('/book-performance') ? 'Book Performance' : 'Overview'
               }</span>
             </div>
           </div>
@@ -1448,7 +1455,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
       })()}
 
       {/* ── CTA: Upcoming Event Registration ── */}
-      {!dismissEventsBanner.includes(String(latestUpcomingEvent?.id || 'none')) && (
+      {latestUpcomingEvent && !dismissEventsBanner.includes(String(latestUpcomingEvent.id)) && (
         <div className="mb-3.5 relative group cursor-pointer">
           <div 
             onClick={() => navigate('/dashboard/events')}
@@ -1527,21 +1534,21 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
 
       {/* ════ Pending Actions — Compact, Space-Efficient, Rendered ONLY when there are active actions ════ */}
       {actionItems.length > 0 && (
-        <div className="bg-gradient-to-r from-amber-50/70 via-orange-50/40 to-amber-50/60 rounded-xl border border-amber-200/80 shadow-xs px-3.5 py-2.5 mb-3.5">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5 text-amber-600 animate-pulse shrink-0" aria-hidden="true" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-amber-950 font-serif">Pending Actions</h3>
-              <span className="text-[10px] font-black bg-amber-200/80 text-amber-900 rounded-full px-2 py-0.2 shadow-xs">
+        <div className="bg-gradient-to-r from-amber-50/70 via-orange-50/40 to-amber-50/60 rounded-lg border border-amber-200/80 shadow-sm px-3 py-2 mb-3">
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <div className="flex items-center gap-1">
+              <AlertCircle className="w-3 h-3 text-amber-600 animate-pulse shrink-0" aria-hidden="true" />
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-amber-950 font-serif">Pending Actions</h3>
+              <span className="text-[9px] font-black bg-amber-200/80 text-amber-900 rounded-full px-1.5 py-0.5">
                 {actionItems.length}
               </span>
             </div>
-            <span className="text-[10px] text-amber-800/70 font-semibold hidden sm:inline">
+            <span className="text-[9px] text-amber-800/70 font-semibold hidden sm:inline">
               Action required to proceed
             </span>
           </div>
           
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {actionItems.map((item) => {
               const Icon = item.icon;
               const colorName = item.color.split('-')[1]; // e.g., 'yellow', 'red', 'emerald'
@@ -3852,68 +3859,68 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
         
         {/* KPI Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 h-max">
-          <div className="bg-[#FFFBEB] rounded-xl shadow-sm border border-amber-200 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-amber-300 transition-colors col-span-2 md:col-span-3">
+          <div className="bg-blue-600 rounded-xl shadow-sm p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors col-span-2 md:col-span-3 text-white border-2 border-black">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-white text-amber-600 flex items-center justify-center shrink-0 shadow-sm border border-amber-100">
+              <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 shadow-sm border border-white/10">
                 <TrendingUp size={18} />
               </div>
               <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-0.5">TOTAL SALES</p>
-                <h3 className="text-xl font-bold text-gray-900">₹{totalSalesAmount.toLocaleString()}</h3>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-white/80 mb-0.5">TOTAL SALES</p>
+                <h3 className="text-xl font-bold text-white">₹{totalSalesAmount.toLocaleString()}</h3>
               </div>
             </div>
             <div className="flex flex-row items-center gap-2">
-              <span className="px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE] whitespace-nowrap">
+              <span className="px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white/20 text-white border border-white/30 whitespace-nowrap">
                 WEB ORDERS: ₹{webSalesAmount.toLocaleString()}
               </span>
-              <span className="px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] whitespace-nowrap">
+              <span className="px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white/20 text-white border border-white/30 whitespace-nowrap">
                 BULK ORDERS: ₹{bulkSalesAmount.toLocaleString()}
               </span>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-paa-navy/5 p-4 flex items-center gap-4 hover:border-green-500/30 transition-colors">
-            <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+          <div className="bg-emerald-500 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white border-2 border-black">
+            <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
               <Check size={18} />
             </div>
             <div>
-              <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-0.5">Successful Orders</p>
-              <h3 className="text-xl font-bold text-paa-navy">{uniqueAllOrders.filter((o: any) => o.status === 'Completed' || o.status === 'Delivered' || o.orderStatus === 'Completed' || o.orderStatus === 'Delivered').length}</h3>
+              <p className="text-[10px] font-bold tracking-widest uppercase text-white/80 mb-0.5">Successful Orders</p>
+              <h3 className="text-xl font-bold text-white">{uniqueAllOrders.filter((o: any) => o.status === 'Completed' || o.status === 'Delivered' || o.orderStatus === 'Completed' || o.orderStatus === 'Delivered').length}</h3>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-paa-navy/5 p-4 flex items-center gap-4 hover:border-yellow-500/30 transition-colors">
-            <div className="w-10 h-10 rounded-full bg-yellow-50 text-yellow-600 flex items-center justify-center shrink-0">
+          <div className="bg-amber-500 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white border-2 border-black">
+            <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
               <AlertCircle size={18} />
             </div>
             <div>
-              <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-0.5">To Be Approved</p>
-              <h3 className="text-xl font-bold text-paa-navy">{uniqueAllOrders.filter((o: any) => ((o.status === 'Pending Verification' || o.status === 'Processing' || o.status === 'Pending') && !o.isBulk) || (o.isBulk && (o.orderStatus === 'Pending' || String(o.orderStatus).includes('PENDING')))).length}</h3>
+              <p className="text-[10px] font-bold tracking-widest uppercase text-white/80 mb-0.5">To Be Approved</p>
+              <h3 className="text-xl font-bold text-white">{uniqueAllOrders.filter((o: any) => ((o.status === 'Pending Verification' || o.status === 'Processing' || o.status === 'Pending') && !o.isBulk) || (o.isBulk && (o.orderStatus === 'Pending' || String(o.orderStatus).includes('PENDING')))).length}</h3>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-paa-navy/5 p-4 flex items-center gap-4 hover:border-indigo-500/30 transition-colors">
-            <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+          <div className="bg-purple-600 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white border-2 border-black">
+            <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
               <Package size={18} />
             </div>
             <div>
-              <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-0.5">To Be Dispatched</p>
-              <h3 className="text-xl font-bold text-paa-navy">{uniqueAllOrders.filter((o: any) => o.status === 'Accepted' || o.orderStatus === 'Accepted').length}</h3>
+              <p className="text-[10px] font-bold tracking-widest uppercase text-white/80 mb-0.5">To Be Dispatched</p>
+              <h3 className="text-xl font-bold text-white">{uniqueAllOrders.filter((o: any) => o.status === 'Accepted' || o.orderStatus === 'Accepted').length}</h3>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-paa-navy/5 p-4 flex items-center gap-4 hover:border-blue-500/30 transition-colors">
-            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="bg-teal-500 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white border-2 border-black">
+            <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
               <MapPin size={18} />
             </div>
             <div>
-              <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-0.5">Under Delivery</p>
-              <h3 className="text-xl font-bold text-paa-navy">{uniqueAllOrders.filter((o: any) => o.status === 'Dispatched' || o.orderStatus === 'Dispatched').length}</h3>
+              <p className="text-[10px] font-bold tracking-widest uppercase text-white/80 mb-0.5">Under Delivery</p>
+              <h3 className="text-xl font-bold text-white">{uniqueAllOrders.filter((o: any) => o.status === 'Dispatched' || o.orderStatus === 'Dispatched').length}</h3>
             </div>
           </div>
-          <div className="bg-red-50 rounded-xl shadow-sm border border-red-200 p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-white text-red-600 flex items-center justify-center shrink-0 shadow-sm border border-red-100">
+          <div className="bg-red-500 rounded-xl shadow-sm p-4 flex items-center gap-4 text-white border-2 border-black">
+            <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 shadow-sm border border-white/10">
               <TrendingDown size={18} />
             </div>
             <div>
-              <p className="text-[10px] font-bold tracking-widest uppercase text-red-500 mb-0.5">Late Fines</p>
-              <h3 className="text-xl font-bold text-red-600">₹{dashboardData?.authorProfile?.extraData?.lateFines || 0}</h3>
+              <p className="text-[10px] font-bold tracking-widest uppercase text-white/80 mb-0.5">Late Fines</p>
+              <h3 className="text-xl font-bold text-white">₹{dashboardData?.authorProfile?.extraData?.lateFines || 0}</h3>
             </div>
           </div>
         </div>
@@ -3999,37 +4006,37 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
         </div>
       </div>
 
-      <div className="bg-white border border-paa-navy/5 rounded-xl shadow-sm overflow-hidden mb-12">
+      <div className="mb-12">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-indigo-50 border-b-2 border-indigo-100">
+          <table className="w-full text-left text-[11px] border-collapse border-[1.5px] border-black">
+            <thead className="bg-[#FFE600] border-b-2 border-black">
               <tr>
-                <th className="px-2 py-3 w-10 !text-[12px] font-bold uppercase tracking-wider !text-indigo-800 !bg-transparent text-center">S.No</th>
-                <th className="px-2 py-3 !text-[12px] font-bold uppercase tracking-wider !text-indigo-800 !bg-transparent">Order Details</th>
-                <th className="px-2 py-3 !text-[12px] font-bold uppercase tracking-wider !text-indigo-800 !bg-transparent">Buyer Information</th>
-                <th className="px-2 py-3 !text-[12px] font-bold uppercase tracking-wider !text-indigo-800 !bg-transparent">Book Title</th>
-                <th className="px-2 py-3 text-center !text-[12px] font-bold uppercase tracking-wider !text-indigo-800 !bg-transparent">Qty</th>
-                <th className="px-2 py-3 text-center !text-[12px] font-bold uppercase tracking-wider !text-indigo-800 !bg-transparent">Amount</th>
-                <th className="px-2 py-3 text-center !text-[12px] font-bold uppercase tracking-wider !text-indigo-800 !bg-transparent">Payment</th>
-                <th className="px-2 py-3 text-center !text-[12px] font-bold uppercase tracking-wider !text-indigo-800 !bg-transparent">Status</th>
-                <th className="px-2 py-3 text-center !text-[12px] font-bold uppercase tracking-wider !text-indigo-800 !bg-transparent">Action</th>
+                <th className="p-1 px-1.5 text-center text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle w-10">S.No</th>
+                <th className="p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle">Order Details</th>
+                <th className="p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle">Buyer Information</th>
+                <th className="p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize align-middle">Book Title</th>
+                <th className="p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize text-center align-middle">Qty</th>
+                <th className="p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize text-center align-middle">Amount</th>
+                <th className="p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize text-center align-middle">Payment</th>
+                <th className="p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize text-center align-middle">Status</th>
+                <th className="p-1 px-1.5 text-[12px] font-bold text-black border-[1.5px] border-black capitalize text-center align-middle">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="bg-white">
               {groupedOrdersList.length === 0 ? <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500 italic">No orders found.</td></tr> : groupedOrdersList.map((ord: any, idx: number) => {
                 const orderDate = new Date(ord.createdAt || ord.date);
                 const isSlaBreached = (new Date().getTime() - orderDate.getTime()) / (1000 * 60 * 60) > 24 && ['Pending Verification', 'Pending'].includes(ord.status);
                 return (
-                  <tr key={idx} className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#ebd8c0]'} `}>
-                    <td className="px-2 py-3 text-xs font-bold text-paa-navy text-center">
+                  <tr key={idx} className="transition-colors bg-white">
+                    <td className="p-1 px-1.5 text-center align-middle text-xs font-bold text-paa-navy border-[1.5px] border-black">
                       {idx + 1}
                     </td>
-                    <td className="px-2 py-3">
+                    <td className="p-1 px-1.5 align-middle border-[1.5px] border-black">
                       <p className="font-bold text-paa-navy tracking-wide text-xs">ORD-{ord.orderId}</p>
                       <p className="text-[9px] text-gray-400 uppercase tracking-widest mt-1">{ord.date}</p>
                       {isSlaBreached && <span className="text-[9px] font-bold text-white bg-red-600 px-2 py-0.5 rounded uppercase tracking-widest mt-1.5 inline-block animate-pulse">SLA Breached</span>}
                     </td>
-                    <td className="px-2 py-3">
+                    <td className="p-1 px-1.5 align-middle border-[1.5px] border-black">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-paa-navy text-xs">{ord.customerName}</p>
@@ -4038,7 +4045,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
                       </div>
                       {ord.customerPhone && <p className="text-[9px] font-bold text-[#4a90e2] mt-1">{ord.customerPhone}</p>}
                     </td>
-                    <td className="px-2 py-3">
+                    <td className="p-1 px-1.5 align-middle border-[1.5px] border-black">
                       <div className="flex flex-col gap-2 min-w-[120px]">
                         {ord.books.map((b: any, i: number) => {
                           const bookData = dashboardData?.authorProfile?.books?.find((bk: any) => bk.id === b.bookId || bk.title === b.title);
@@ -4065,9 +4072,9 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
                         {ord.order?.totalDiscount > 0 && <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded inline-block w-max mt-1">Discount Applied</span>}
                       </div>
                     </td>
-                    <td className="px-2 py-3 text-center font-bold text-paa-navy">{ord.totalQuantity}</td>
-                    <td className="px-2 py-3 text-center font-bold text-paa-navy">₹{ord.totalAmount}</td>
-                    <td className="px-2 py-3 text-center align-middle">
+                    <td className="p-1 px-1.5 text-center font-bold text-paa-navy align-middle border-[1.5px] border-black">{ord.totalQuantity}</td>
+                    <td className="p-1 px-1.5 text-center font-bold text-paa-navy align-middle border-[1.5px] border-black">₹{ord.totalAmount}</td>
+                    <td className="p-1 px-1.5 text-center align-middle border-[1.5px] border-black">
                       {ord.paymentScreenshot ? (
                         <div className="flex flex-col items-center gap-2">
                           <a
@@ -4084,7 +4091,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
                         </div>
                       ) : <span className="text-[9px] text-gray-400 italic">N/A</span>}
                     </td>
-                    <td className="px-2 py-3 align-middle">
+                    <td className="p-1 px-1.5 align-middle border-[1.5px] border-black">
                       <div className="flex flex-col gap-2 items-center w-full max-w-[120px] mx-auto">
                         
                         {/* Status Badge */}
@@ -4191,7 +4198,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
 
                       </div>
                     </td>
-                    <td className="px-2 py-3 align-middle">
+                    <td className="p-1 px-1.5 align-middle border-[1.5px] border-black">
                       <div className="flex flex-col gap-2 items-center w-full max-w-[120px] mx-auto">
                         {/* Approve / Reject Actions */}
                         {(ord.status === 'Pending Verification' || ord.status === 'Pending') && !ord.isBulk && (
@@ -4909,9 +4916,9 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
 
 
       {activeTab === 'events' && (
-        <div className="space-y-6">
+        <div className="space-y-2">
           {/* Top Header Bar with Propose an Event Button */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm animate-fade-in-up">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white p-3 rounded-2xl border border-gray-200/80 shadow-sm animate-fade-in-up">
             <div>
               <h2 className="text-2xl font-serif font-black text-paa-navy tracking-tight">Events Data</h2>
             </div>
@@ -4929,9 +4936,9 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
              const livePosEvents = allEvents.filter((evt: any) => ((evt.livePosEnabled && evt.status === 'Live') || (isSpecialAuthor && !evt.isPast)) && (evt.registration === 'Registered' || evt.registration === 'Approved'));
              if (livePosEvents.length === 0) return null;
              return (
-               <div className="mb-8 animate-fade-in-up space-y-4">
+               <div className="mb-1 animate-fade-in-up space-y-2">
                  {livePosEvents.map((evt: any) => (
-                    <div key={evt.id} className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-2xl p-6 md:p-8 border-2 border-indigo-400/30 shadow-premium flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
+                    <div key={evt.id} className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-2xl p-3 md:p-4 border-2 border-indigo-400/30 shadow-premium flex flex-col md:flex-row items-center justify-between gap-3 relative overflow-hidden group">
                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-110"></div>
                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl -ml-20 -mb-20 transition-transform duration-700 group-hover:scale-110"></div>
                        
@@ -4966,8 +4973,8 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
              const pendingActionEvents = allEvents.filter((evt: any) => evt.registration === 'Pending' && !evt.isPast);
              if (pendingActionEvents.length === 0) return null;
              return (
-               <div className="mb-8 animate-fade-in-up">
-                 <div className="flex items-center gap-3 mb-5">
+               <div className="mb-1 animate-fade-in-up">
+                 <div className="flex items-center gap-2 mb-2">
                    <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center border border-red-200 shadow-sm shrink-0">
                      <AlertCircle className="w-5 h-5 text-red-600" />
                    </div>
@@ -5039,27 +5046,27 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                </div>
              );
           })()}
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6">
-            <div className="bg-emerald-500/85 p-6 rounded-2xl border-none shadow-sm flex flex-col justify-center text-white">
-              <div className="text-[10px] font-bold text-emerald-100 uppercase tracking-widest mb-3 flex items-center gap-2"><BarChart3 className="w-4 h-4 text-emerald-200" /> Event Participation</div>
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 mt-0">
+            <div className="bg-emerald-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-white">
+              <div className="text-[10px] font-bold text-emerald-100 uppercase tracking-widest mb-1.5 flex items-center gap-2"><BarChart3 className="w-4 h-4 text-emerald-200" /> Event Participation</div>
               <div className="text-3xl font-black text-white tracking-tight">
                 {dashboardData?.authorProfile?.aggEligibleEvents && dashboardData?.authorProfile?.aggEligibleEvents > 0 
                   ? `${Math.round((dashboardData.authorProfile.aggParticipatedEvents / dashboardData.authorProfile.aggEligibleEvents) * 100)}%` 
                   : 'N/A'}
               </div>
-              <div className="text-xs text-emerald-50 mt-2 font-medium opacity-90">
+              <div className="text-[10px] text-emerald-50 mt-1 font-medium opacity-90">
                 {dashboardData?.authorProfile?.aggParticipatedEvents || 0} / {dashboardData?.authorProfile?.aggEligibleEvents || 0} Events
               </div>
             </div>
             
-            <div className="bg-cyan-500/85 p-6 rounded-2xl border-none shadow-sm flex flex-col justify-center text-white">
-              <div className="text-[10px] font-bold text-cyan-100 uppercase tracking-widest mb-3 flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-cyan-200" /> Total Events</div>
+            <div className="bg-cyan-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-white">
+              <div className="text-[10px] font-bold text-cyan-100 uppercase tracking-widest mb-1.5 flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-cyan-200" /> Total Events</div>
               <div className="text-3xl font-black text-white tracking-tight">{validParticipations.length}</div>
-              <div className="text-xs text-cyan-50 mt-2 font-medium opacity-90">Fairs: {validParticipations.filter((evt: any) => (evt.type || evt.eventType) === 'Book Fair').length} • Events: {validParticipations.filter((evt: any) => (evt.type || evt.eventType) !== 'Book Fair').length}</div>
+              <div className="text-[10px] text-cyan-50 mt-1 font-medium opacity-90">Fairs: {validParticipations.filter((evt: any) => (evt.type || evt.eventType) === 'Book Fair').length} • Events: {validParticipations.filter((evt: any) => (evt.type || evt.eventType) !== 'Book Fair').length}</div>
             </div>
             
-            <div className="bg-pink-500/85 p-6 rounded-2xl border-none shadow-sm flex flex-col justify-center text-white">
-              <div className="text-[10px] font-bold text-pink-100 uppercase tracking-widest mb-3 flex items-center gap-2"><BookOpen className="w-4 h-4 text-pink-200" /> Total Books Sold</div>
+            <div className="bg-pink-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-white">
+              <div className="text-[10px] font-bold text-pink-100 uppercase tracking-widest mb-1.5 flex items-center gap-2"><BookOpen className="w-4 h-4 text-pink-200" /> Total Books Sold</div>
               <div className="text-3xl font-black text-white tracking-tight">
                  {validParticipations.reduce((acc: number, evt: any) => {
                     let sold = 0;
@@ -5075,8 +5082,8 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
               </div>
             </div>
             
-            <div className="bg-purple-500/85 p-6 rounded-2xl border-none shadow-sm flex flex-col justify-center text-white">
-              <div className="text-[10px] font-bold text-purple-100 uppercase tracking-widest mb-3 flex items-center gap-2"><DollarSign className="w-4 h-4 text-purple-200" /> Total Revenue</div>
+            <div className="bg-purple-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-white">
+              <div className="text-[10px] font-bold text-purple-100 uppercase tracking-widest mb-1.5 flex items-center gap-2"><DollarSign className="w-4 h-4 text-purple-200" /> Total Revenue</div>
               <div className="text-3xl font-black text-white tracking-tight">
                  ₹{validParticipations.reduce((acc: number, evt: any) => {
                     let rev = 0;
@@ -5092,14 +5099,14 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
               </div>
             </div>
             
-            <div className="bg-rose-500/85 p-6 rounded-2xl border-none shadow-premium flex flex-col justify-center cursor-pointer hover:shadow-md transition-all group text-white" onClick={() => navigate('/dashboard/payments')}>
-              <div className="text-[10px] font-bold text-rose-100 uppercase tracking-widest mb-3 flex items-center gap-2 group-hover:text-white transition-colors"><CheckCircle2 className="w-4 h-4 text-rose-200" /> Total Payments Done</div>
+            <div className="bg-rose-500/85 p-3 rounded-xl border-none shadow-premium flex flex-col justify-center cursor-pointer hover:shadow-md transition-all group text-white" onClick={() => navigate('/dashboard/payments')}>
+              <div className="text-[10px] font-bold text-rose-100 uppercase tracking-widest mb-1.5 flex items-center gap-2 group-hover:text-white transition-colors"><CheckCircle2 className="w-4 h-4 text-rose-200" /> Total Payments Done</div>
               <div className="text-3xl font-black text-white tracking-tight">₹{validParticipations.reduce((sum: number, evt: any) => sum + (evt.amountPaid || 0), 0).toLocaleString()}</div>
-              <div className="text-xs text-rose-50 mt-2 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Click to view details &rarr;</div>
+              <div className="text-[10px] text-rose-50 mt-1 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Click to view details &rarr;</div>
             </div>
             
-            <div className="bg-blue-500/85 p-6 rounded-2xl border-none shadow-sm flex flex-col justify-center text-white">
-              <div className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-blue-200" /> Event Profitability</div>
+            <div className="bg-blue-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-white">
+              <div className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-1.5 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-blue-200" /> Event Profitability</div>
               <div className="text-3xl font-black text-white tracking-tight">
                  {(() => {
                     const totalRev = validParticipations.reduce((acc: number, evt: any) => {
@@ -5121,84 +5128,8 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
             </div>
           </div>
           
-          <div className="p-6 rounded-2xl border border-paa-navy/5 shadow-premium mt-6 mb-8">
-            <h4 className="text-base font-bold text-paa-navy mb-4 flex items-center gap-2"><TrendingUp className="w-5 h-5 text-indigo-500" /> Event Profitability (Net Gain/Loss)</h4>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                {(() => {
-                   const profitData = validParticipations
-                     .filter((evt: any) => evt.isPast && evt.name !== 'Unknown Event')
-                     .map((evt: any) => {
-                      let rev = 0;
-                      if (evt.manualTotalRevenue !== null && evt.manualTotalRevenue !== undefined) {
-                          rev = evt.manualTotalRevenue;
-                      } else if (evt.isInvite) {
-                          getEventBooks(evt.id).forEach((b: any) => rev += (b.soldStock || 0) * (b.overrideMrp || b.mrp || b.book?.mrp || 0));
-                      } else if (evt.isPast && evt.isDataUpdated) {
-                          evt.books?.forEach((b: any) => rev += (b.soldStock || 0) * (b.overrideMrp || b.mrp || b.book?.mrp || 0));
-                      }
-                      const cost = evt.amountPaid || 0;
-                      return { name: evt.name || evt.title || 'Unknown', profit: rev - cost };
-                   });
-                   
-                   if (profitData.length === 0) return <div className="flex items-center justify-center h-full text-sm text-gray-400 italic">No profitability data available.</div>;
-                   
-                   return (
-                     <LineChart data={profitData} margin={{ top: 25, right: 10, left: -20, bottom: 20 }}>
-                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B7280' }} angle={-90} textAnchor="end" dy={10} interval={0} height={100} tickFormatter={(v) => v.length > 25 ? v.substring(0, 25) + '...' : v} />
-                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B7280' }} />
-                       <Tooltip cursor={{ fill: '#F3F4F6' }} formatter={(value: number) => `₹${value.toLocaleString()}`} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                       <Line type="linear" dataKey="profit" name="Net Profit/Loss" stroke="#059669" strokeWidth={3} dot={(props: any) => { const { cx, cy, index } = props; return <circle cx={cx} cy={cy} r={4} fill="#059669" stroke="#fff" strokeWidth={2} key={`dot-${index}`} />; }} activeDot={{ r: 6 }}>
-                         <LabelList dataKey="profit" position="top" content={(props: any) => {
-                           const { x, y, value, index } = props;
-                           const prev = profitData[index - 1]?.profit;
-                           const next = profitData[index + 1]?.profit;
-                           
-                           let yPos = y - 12;
-                           
-                           if (prev !== undefined && next !== undefined && value <= prev && value <= next) {
-                             yPos = y + 20;
-                           } else if (prev !== undefined && value < prev && next === undefined) {
-                             yPos = y + 20;
-                           }
-
-                           return (
-                             <g>
-                               <text x={x} y={yPos} fill="none" stroke="#ffffff" strokeWidth={4} strokeLinejoin="round" fontSize="10px" fontWeight="bold" textAnchor="middle">{value}</text>
-                               <text x={x} y={yPos} fill="#059669" fontSize="10px" fontWeight="bold" textAnchor="middle">{value}</text>
-                             </g>
-                           );
-                         }} />
-                       </Line>
-                     </LineChart>
-                   );
-                })()}
-              </ResponsiveContainer>
-            </div>
-          </div>
 
           <div className="flex flex-col gap-4 mb-4">
-             {/* Row 1: Toggle Buttons Only */}
-             <div className="flex flex-nowrap gap-1 p-1 bg-white rounded-xl border border-gray-200 shadow-sm w-fit max-w-full overflow-hidden shrink-0">
-                 {['ALL', 'TODAY', 'PARTICIPATED', 'UPCOMING', 'PAST', 'LEGACY ARCHIVE'].map((f) => {
-                   const count = allEvents.filter((evt: any) => {
-                     const isLegacy = evt.status === 'Legacy Archive';
-                     if (f === 'UPCOMING' && (evt.isPast || isLegacy)) return false;
-                     if (f === 'PAST' && (!evt.isPast || isLegacy)) return false;
-                     if (f === 'LEGACY ARCHIVE' && !isLegacy) return false;
-                     if (f === 'PARTICIPATED' && (evt.registration !== 'Registered' && evt.registration !== 'Approved')) return false;
-                     if (f === 'TODAY' && (isLegacy || new Date(evt.startDate || evt.date).toDateString() !== new Date().toDateString())) return false;
-                     return true;
-                   }).length;
-                   return (
-                   <button key={f} onClick={() => setEventFilter(f)} className={`px-3 md:px-4 py-2 text-[10px] md:text-xs font-bold rounded-lg transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap ${eventFilter === f ? 'bg-paa-navy text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}>
-                     {f === 'ALL' ? 'All' : (f === 'PARTICIPATED' ? 'Participated' : (f === 'UPCOMING' ? 'Upcoming/Live' : (f === 'PAST' ? 'Past' : (f === 'LEGACY ARCHIVE' ? 'Legacy Archive' : (f === 'TODAY' ? 'Today' : '')))))}
-                     <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${eventFilter === f ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-500'}`}>{count}</span>
-                   </button>
-                 )})}
-             </div>
-
              {/* Row 2: Actions & Search */}
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 w-full">
                 <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
@@ -5281,41 +5212,37 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
 
           
 
-          <div className="bg-white rounded-xl shadow-premium border border-paa-navy/5 overflow-x-auto mb-8">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-indigo-50 border-b-2 border-indigo-100">
+          <div className="mt-0 border border-black overflow-x-auto shadow-sm rounded-xl mb-4">
+            <table className="w-full text-left text-[11px] border-collapse border-[1.5px] border-black">
+              <thead className="bg-[#FFE600] border-b-2 border-black">
                 <tr>
-                  <th className="px-2 py-3 w-12 text-center !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">S.No</th>
-                  <th className="px-2 py-3 !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">Event Name</th>
-                  <th className="px-2 py-3 w-24 !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">Date</th>
-                  <th className="px-2 py-3 !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">Format</th>
-                  <th className="px-2 py-3 !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">Category</th>
-                  <th className="px-2 py-3 text-center !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">Part. %</th>
-                  <th className="px-2 py-3 text-right !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">Books Sold</th>
-                  <th className="px-2 py-3 text-right !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">Revenue</th>
-                  {eventFilter === 'LEGACY ARCHIVE' ? (
-                    <th className="px-2 py-3 text-center !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">Authors</th>
-                  ) : (
-                    <>
-                      <th className="px-2 py-3 text-right !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">Fee / Invest</th>
-                      <th className="px-2 py-3 text-right !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">Profit</th>
-                    </>
-                  )}
-                  <th className="px-2 py-3 text-center !text-[11px] font-bold uppercase tracking-wider !text-cyan-700 !bg-transparent">Status</th>
+                  <th className="w-8 p-1 px-1.5 text-center text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize align-middle">
+                    <div className="flex items-center justify-center gap-1">
+                      S.No <span className="text-[10px]">↓</span>
+                    </div>
+                  </th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize align-middle min-w-[120px]">Event Name</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle whitespace-nowrap">Format</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle whitespace-nowrap">Category</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle min-w-[100px]">Address</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle whitespace-nowrap">Month</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle whitespace-nowrap">Year</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle whitespace-nowrap">Duration</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle whitespace-nowrap">No. of Authors</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle min-w-[70px]">Total Books</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle min-w-[70px]">Sold By You</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle min-w-[70px]">Total Rev.</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle min-w-[70px]">Your Rev.</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle whitespace-nowrap">Fee / Invest</th>
+                  <th className="p-1 px-1.5 text-[12px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle whitespace-nowrap">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredEvents.length === 0 && <tr><td colSpan={11} className="p-8 text-center text-sm text-paa-gray-text italic">No events found.</td></tr>}
+              <tbody className="bg-white text-[11px]">
+                {filteredEvents.length === 0 && <tr><td colSpan={15} className="p-8 text-center text-[13px] text-paa-gray-text italic border-[1.5px] border-black">No events found.</td></tr>}
                 {filteredEvents.map((evt: any, i: number) => {
                   let sold = 0;
                   let rev = 0;
-                  if (evt.status === 'Legacy Archive') {
-                    sold = evt.aggSold || 0;
-                    rev = evt.aggRevenue || 0;
-                  } else if (evt.manualTotalSold !== null && evt.manualTotalSold !== undefined) {
-                    sold = evt.manualTotalSold;
-                    rev = evt.manualTotalRevenue || 0;
-                  } else if (evt.isInvite) {
+                  if (evt.isInvite) {
                     const evtBooks = getEventBooks(evt.id);
                     evtBooks.forEach((b: any) => {
                       sold += (b.soldStock || 0);
@@ -5328,12 +5255,50 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                     });
                   }
 
-                  const catRowColorAuthor = i % 2 === 0 ? 'bg-white' : 'bg-[#ebd8c0]';
+                  const catRowColorAuthor = i % 2 === 0 ? 'bg-[#FFFFFF]' : 'bg-[#FCFCFC]';
+                  let cleanDuration = evt.duration || (evt.durationDays ? `${evt.durationDays} Days` : "-");
+                  if (cleanDuration && cleanDuration !== "-") {
+                    cleanDuration = cleanDuration.replace(/0(\d)/g, '$1');
+                    cleanDuration = cleanDuration.replace(/\b0 Hours\b/gi, '').trim();
+                    cleanDuration = cleanDuration.replace(/Days/gi, 'days').replace(/Hrs?/gi, 'hrs').replace(/Mins?/gi, 'mins');
+                  }
+                  const startDate = new Date(evt.startDate || evt.date);
+                  const month = !isNaN(startDate.getTime()) ? startDate.toLocaleString('default', { month: 'short' }) : "-";
+                  const year = !isNaN(startDate.getTime()) ? startDate.getFullYear() : "-";
+                  const addressStr = evt.location || evt.address || "-";
+
+                  const formatColor = (evt.eventType === "Meet the Authors" || evt.eventType === "Meet The Authors")
+                    ? "bg-[#AFC6E9] text-black"
+                    : evt.eventType === "Stall"
+                      ? "bg-[#8EE88C] text-black"
+                      : "bg-gray-100 text-black";
+
+                  const categoryColor = evt.category === "Housing Society" ? "bg-[#F3C29E] text-black"
+                    : evt.category === "Corporate Office" ? "bg-[#FFE066] text-black"
+                    : evt.category === "Book Fair" ? "bg-[#6FEF59] text-black"
+                    : evt.category === "College" ? "bg-[#F6C6C6] text-black"
+                    : evt.category === "University" ? "bg-[#FFF176] text-black"
+                    : "bg-gray-100 text-black";
+
+                  const evtAuthors = evt.aggAuthors != null
+                    ? evt.aggAuthors
+                    : evt.status === 'Legacy Archive'
+                      ? "NA"
+                      : (evt._count?.eventAuthors || 0);
+
+                  const totalBooksVal = (evt.aggSold !== null && evt.aggSold !== undefined) 
+                      ? evt.aggSold
+                      : (evt.manualTotalSold !== null && evt.manualTotalSold !== undefined) ? evt.manualTotalSold : "-";
+
+                  const totalRevVal = (evt.aggRevenue !== null && evt.aggRevenue !== undefined)
+                      ? evt.aggRevenue
+                      : (evt.manualTotalRevenue !== null && evt.manualTotalRevenue !== undefined) ? evt.manualTotalRevenue : "-";
+
                   return (
                     <React.Fragment key={i}>
                     <tr 
                       id={`event-row-${evt.id}`}
-                      className={`cursor-pointer ${catRowColorAuthor} ${expandedEventId === evt.id ? 'ring-2 ring-blue-500 ring-inset' : ''}`}
+                      className={`text-[13px] font-medium text-black border-[1.5px] border-black ${catRowColorAuthor} hover:bg-yellow-50/50 transition-colors cursor-pointer ${expandedEventId === evt.id ? 'ring-2 ring-blue-500 ring-inset' : ''}`}
                       onClick={() => { 
                          if (expandedEventId === evt.id) {
                             setExpandedEventId(null);
@@ -5347,92 +5312,64 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                          }
                       }}
                     >
-                      <td className="pl-6 pr-2 py-3 text-center align-middle">
-                         <div className="flex items-center justify-center gap-2">
-                           <span className="font-bold text-xs text-paa-navy">{i + 1}</span>
-                           <button className="text-gray-400 transition-colors pointer-events-none">
-                              {expandedEventId === evt.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                           </button>
+                      <td className="p-1 px-1.5 text-center align-middle border-[1.5px] border-black font-semibold">
+                         <div className="flex items-center justify-center gap-1">
+                           <span>{i + 1}</span>
+                           <ChevronDown className={`w-3 h-3 shrink-0 text-gray-500 transition-transform ${expandedEventId === evt.id ? 'rotate-180' : ''}`} />
                          </div>
                       </td>
-                      <td className="px-4 py-3">
-                         <div className="text-sm font-semibold text-paa-navy">{evt.name}</div>
+                      <td className="p-1 px-1.5 text-left align-middle border-[1.5px] border-black font-semibold">
+                         {evt.name}
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-paa-gray-text">{new Date(evt.startDate || evt.date).toLocaleDateString()}</td>
-                      <td className="px-4 py-3 text-sm font-semibold">
-                         <div className="flex flex-col items-start gap-1">
-                             <div className="flex gap-1 mb-1 flex-wrap">
-                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest shadow-sm text-white ${evt.status === 'Legacy Archive' ? 'bg-slate-500' : (evt.isPast ? 'bg-purple-500/85' : 'bg-cyan-500/85')}`}>
-                                   {evt.status === 'Legacy Archive' ? 'Legacy Archive' : (evt.type || (evt.isPast ? 'Past Event' : 'Upcoming/Live'))}
-                                 </span>
-                             </div>
-                             {evt.eventType ? (
-                               <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest shadow-sm ${
-                                 evt.eventType === 'Meet the Authors' ? 'bg-yellow-200 text-yellow-900 border border-yellow-300' :
-                                 evt.eventType === 'Stall' ? 'bg-pink-200 text-pink-900 border border-pink-300' :
-                                 'bg-gray-200 text-gray-700 border border-gray-300'
-                               }`}>{evt.eventType}</span>
-                             ) : <span className="text-gray-400 text-xs">-</span>}
-                             {(evt.status === 'Legacy Archive' || evt.registration === 'Not Participated') && evt.aggAuthors > 0 && (
-                               <div className="text-[11px] text-slate-700 font-bold font-mono mt-1.5 tracking-tight">{evt.aggAuthors} Authors</div>
-                             )}
-                         </div>
+                      <td className={`p-1 px-1.5 text-center align-middle border-[1.5px] border-black capitalize ${formatColor}`}>
+                         {evt.eventType || "-"}
                       </td>
-                      <td className="px-4 py-3 text-sm font-semibold">
-                         {evt.category ? (
-                           <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest shadow-sm ${
-                             evt.category === 'Housing Society' ? 'bg-yellow-200 text-yellow-900 border border-yellow-300' :
-                             evt.category === 'Corporate Office' ? 'bg-orange-200 text-orange-900 border border-orange-300' :
-                             evt.category === 'Book Fair' ? 'bg-pink-200 text-pink-900 border border-pink-300' :
-                             evt.category === 'College' ? 'bg-blue-200 text-blue-900 border border-blue-300' :
-                             evt.category === 'University' ? 'bg-green-200 text-green-900 border border-green-300' :
-                             'bg-gray-200 text-gray-700 border border-gray-300'
-                           }`}>{evt.category}</span>
-                         ) : <span className="text-gray-400 text-xs">-</span>}
+                      <td className={`p-1 px-1.5 text-center align-middle border-[1.5px] border-black capitalize ${categoryColor}`}>
+                         {evt.category || "-"}
                       </td>
-                      <td className="px-4 py-3 text-sm font-bold text-indigo-600 text-center">{evt.participationPercentage !== undefined ? `${evt.participationPercentage}%` : '-'}</td>
-                      <td className="px-4 py-3 text-sm font-bold text-paa-navy text-right">
-                        {sold > 0 || (evt.manualTotalSold !== null && evt.manualTotalSold !== undefined) ? sold : '-'}
+                      <td className="p-1 px-1.5 text-center align-middle border-[1.5px] border-black capitalize">
+                         {addressStr}
                       </td>
-                      <td className="px-4 py-3 text-sm font-bold text-emerald-700 text-right">
-                        {rev > 0 || (evt.manualTotalRevenue !== null && evt.manualTotalRevenue !== undefined) ? `₹${rev}` : '-'}
-                        <div className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-1.5">{evt.status === 'Legacy Archive' ? 'Total Event' : (evt.isPast ? 'Your Rev' : '-')}</div>
+                      <td className="p-1 px-1.5 text-center align-middle border-[1.5px] border-black">
+                         {month}
                       </td>
-                      {eventFilter === 'LEGACY ARCHIVE' ? (
-                        <td className="px-4 py-3 text-sm font-bold text-paa-navy text-center">
-                           {evt.aggAuthors || '-'}
-                        </td>
-                      ) : (
-                        <>
-                          <td className="px-4 py-3 text-sm font-bold text-orange-700 text-right">
-                             {evt.isFeeExempt ? (
-                               <span className="text-emerald-700 font-bold">₹0 (Waived)</span>
-                             ) : evt.amountPaid ? (
-                               `₹${evt.amountPaid}`
-                             ) : (
-                               evt.isPast ? '-' : (evt.registrationFee ? `₹${evt.registrationFee}` : '-')
-                             )}
-                          </td>
-                          <td className="px-4 py-3 text-sm font-bold text-right">
-                             {(() => {
-                                 let gain = 0;
-                                 if (evt.status === 'Legacy Archive') return <span className="text-gray-400 font-bold">NA</span>;
-                                 if (evt.isPast) {
-                                     let eventRev = 0;
-                                     if (evt.manualTotalRevenue !== null && evt.manualTotalRevenue !== undefined) {
-                                         eventRev = evt.manualTotalRevenue;
-                                     } else {
-                                         (evt.isInvite ? getEventBooks(evt.id) : (evt.books || [])).forEach((b: any) => eventRev += (b.soldStock || 0) * (b.overrideMrp || b.mrp || b.book?.mrp || 0));
-                                     }
-                                     gain = eventRev - (evt.amountPaid || 0);
-                                     return <span className={`px-2 py-0.5 rounded text-[10px] font-bold shadow-sm inline-block ${gain >= 0 ? 'bg-white text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>{gain >= 0 ? '+' : '-'}₹{Math.abs(gain).toLocaleString()}</span>;
-                                 }
-                                 return <span className="text-gray-400">-</span>;
-                             })()}
-                          </td>
-                        </>
-                      )}
-                      <td className="px-4 py-3 text-center">
+                      <td className="p-1 px-1.5 text-center align-middle border-[1.5px] border-black">
+                         {year}
+                      </td>
+                      <td className="p-1 px-1.5 text-center align-middle border-[1.5px] border-black">
+                         {cleanDuration}
+                      </td>
+                      <td className="p-1 px-1.5 text-center font-bold align-middle border-[1.5px] border-black">
+                         {evtAuthors}
+                      </td>
+                      <td className="p-1 px-1.5 text-center font-bold align-middle border-[1.5px] border-black">
+                         {totalBooksVal !== null && totalBooksVal !== undefined && totalBooksVal !== '-' ? totalBooksVal : 0}
+                      </td>
+                      <td className="p-1 px-1.5 text-center font-bold align-middle border-[1.5px] border-black">
+                         {sold > 0 ? sold : 0}
+                      </td>
+                      <td className="p-1 px-1.5 text-center font-bold text-emerald-700 align-middle border-[1.5px] border-black">
+                         {totalRevVal !== null && totalRevVal !== undefined && totalRevVal !== '-' && totalRevVal !== 'NA' ? `₹${totalRevVal}` : '₹0'}
+                      </td>
+                      <td className="p-1 px-1.5 text-center font-bold text-emerald-600 align-middle border-[1.5px] border-black">
+                         {rev > 0 ? `₹${rev}` : '₹0'}
+                      </td>
+                      <td className="p-1 px-1.5 text-center align-middle border-[1.5px] border-black">
+                        {evt.status === 'Legacy Archive' ? (
+                            <span className="text-gray-400 font-bold">-</span>
+                        ) : (
+                            <span className="font-bold text-orange-700">
+                              {evt.isFeeExempt ? (
+                                <span className="text-emerald-700">₹0 (Waived)</span>
+                              ) : evt.amountPaid ? (
+                                `₹${evt.amountPaid}`
+                              ) : (
+                                evt.isPast ? '-' : (evt.registrationFee ? `₹${evt.registrationFee}` : '-')
+                              )}
+                            </span>
+                        )}
+                      </td>
+                      <td className="p-1 px-1.5 text-center align-middle border-[1.5px] border-black">
                           {(() => {
                               let statusText = evt.registration;
                               let statusColors = 'bg-gray-100 text-gray-700';
@@ -5467,7 +5404,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                                  e.stopPropagation();
                                                  handleOpenRegistrationForm(evt, false);
                                               }} 
-                                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95 flex items-center gap-1"
+                                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95 flex items-center gap-1 whitespace-nowrap"
                                            >
                                              REGISTER NOW <ChevronRight className="w-3 h-3" />
                                            </button>
@@ -5475,7 +5412,6 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                       );
                                   }
                               } else {
-                                  // Fallback for any unhandled statuses on past events
                                   if (evt.isPast || evt.status === 'Legacy Archive' || evt.status === 'Past') {
                                       statusText = 'Not Participated';
                                       statusColors = 'bg-gray-500 text-white border-gray-600 shadow-sm';
@@ -5484,11 +5420,11 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                               
                               return (
                                 <div className="flex flex-col items-center justify-center gap-2">
-                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${statusColors}`}>
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${statusColors} whitespace-nowrap`}>
                                     {statusText}
                                   </span>
                                   {((evt.livePosEnabled && evt.status === 'Live') || dashboardData?.authorProfile?.email === 'arvindpuri1492@gmail.com') && (evt.registration === 'Registered' || evt.registration === 'Approved') && (
-                                    <button onClick={(e) => { e.stopPropagation(); window.open('/dashboard/pos/' + evt.id, '_blank'); }} className="mt-1.5 w-full max-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap" title="Launch Point of Sale System">
+                                    <button onClick={(e) => { e.stopPropagation(); window.open('/dashboard/pos/' + evt.id, '_blank'); }} className="mt-1 w-full max-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap" title="Launch Point of Sale System">
                                       <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span> LAUNCH POS
                                     </button>
                                   )}
@@ -5504,7 +5440,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                             e.stopPropagation();
                                             handleOpenRegistrationForm(evt, true);
                                          }}
-                                         className="mt-1 flex items-center justify-center gap-1 text-[10px] font-black bg-red-50 text-red-700 hover:bg-red-100 px-3 py-1 rounded shadow-sm transition-colors border border-red-100"
+                                         className="mt-1 flex items-center justify-center gap-1 text-[10px] font-black bg-red-50 text-red-700 hover:bg-red-100 px-3 py-1 rounded shadow-sm transition-colors border border-red-100 whitespace-nowrap"
                                       >
                                          <RefreshCw className="w-3 h-3" /> REAPPLY
                                       </button>
@@ -5517,7 +5453,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                     </tr>
                     {expandedEventId === evt.id && (
                        <tr className="bg-[#f8fafc] border-b border-gray-100 shadow-inner">
-                          <td colSpan={11} className="p-0">
+                          <td colSpan={13} className="p-0">
                              <div className="flex flex-col xl:flex-row gap-8 px-8 py-6 border-l-4 border-indigo-400 ml-6 my-4 bg-white rounded-r-xl shadow-sm mr-6">
                                 <div className="flex-1 min-w-[300px] flex flex-col gap-5">
                                    <div className="flex gap-6">
@@ -6818,18 +6754,17 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
       {/* METRICS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
         {/* Card 1: Total Revenue */}
-        <div className="dash-kpi-card emerald flex flex-col justify-between p-5 bg-white border border-paa-navy/5 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-white rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+        <div className="dash-kpi-card emerald flex flex-col justify-between p-4 bg-emerald-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
           <div>
-            <div className="flex items-start justify-between mb-4 relative z-10">
-              <div className="w-10 h-10 rounded-xl bg-white text-emerald-600 flex items-center justify-center shrink-0">
-                <DollarSign className="w-5 h-5" />
+            <div className="flex items-start justify-between mb-3 relative z-10">
+              <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
+                <DollarSign className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-1 relative z-10">Total Revenue</p>
-            <h3 className="text-3xl font-black text-paa-navy tracking-tight relative z-10">₹{totalRevenue.toLocaleString('en-IN')}</h3>
+            <p className="text-[9px] font-bold tracking-widest uppercase text-emerald-50 mb-0.5 relative z-10">Total Revenue</p>
+            <h3 className="text-2xl font-black text-white tracking-tight relative z-10">₹{totalRevenue.toLocaleString('en-IN')}</h3>
           </div>
-          <div className="mt-4 pt-3 border-t border-emerald-100/50 flex justify-between text-[10px] font-bold uppercase tracking-widest text-emerald-800 relative z-10">
+          <div className="mt-3 pt-2.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
             <span>Web: ₹{kpiSplits.web.revenue.toLocaleString('en-IN')}</span>
             <span>Events: ₹{kpiSplits.events.revenue.toLocaleString('en-IN')}</span>
             <span>Fairs: ₹{kpiSplits.bookFairs.revenue.toLocaleString('en-IN')}</span>
@@ -6837,18 +6772,17 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
         </div>
 
         {/* Card 2: Books Sold */}
-        <div className="dash-kpi-card blue flex flex-col justify-between p-5 bg-white border border-paa-navy/5 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+        <div className="dash-kpi-card blue flex flex-col justify-between p-4 bg-blue-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
           <div>
-            <div className="flex items-start justify-between mb-4 relative z-10">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                <BookOpen className="w-5 h-5" />
+            <div className="flex items-start justify-between mb-3 relative z-10">
+              <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
+                <BookOpen className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-1 relative z-10">Total Books Sold</p>
-            <h3 className="text-3xl font-black text-paa-navy tracking-tight relative z-10">{totalBooksSold} <span className="text-xs font-medium text-gray-400 lowercase tracking-normal">units</span></h3>
+            <p className="text-[9px] font-bold tracking-widest uppercase text-blue-50 mb-0.5 relative z-10">Total Books Sold</p>
+            <h3 className="text-2xl font-black text-white tracking-tight relative z-10">{totalBooksSold} <span className="text-[10px] font-medium text-blue-100 lowercase tracking-normal">units</span></h3>
           </div>
-          <div className="mt-4 pt-3 border-t border-blue-100/50 flex justify-between text-[10px] font-bold uppercase tracking-widest text-blue-800 relative z-10">
+          <div className="mt-3 pt-2.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
             <span>Web: {kpiSplits.web.books}</span>
             <span>Events: {kpiSplits.events.books}</span>
             <span>Fairs: {kpiSplits.bookFairs.books}</span>
@@ -6856,20 +6790,19 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
         </div>
 
         {/* Card 3: Net Earnings */}
-        <div className="dash-kpi-card amber flex flex-col justify-between p-5 bg-white border border-paa-navy/5 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-amber-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+        <div className="dash-kpi-card amber flex flex-col justify-between p-4 bg-amber-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
           <div>
-            <div className="flex items-start justify-between mb-4 relative z-10">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <TrendingUp className="w-5 h-5" />
+            <div className="flex items-start justify-between mb-3 relative z-10">
+              <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
+                <TrendingUp className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-1 relative z-10">Net Earnings</p>
-            <h3 className={`text-3xl font-black tracking-tight relative z-10 ${(totalRevenue - totalFeesPaid) < 0 ? 'text-red-600' : 'text-paa-navy'}`}>
+            <p className="text-[9px] font-bold tracking-widest uppercase text-amber-50 mb-0.5 relative z-10">Net Earnings</p>
+            <h3 className={`text-2xl font-black tracking-tight relative z-10 ${(totalRevenue - totalFeesPaid) < 0 ? 'text-red-200' : 'text-white'}`}>
               ₹{(totalRevenue - totalFeesPaid).toLocaleString('en-IN')}
             </h3>
           </div>
-          <div className="mt-4 pt-3 border-t border-amber-100/50 flex justify-between text-[10px] font-bold uppercase tracking-widest text-amber-800 relative z-10">
+          <div className="mt-3 pt-2.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
             <span>Gross: ₹{totalRevenue.toLocaleString('en-IN')}</span>
             <span>Fees: -₹{totalFeesPaid.toLocaleString('en-IN')}</span>
           </div>
