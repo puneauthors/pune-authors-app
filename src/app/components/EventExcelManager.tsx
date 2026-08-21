@@ -115,12 +115,32 @@ export default function EventExcelManager({
     // Process registrations into a mutable state
     const processed = registrations.map(reg => {
       let books = reg.books && reg.books.length > 0 ? [...reg.books] : [];
-      // Deep copy manualDailySales to allow editing
-      books = books.map((b: any) => ({
-        ...b,
-        manualDailySales: b.manualDailySales ? JSON.parse(JSON.stringify(b.manualDailySales)) : {},
-        actualSent: b.listedStock || 0
-      }));
+      
+      // If no books are listed yet, populate from platform profile by default
+      if (books.length === 0 && platformAuthors) {
+        const pAuthor = platformAuthors.find(a => a.id === reg.authorId);
+        if (pAuthor && pAuthor.books && pAuthor.books.length > 0) {
+          books = pAuthor.books.map((b: any) => ({
+            book: b,
+            bookId: b.id,
+            title: b.title || "Unknown",
+            mrp: b.mrp,
+            overrideMrp: b.mrp,
+            listedStock: 0,
+            soldStock: 0,
+            actualSent: 0,
+            returnedStock: 0,
+            manualDailySales: {}
+          }));
+        }
+      } else {
+        // Deep copy manualDailySales to allow editing for existing books
+        books = books.map((b: any) => ({
+          ...b,
+          manualDailySales: b.manualDailySales ? JSON.parse(JSON.stringify(b.manualDailySales)) : {},
+          actualSent: b.listedStock || 0
+        }));
+      }
 
       return {
         ...reg,
@@ -130,7 +150,7 @@ export default function EventExcelManager({
     });
     
     setAuthors(processed);
-  }, [registrations]);
+  }, [registrations, platformAuthors]);
 
   const handleCellChange = (authorId: string, bookIdx: number, dateStr: string, value: string) => {
     setAuthors(prev => {

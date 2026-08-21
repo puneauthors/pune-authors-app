@@ -5118,15 +5118,15 @@ const totalAuthorsBase = eventRegistrations.length;
     const handleDownloadEventReport = async () => {
       if (!selectedEventBreakdown) return;
 
-      const eventNameStr = (selectedEventBreakdown.name || "").toLowerCase();
+      const eventNameStr = (selectedEventBreakdown.name || "").toLowerCase().trim();
       let staticFile = null;
-      if (eventNameStr.includes("dehradun"))
+      if (eventNameStr === "dehradun book fair")
         staticFile = "DehradunBookFair (5).xlsx";
-      else if (eventNameStr.includes("goa"))
+      else if (eventNameStr === "goa book fair")
         staticFile = "GoaBookFair (2).xlsx";
-      else if (eventNameStr.includes("jammu"))
+      else if (eventNameStr === "jammu book fair")
         staticFile = "JammuBookFair (1).xlsx";
-      else if (eventNameStr.includes("srinagar"))
+      else if (eventNameStr === "srinagar book fair")
         staticFile = "SrinagarBookFair (1).xlsx";
 
       if (staticFile) {
@@ -5340,40 +5340,26 @@ const totalAuthorsBase = eventRegistrations.length;
                 left: { style: "thin" },
                 right: { style: "thin" },
               };
-              if (colNumber === 5) {
-                cell.fill = {
-                  type: "pattern",
-                  pattern: "solid",
-                  fgColor: {
-                    argb: cell.value === "Yes" ? "FFCCFFCC" : "FFFFCCCC",
-                  },
-                };
-              } else if (colNumber === 6) {
-                if (cell.value === "Paid" || cell.value === "Confirmed")
-                  cell.fill = {
-                    type: "pattern",
-                    pattern: "solid",
-                    fgColor: { argb: "FFCCFFCC" },
-                  };
-                else if (cell.value === "Pending")
-                  cell.fill = {
-                    type: "pattern",
-                    pattern: "solid",
-                    fgColor: { argb: "FFFFFF99" },
-                  };
-                else if (cell.value === "NA")
-                  cell.fill = {
-                    type: "pattern",
-                    pattern: "solid",
-                    fgColor: { argb: "FFFFCCCC" },
-                  };
-              } else if (colNumber === 9) {
-                if (cell.value === "NA")
-                  cell.fill = {
-                    type: "pattern",
-                    pattern: "solid",
-                    fgColor: { argb: "FFFFCCCC" },
-                  };
+              const isPart = addedRow.getCell(5).value === "Yes";
+              
+              // Base vibrant column colors
+              if (colNumber >= 1 && colNumber <= 4) {
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE0F7FA" } }; // Bright Cyan
+              } else if (colNumber >= 8 && colNumber <= 9) {
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF3E5F5" } }; // Bright Purple
+              } else if (colNumber >= 10 && colNumber <= 11) {
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFE0B2" } }; // Bright Orange
+              } else if (colNumber >= 12 && colNumber <= 13) {
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF59D" } }; // Bright Yellow
+              } else if (colNumber > 13) {
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF80CBC4" } }; // Bright Teal
+              }
+
+              // Participation status overrides
+              if (isPart && colNumber >= 5 && colNumber <= 7) {
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF81C784" } }; // Bright Green
+              } else if (!isPart && colNumber >= 5 && colNumber <= 9) {
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE57373" } }; // Bright Red
               }
             });
             sNo++;
@@ -8833,10 +8819,10 @@ const totalAuthorsBase = eventRegistrations.length;
   }
 
   return (
-    <div className="min-h-screen bg-paa-cream flex flex-col md:flex-row font-sans text-paa-navy selection:bg-paa-gold selection:text-white">
+    <div className="min-h-[100dvh] bg-paa-cream flex flex-col md:flex-row font-sans text-paa-navy selection:bg-paa-gold selection:text-white">
       {/* SIDEBAR */}
       <aside
-        className={`w-64 flex flex-col shrink-0 h-screen fixed md:sticky top-0 bg-paa-cream z-50 transform transition-transform duration-300 border-r border-paa-navy/5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
+        className={`w-64 flex flex-col shrink-0 h-[100dvh] fixed md:sticky top-0 bg-paa-cream z-50 transform transition-transform duration-300 border-r border-paa-navy/5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
         <div className="p-4 md:p-6 h-20 flex items-center justify-between shrink-0 border-b border-paa-navy/5">
           <div className="flex items-center gap-2">
@@ -8862,7 +8848,8 @@ const totalAuthorsBase = eventRegistrations.length;
           </span>
         </div>
 
-        <nav className="flex-1 py-5 px-4 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 px-4 pt-5 pb-6 overflow-y-auto min-h-0">
+          <div className="flex flex-col gap-1.5 h-full">
           {[
             {
               id: "overview",
@@ -8946,6 +8933,7 @@ const totalAuthorsBase = eventRegistrations.length;
               )}
             </button>
           ))}
+          </div>
         </nav>
 
         <div className="p-4 shrink-0 flex gap-2">
@@ -8960,7 +8948,7 @@ const totalAuthorsBase = eventRegistrations.length;
 
       {/* MAIN CONTENT AREA */}
       <main
-        className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative"
+        className="flex-1 flex flex-col min-w-0 h-[100dvh] overflow-hidden relative"
         style={{ background: "#f5f5f3" }}
       >
         {/* Top Header */}
