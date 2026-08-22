@@ -23,7 +23,6 @@ export function BrowseAuthorsPage() {
   const [authors, setAuthors] = useState<any[]>([]);
   const [filteredAuthors, setFilteredAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-<<<<<<< HEAD
   const [bannerImage, setBannerImage] = useState("");
 
   useEffect(() => {
@@ -35,9 +34,6 @@ export function BrowseAuthorsPage() {
       })
       .catch(() => { });
   }, []);
-=======
-  const [bannerImage, setBannerImage] = useState("/panel-discussion.webp");
->>>>>>> 32515f5976ebe6326fd6f5dc5e8f69d40bfb1010
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("");
@@ -133,16 +129,10 @@ export function BrowseAuthorsPage() {
         <div style={{
           position: "absolute",
           inset: 0,
-<<<<<<< HEAD
           backgroundImage: bannerImage ? `url(${bannerImage.startsWith('data:') ? bannerImage : (import.meta.env.VITE_API_URL || 'http://localhost:3001') + bannerImage})` : "url('/panel-discussion.webp')",
           backgroundSize: bannerImage ? "contain" : "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-=======
-          backgroundImage: `url('${bannerImage}')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center 15%",
->>>>>>> 32515f5976ebe6326fd6f5dc5e8f69d40bfb1010
           filter: "grayscale(100%)",
         }}></div>
         <div style={{ position: "relative", zIndex: 1, maxWidth: 1000, margin: "0 auto", textAlign: "center", marginTop: "8rem" }}>

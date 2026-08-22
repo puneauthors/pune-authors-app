@@ -107,7 +107,6 @@ const initiatives = [
 
 
 export function AboutPage() {
-<<<<<<< HEAD
   const [aboutImage, setAboutImage] = useState("");
   useEffect(() => {
     axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/public-stats`)
@@ -117,20 +116,6 @@ export function AboutPage() {
         }
       })
       .catch(() => { });
-=======
-  const [aboutImage, setAboutImage] = useState("/pune_authors_hcl_event.webp");
-
-  useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/public-stats`)
-      .then((res) => {
-        if (res.data?.settings?.about_page_image) {
-          const imgUrl = res.data.settings.about_page_image;
-          setAboutImage(imgUrl.startsWith("http") ? imgUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${imgUrl}`);
-        }
-      })
-      .catch((err) => console.error(err));
->>>>>>> 32515f5976ebe6326fd6f5dc5e8f69d40bfb1010
   }, []);
 
   return (
@@ -295,7 +280,7 @@ export function AboutPage() {
                   }}
                 >
                   <img
-                    src={aboutImage}
+                    src="/pune_authors_hcl_event.webp"
                     alt="Pune Authors Association event at HCL Technologies"
                     style={{ width: "100%", height: 480, objectFit: "cover", display: "block" }}
                   />
