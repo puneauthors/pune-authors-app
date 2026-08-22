@@ -762,7 +762,7 @@ export function LandingPage() {
                       portfolio: "https://anoopsaini.netlify.app",
                     },
                     {
-                      name: "Arvind Mamhotra",
+                      name: "Arvind Puri",
                       image: "/team/arvind.jpeg",
                       linkedin: "https://www.linkedin.com/in/arvindsaura/",
                       portfolio: "https://arvindpuri.vercel.app",
