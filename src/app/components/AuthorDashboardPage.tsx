@@ -5047,27 +5047,27 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
              );
           })()}
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 mt-0">
-            <div className="bg-emerald-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-white">
-              <div className="text-[10px] font-bold text-emerald-100 uppercase tracking-widest mb-1.5 flex items-center gap-2"><BarChart3 className="w-4 h-4 text-emerald-200" /> Event Participation</div>
-              <div className="text-3xl font-black text-white tracking-tight">
+            <div className="bg-emerald-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-gray-900">
+              <div className="text-[10px] font-bold text-gray-900 uppercase tracking-widest mb-1.5 flex items-center gap-2"><BarChart3 className="w-4 h-4 text-gray-800" /> Event Participation</div>
+              <div className="text-3xl font-black text-gray-900 tracking-tight">
                 {dashboardData?.authorProfile?.aggEligibleEvents && dashboardData?.authorProfile?.aggEligibleEvents > 0 
                   ? `${Math.round((dashboardData.authorProfile.aggParticipatedEvents / dashboardData.authorProfile.aggEligibleEvents) * 100)}%` 
                   : 'N/A'}
               </div>
-              <div className="text-[10px] text-emerald-50 mt-1 font-medium opacity-90">
+              <div className="text-[10px] text-gray-800 mt-1 font-medium opacity-90">
                 {dashboardData?.authorProfile?.aggParticipatedEvents || 0} / {dashboardData?.authorProfile?.aggEligibleEvents || 0} Events
               </div>
             </div>
             
-            <div className="bg-cyan-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-white">
-              <div className="text-[10px] font-bold text-cyan-100 uppercase tracking-widest mb-1.5 flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-cyan-200" /> Total Events</div>
-              <div className="text-3xl font-black text-white tracking-tight">{validParticipations.length}</div>
-              <div className="text-[10px] text-cyan-50 mt-1 font-medium opacity-90">Fairs: {validParticipations.filter((evt: any) => (evt.type || evt.eventType) === 'Book Fair').length} • Events: {validParticipations.filter((evt: any) => (evt.type || evt.eventType) !== 'Book Fair').length}</div>
+            <div className="bg-cyan-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-gray-900">
+              <div className="text-[10px] font-bold text-gray-900 uppercase tracking-widest mb-1.5 flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-gray-800" /> Total Events</div>
+              <div className="text-3xl font-black text-gray-900 tracking-tight">{dashboardData?.authorProfile?.aggEligibleEvents || 0}</div>
+              <div className="text-[10px] text-gray-800 mt-1 font-medium opacity-90">Fairs: {dashboardData?.authorProfile?.aggEligibleFairs || 0} • Events: {dashboardData?.authorProfile?.aggEligibleEventsMeet || 0}</div>
             </div>
             
-            <div className="bg-pink-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-white">
-              <div className="text-[10px] font-bold text-pink-100 uppercase tracking-widest mb-1.5 flex items-center gap-2"><BookOpen className="w-4 h-4 text-pink-200" /> Total Books Sold</div>
-              <div className="text-3xl font-black text-white tracking-tight">
+            <div className="bg-pink-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-gray-900">
+              <div className="text-[10px] font-bold text-gray-900 uppercase tracking-widest mb-1.5 flex items-center gap-2"><BookOpen className="w-4 h-4 text-gray-800" /> Total Books Sold</div>
+              <div className="text-3xl font-black text-gray-900 tracking-tight">
                  {validParticipations.reduce((acc: number, evt: any) => {
                     let sold = 0;
                     if (evt.manualTotalSold !== null && evt.manualTotalSold !== undefined) {
@@ -5078,14 +5078,15 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                        evt.books?.forEach((b: any) => sold += (b.soldStock || 0));
                     }
                     return acc + sold;
-                 }, 0)}
+                 }, 0) + (dashboardData?.authorOrders || []).filter((o: any) => ['Pending Verification', 'Completed', 'Processing', 'Delivered', 'Dispatched', 'Accepted', 'Paid'].includes(o.status || o.orderStatus)).reduce((acc: number, curr: any) => acc + (curr.quantity || 1), 0)}
               </div>
             </div>
             
-            <div className="bg-purple-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-white">
-              <div className="text-[10px] font-bold text-purple-100 uppercase tracking-widest mb-1.5 flex items-center gap-2"><DollarSign className="w-4 h-4 text-purple-200" /> Total Revenue</div>
-              <div className="text-3xl font-black text-white tracking-tight">
-                 ₹{validParticipations.reduce((acc: number, evt: any) => {
+            <div className="bg-purple-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-gray-900">
+              <div className="text-[10px] font-bold text-gray-900 uppercase tracking-widest mb-1.5 flex items-center gap-2"><DollarSign className="w-4 h-4 text-gray-800" /> Total Revenue</div>
+              <div className="text-3xl font-black text-gray-900 tracking-tight">
+                 ₹{(
+                   validParticipations.reduce((acc: number, evt: any) => {
                     let rev = 0;
                     if (evt.manualTotalRevenue !== null && evt.manualTotalRevenue !== undefined) {
                        rev = evt.manualTotalRevenue;
@@ -5095,19 +5096,20 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                        evt.books?.forEach((b: any) => rev += (b.soldStock || 0) * (b.overrideMrp || b.mrp || b.book?.mrp || 0));
                     }
                     return acc + rev;
-                 }, 0).toLocaleString()}
+                 }, 0) + (dashboardData?.authorOrders || []).filter((o: any) => ['Pending Verification', 'Completed', 'Processing', 'Delivered', 'Dispatched', 'Accepted', 'Paid'].includes(o.status || o.orderStatus)).reduce((acc: number, curr: any) => acc + (curr.total || curr.amount || 0), 0)
+                 ).toLocaleString()}
               </div>
             </div>
             
-            <div className="bg-rose-500/85 p-3 rounded-xl border-none shadow-premium flex flex-col justify-center cursor-pointer hover:shadow-md transition-all group text-white" onClick={() => navigate('/dashboard/payments')}>
-              <div className="text-[10px] font-bold text-rose-100 uppercase tracking-widest mb-1.5 flex items-center gap-2 group-hover:text-white transition-colors"><CheckCircle2 className="w-4 h-4 text-rose-200" /> Total Payments Done</div>
-              <div className="text-3xl font-black text-white tracking-tight">₹{validParticipations.reduce((sum: number, evt: any) => sum + (evt.amountPaid || 0), 0).toLocaleString()}</div>
-              <div className="text-[10px] text-rose-50 mt-1 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Click to view details &rarr;</div>
+            <div className="bg-rose-500/85 p-3 rounded-xl border-none shadow-premium flex flex-col justify-center cursor-pointer hover:shadow-md transition-all group text-gray-900" onClick={() => navigate('/dashboard/payments')}>
+              <div className="text-[10px] font-bold text-gray-900 uppercase tracking-widest mb-1.5 flex items-center gap-2 group-hover:text-black transition-colors"><CheckCircle2 className="w-4 h-4 text-gray-800" /> Total Payments Done</div>
+              <div className="text-3xl font-black text-gray-900 tracking-tight">₹{validParticipations.reduce((sum: number, evt: any) => sum + (evt.amountPaid || 0), 0).toLocaleString()}</div>
+              <div className="text-[10px] text-gray-800 mt-1 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Click to view details &rarr;</div>
             </div>
             
-            <div className="bg-blue-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-white">
-              <div className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-1.5 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-blue-200" /> Event Profitability</div>
-              <div className="text-3xl font-black text-white tracking-tight">
+            <div className="bg-blue-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-gray-900">
+              <div className="text-[10px] font-bold text-gray-900 uppercase tracking-widest mb-1.5 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-gray-800" /> Event Profitability</div>
+              <div className="text-3xl font-black text-gray-900 tracking-tight">
                  {(() => {
                     const totalRev = validParticipations.reduce((acc: number, evt: any) => {
                        let rev = 0;
@@ -5119,10 +5121,10 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                           evt.books?.forEach((b: any) => rev += (b.soldStock || 0) * (b.overrideMrp || b.mrp || b.book?.mrp || 0));
                        }
                        return acc + rev;
-                    }, 0);
+                    }, 0) + (dashboardData?.authorOrders || []).filter((o: any) => ['Pending Verification', 'Completed', 'Processing', 'Delivered', 'Dispatched', 'Accepted', 'Paid'].includes(o.status || o.orderStatus)).reduce((acc: number, curr: any) => acc + (curr.total || curr.amount || 0), 0);
                     const totalPaid = validParticipations.reduce((sum: number, evt: any) => sum + (evt.amountPaid || 0), 0);
                     const net = totalRev - totalPaid;
-                    return <span className={net >= 0 ? "text-white" : "text-red-100"}>{net >= 0 ? '+' : '-'}₹{Math.abs(net).toLocaleString()}</span>;
+                    return <span className={net >= 0 ? "text-gray-900" : "text-red-900"}>{net >= 0 ? '+' : '-'}₹{Math.abs(net).toLocaleString()}</span>;
                  })()}
               </div>
             </div>
