@@ -408,7 +408,7 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5">
         <div>
           <h2 className="text-2xl font-serif font-bold text-paa-navy flex items-center gap-2">
-            Library Donations Ecosystem <Sparkles className="w-4 h-4 text-paa-gold animate-pulse" />
+            Library Donations <Sparkles className="w-4 h-4 text-paa-gold animate-pulse" />
           </h2>
           <p className="text-gray-500 text-xs mt-0.5">Donate your books to Airport Libraries, Public Libraries, and Cafes</p>
         </div>
