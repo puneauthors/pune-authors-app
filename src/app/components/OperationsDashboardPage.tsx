@@ -6951,7 +6951,7 @@ const totalAuthorsBase = eventRegistrations.length;
                           onClick={() => setExpandedEventIndex(expandedEventIndex === i ? null : i)}
                         >
                           <div className="flex items-center justify-center gap-1 cursor-pointer w-full h-full">
-                            <span>{i + 1}</span>
+                            <span>{filteredTableEvents.length - i}</span>
                             <button className="text-gray-400">
                               {expandedEventIndex === i ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                             </button>
