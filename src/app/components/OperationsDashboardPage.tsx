@@ -6558,7 +6558,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 <p className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-1">
                   Total Events Organized
                 </p>
-                <div className="text-2xl font-serif">
+                <div className="text-2xl font-bold tracking-tight">
                   {
                     allCombinedEvents.filter(e => e.status !== "Rejected" && e.status !== "Pending Approval").length
                   }
@@ -6568,7 +6568,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 <p className="text-xs font-bold text-rose-100 uppercase tracking-wider mb-1">
                   Total Books Sold
                 </p>
-                <div className="text-2xl font-serif">
+                <div className="text-2xl font-bold tracking-tight">
                   {allCombinedEvents.reduce(
                     (acc, evt) => {
                       const books =
@@ -6590,7 +6590,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 <p className="text-xs font-bold text-orange-100 uppercase tracking-wider mb-1">
                   Forthcoming Events
                 </p>
-                <div className="text-2xl font-serif">
+                <div className="text-2xl font-bold tracking-tight">
                   {
                     allCombinedEvents.filter((e) => {
                       const d = new Date(e.date).getTime();
@@ -6603,7 +6603,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 <p className="text-xs font-bold text-emerald-100 uppercase tracking-wider mb-1">
                   Total Gross Revenue
                 </p>
-                <div className="text-2xl font-serif font-bold">
+                <div className="text-2xl font-bold tracking-tight">
                   ₹
                   {allCombinedEvents
                     .reduce(

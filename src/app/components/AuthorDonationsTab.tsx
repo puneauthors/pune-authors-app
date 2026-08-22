@@ -424,17 +424,17 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl border-none p-3.5 shadow-sm text-white">
           <div className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-0.5">Library Donated</div>
-          <div className="text-2xl font-bold font-serif">{statsCampaigns}</div>
+          <div className="text-2xl font-bold tracking-tight">{statsCampaigns}</div>
           <p className="text-[10px] text-blue-100/90 mt-0.5">Active & legacy library involvements</p>
         </div>
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl border-none p-3.5 shadow-sm text-white">
           <div className="text-[10px] font-bold text-purple-100 uppercase tracking-widest mb-0.5">Total Books Donated</div>
-          <div className="text-2xl font-bold font-serif">{statsBooksPledged}</div>
+          <div className="text-2xl font-bold tracking-tight">{statsBooksPledged}</div>
           <p className="text-[10px] text-purple-100/90 mt-0.5">Total copies committed to collections</p>
         </div>
         <div className="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl border-none p-3.5 shadow-sm text-white">
           <div className="text-[10px] font-bold text-emerald-100 uppercase tracking-widest mb-0.5">Donation Value (MRP)</div>
-          <div className="text-2xl font-bold font-serif">₹{statsValue.toLocaleString('en-IN')}</div>
+          <div className="text-2xl font-bold tracking-tight">₹{statsValue.toLocaleString('en-IN')}</div>
           <p className="text-[10px] text-emerald-100/90 mt-0.5">Total value contributed at MRP</p>
         </div>
       </div>

@@ -1227,13 +1227,13 @@ export function LibraryDonationsTab() {
               <input
                 type="text"
                 autoFocus
-                className="text-xl font-serif text-paa-navy font-bold bg-transparent border-0 border-b-2 border-paa-navy/30 focus:border-paa-navy outline-none w-full p-0"
+                className="text-xl font-bold text-paa-navy bg-transparent border-0 border-b-2 border-paa-navy/30 focus:border-paa-navy outline-none w-full p-0"
                 value={overrideDriveAuthors}
                 placeholder="NA"
                 onChange={e => setOverrideDriveAuthors(e.target.value)}
               />
             ) : (
-              <div className="text-xl font-serif text-paa-navy font-bold">
+              <div className="text-xl font-bold text-paa-navy">
                 {statsOverrides.driveOverrides?.[selectedDriveBreakdown.id]?.authorsOverride !== undefined && statsOverrides.driveOverrides?.[selectedDriveBreakdown.id]?.authorsOverride !== null
                   ? statsOverrides.driveOverrides?.[selectedDriveBreakdown.id]?.authorsOverride
                   : totalAuthors}
@@ -1245,13 +1245,13 @@ export function LibraryDonationsTab() {
             {isEditingDriveStats ? (
               <input
                 type="text"
-                className="text-xl font-serif text-blue-800 font-bold bg-transparent border-0 border-b-2 border-blue-300 focus:border-blue-600 outline-none w-full p-0"
+                className="text-xl font-bold text-blue-800 bg-transparent border-0 border-b-2 border-blue-300 focus:border-blue-600 outline-none w-full p-0"
                 value={overrideDriveBooks}
                 placeholder="NA"
                 onChange={e => setOverrideDriveBooks(e.target.value)}
               />
             ) : (
-              <div className="text-xl font-serif text-blue-800 font-bold">
+              <div className="text-xl font-bold text-blue-800">
                 {statsOverrides.driveOverrides?.[selectedDriveBreakdown.id]?.booksOverride !== undefined && statsOverrides.driveOverrides?.[selectedDriveBreakdown.id]?.booksOverride !== null
                   ? statsOverrides.driveOverrides?.[selectedDriveBreakdown.id]?.booksOverride
                   : totalBooks}
@@ -1952,20 +1952,20 @@ export function LibraryDonationsTab() {
             <input
               type="text"
               autoFocus
-              className="text-xl font-serif text-white font-bold bg-transparent border-0 border-b-2 border-white/30 focus:border-white outline-none w-full p-0 placeholder-white/50"
+              className="text-xl font-bold text-white bg-transparent border-0 border-b-2 border-white/30 focus:border-white outline-none w-full p-0 placeholder-white/50"
               value={overrideDrives}
               placeholder="NA"
               onChange={e => setOverrideDrives(e.target.value)}
             />
           ) : (
-            <div className="text-xl font-serif text-white font-bold">
+            <div className="text-xl font-bold">
               {nonDraftDrivesCount}
             </div>
           )}
         </div>
         <div className="bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-xl p-4 shadow-sm border-none">
           <div className="text-[10px] font-bold text-rose-100 uppercase tracking-wider mb-1">Total Books Donated</div>
-          <div className="text-xl font-serif text-white font-bold">
+          <div className="text-xl font-bold">
             {calculatedBooks}
           </div>
         </div>
@@ -1974,13 +1974,13 @@ export function LibraryDonationsTab() {
           {isEditingStats ? (
             <input
               type="text"
-              className="text-xl font-serif text-white font-bold bg-transparent border-0 border-b-2 border-white/30 focus:border-white outline-none w-full p-0 placeholder-white/50"
+              className="text-xl font-bold text-white bg-transparent border-0 border-b-2 border-white/30 focus:border-white outline-none w-full p-0 placeholder-white/50"
               value={overrideLibraries}
               placeholder="NA"
               onChange={e => setOverrideLibraries(e.target.value)}
             />
           ) : (
-            <div className="text-xl font-serif text-white font-bold">
+            <div className="text-xl font-bold">
               {activeLibrariesCount}
             </div>
           )}
