@@ -1,26 +1,10 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-
-async function checkDb() {
-  try {
-    const allDocs = await prisma.notification.findMany({
-      where: {
-        documentUrl: {
-          not: null
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-    
-    console.log("=== ALL ADMIN DOCUMENTS IN DB ===");
-    console.log(`Total Documents Found: ${allDocs.length}`);
-    console.log(JSON.stringify(allDocs, null, 2));
-    
-  } catch (err) {
-    console.error("Error querying DB:", err);
-  } finally {
-    await prisma.$disconnect();
-  }
+async function run() {
+  const settings = await prisma.systemSetting.findMany({
+    where: { key: { in: ['about_page_image', 'invite_author_banner_image'] } }
+  });
+  console.log('DB count:', settings.length);
+  settings.forEach(s => console.log(s.key, s.value.substring(0, 50)));
 }
-
-checkDb();
+run().catch(console.error).finally(() => { prisma.$disconnect(); });

@@ -23,6 +23,17 @@ export function BrowseAuthorsPage() {
   const [authors, setAuthors] = useState<any[]>([]);
   const [filteredAuthors, setFilteredAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bannerImage, setBannerImage] = useState("");
+
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/public-stats`)
+      .then(res => {
+        if (res.data?.landingConfig?.inviteAuthorBannerImage) {
+          setBannerImage(res.data.landingConfig.inviteAuthorBannerImage);
+        }
+      })
+      .catch(() => {});
+  }, []);
   
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("");
@@ -102,15 +113,15 @@ export function BrowseAuthorsPage() {
   return (
     <main style={{ fontFamily: "'Google Sans', 'Montserrat', sans-serif", background: C.cream, minHeight: "100vh" }}>
       {/* Hero Section */}
-      <section style={{ padding: "11.5rem 2rem 8rem", textAlign: "center", position: "relative", overflow: "hidden", backgroundColor: "#fff" }}>
+            <section style={{ padding: "11.5rem 2rem 8rem", textAlign: "center", position: "relative", overflow: "hidden", backgroundColor: "#fff" }}>
         <div style={{ 
           position: "absolute", 
           inset: 0, 
-          backgroundImage: "url('/panel-discussion.webp')", 
-          backgroundSize: "cover", 
-          backgroundPosition: "center 15%",
+          backgroundImage: bannerImage ? `url(${bannerImage.startsWith('data:') ? bannerImage : (import.meta.env.VITE_API_URL || 'http://localhost:3001') + bannerImage})` : "url('/panel-discussion.webp')", 
+          backgroundSize: bannerImage ? "contain" : "cover", 
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
           filter: "grayscale(100%)",
-          zIndex: 0
         }}></div>
         <div style={{ position: "relative", zIndex: 1, maxWidth: 1000, margin: "0 auto", textAlign: "center", marginTop: "8rem" }}>
           <h1 style={{ 

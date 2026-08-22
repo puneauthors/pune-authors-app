@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import axios from "axios";
 
 // --- FADE IN ON SCROLL ---
 function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
@@ -104,7 +105,19 @@ const initiatives = [
   },
 ];
 
+
 export function AboutPage() {
+  const [aboutImage, setAboutImage] = useState("");
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/public-stats`)
+      .then(res => {
+        if (res.data?.landingConfig?.aboutPageImage) {
+          setAboutImage(res.data.landingConfig.aboutPageImage);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <main
       style={{
@@ -123,7 +136,7 @@ export function AboutPage() {
           display: "flex",
           alignItems: "center",
           overflow: "hidden",
-          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%)",
+          background: aboutImage ? `linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(30,41,59,0.6) 100%), url(${aboutImage.startsWith('data:') ? aboutImage : (import.meta.env.VITE_API_URL || "http://localhost:3001") + aboutImage}) center/contain no-repeat` : "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%)",
         }}
       >
         {/* Background decorative text */}
