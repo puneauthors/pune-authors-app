@@ -604,7 +604,7 @@ export function LandingPage() {
           <div ref={nrScrollRef} className="horizontal-scroll grid grid-rows-2 grid-flow-col gap-4 overflow-x-auto pb-4 auto-cols-[85%] sm:auto-cols-[calc(50%-0.5rem)] lg:auto-cols-[calc(25%-0.75rem)]" style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch", scrollBehavior: "smooth" }}>
             {[...galleryItems].reverse().slice(0, 16).map((book, i) => (
               <Link to={`/book/${book.id}`} key={i} className="nr-card" style={{ position: "relative", background: "#fff", borderRadius: 12, padding: "0.9rem", display: "flex", gap: "0.8rem", alignItems: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", textDecoration: "none" }}>
-                <div style={{ position: "absolute", top: "-0.4rem", right: "-0.4rem", background: "#00D084", color: "#fff", fontSize: "9px", fontWeight: 800, padding: "0.2rem 0.5rem", borderRadius: "50px", letterSpacing: "0.05em", zIndex: 10, boxShadow: "0 2px 10px rgba(0,208,132,0.3)" }}>NEW</div>
+
                 <div className="nr-img-wrapper" style={{ width: 80, height: 110, background: "#e6f9f0", borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
                   <img src={book.coverUrl ? (book.coverUrl.match(/^(http|data:)/) ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
