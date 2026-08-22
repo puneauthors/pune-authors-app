@@ -494,7 +494,7 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
                   <div className="flex justify-between items-start mb-2 gap-2">
                     <h4 className="text-xs font-bold text-paa-navy font-serif leading-snug">{ann.title}</h4>
                     {ann.visibility === 'Closed' ? (
-                      <span className="shrink-0 px-1.5 py-0.5 bg-gray-250 border border-gray-300/30 text-gray-600 text-[8px] font-extrabold rounded-full uppercase tracking-wider">
+                      <span className="shrink-0 px-1.5 py-0.5 bg-rose-600 text-white text-[8px] font-extrabold rounded-full uppercase tracking-wider">
                         Closed
                       </span>
                     ) : (

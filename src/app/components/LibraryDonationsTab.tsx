@@ -2250,7 +2250,7 @@ export function LibraryDonationsTab() {
                             </td>
                             <td className="p-4">
                               <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${drive.visibility === 'Published' ? 'bg-[#ebd8c0] text-emerald-600 border-emerald-200' :
-                                  drive.visibility === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-200' :
+                                  drive.visibility === 'Closed' ? 'bg-red-50 text-red-700 border-red-200' :
                                     'bg-yellow-50 text-yellow-600 border-yellow-200'
                                 }`}>
                                 {drive.visibility}
