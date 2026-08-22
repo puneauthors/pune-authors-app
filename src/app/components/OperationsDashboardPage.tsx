@@ -1223,7 +1223,9 @@ export function OperationsDashboardPage() {
   const fetchOverview = async (isBackground = false) => {
     if (!isBackground) setIsRefreshing(true);
     try {
-      const res = await axios.get(`${API}/api/admin/dashboard-stats`);
+      const res = await axios.get(`${API}/api/admin/dashboard-stats`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
       setStats(res.data);
       sessionStorage.setItem("adminStats", JSON.stringify(res.data));
     } catch (err) {
@@ -9424,7 +9426,7 @@ const totalAuthorsBase = eventRegistrations.length;
                   books={books}
                   authors={authors}
                   orders={orders}
-                  events={events}
+                  events={allCombinedEvents}
                   stats={stats}
                   libraries={libraries}
                   lastAdminVisit={lastAdminVisit}

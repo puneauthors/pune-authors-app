@@ -172,11 +172,11 @@ export function BrowseAuthorsPage() {
             value={selectedGenre}
             onChange={(e) => setSelectedGenre(e.target.value)}
             style={{ padding: "0.8rem 1.5rem", border: "none", outline: "none", background: C.dark, borderRadius: 50, fontSize: 14, color: C.white, cursor: "pointer", fontWeight: 600 }}
-            className="filter-select"
+            className="filter-select filter-select-genre"
           >
-            <option value="">All Genres</option>
+            <option value="" style={{ color: "#ffffff", backgroundColor: "#111111" }}>All Genres</option>
             {uniqueGenres.map(g => (
-              <option key={g as string} value={g as string}>{g as string}</option>
+              <option key={g as string} value={g as string} style={{ color: "#ffffff", backgroundColor: "#111111" }}>{g as string}</option>
             ))}
           </select>
 
@@ -184,11 +184,11 @@ export function BrowseAuthorsPage() {
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
             style={{ padding: "0.8rem 1.5rem", border: "none", outline: "none", background: C.gold, borderRadius: 50, fontSize: 14, color: C.white, cursor: "pointer", fontWeight: 600 }}
-            className="filter-select"
+            className="filter-select filter-select-city"
           >
-            <option value="">All Cities</option>
+            <option value="" style={{ color: "#ffffff", backgroundColor: "#FF6600" }}>All Cities</option>
             {uniqueCities.map(c => (
-              <option key={c as string} value={c as string}>{c as string}</option>
+              <option key={c as string} value={c as string} style={{ color: "#ffffff", backgroundColor: "#FF6600" }}>{c as string}</option>
             ))}
           </select>
 
@@ -439,13 +439,45 @@ export function BrowseAuthorsPage() {
         }
         .filter-select {
           border-radius: 50px;
+          border: none !important;
+          outline: none !important;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 14px;
+          padding: 0.8rem 2.2rem 0.8rem 1.5rem !important;
+          appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          background-repeat: no-repeat !important;
+          background-position: right 1.1rem center !important;
+          background-size: 12px !important;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+        }
+        .filter-select-genre {
+          background-color: #111111 !important;
+          color: #ffffff !important;
+        }
+        .filter-select-genre option {
+          background-color: #111111 !important;
+          color: #ffffff !important;
+          padding: 8px 12px;
+        }
+        .filter-select-city {
+          background-color: #FF6600 !important;
+          color: #ffffff !important;
+        }
+        .filter-select-city option {
+          background-color: #FF6600 !important;
+          color: #ffffff !important;
+          padding: 8px 12px;
         }
         @media (max-width: 768px) {
           .filter-bar {
             flex-direction: column;
             border-radius: 20px !important;
-            padding: 1.5rem !important;
+            padding: 1.25rem !important;
             align-items: stretch !important;
+            gap: 0.75rem !important;
           }
           .filter-bar > div:first-child {
             background: #f8f9fa;
@@ -454,9 +486,16 @@ export function BrowseAuthorsPage() {
             flex-basis: auto !important;
           }
           .filter-select {
-            width: 100%;
-            background: #f8f9fa !important;
-            margin-bottom: 0.5rem;
+            width: 100% !important;
+            padding: 0.85rem 2.2rem 0.85rem 1.5rem !important;
+          }
+          .filter-select-genre {
+            background-color: #111111 !important;
+            color: #ffffff !important;
+          }
+          .filter-select-city {
+            background-color: #FF6600 !important;
+            color: #ffffff !important;
           }
           .clear-btn {
             width: 100%;

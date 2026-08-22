@@ -67,7 +67,7 @@ export const AdminOverviewTab = React.memo(({ refreshTrigger, books, authors, or
     lowStockBooks, pendingAuthors, pendingEdits, pendingEvents, newWebOrders, pendingBulkOrders, pendingOrdersCount, recentDispatchedOrders, recentDeliveredOrders, pendingQueries, pendingFines,
     delayedOrdersRate, avgParticipation, participationChartData, latestEventRate, categoryChartData,
     orderStatusData, topAuthorsData, topBooksData, revenueTrendData, totalBooksSoldWeb, totalRevenueWeb,
-    completedOrders, topParticipatingAuthors
+    completedOrders, topParticipatingAuthors, liveCalculatedBooksSold, liveCalculatedRevenue
   } = useMemo(() => {
     // Low stock books (threshold < 10)
     // Exclude if inventory is same AND notified within 24 hours.
@@ -222,11 +222,37 @@ export const AdminOverviewTab = React.memo(({ refreshTrigger, books, authors, or
       .sort((a, b) => b.percentage - a.percentage || b.participated - a.participated)
       .slice(0, 20);
 
+    const totalEventsBooksSold = (events || []).reduce((acc: number, evt: any) => {
+      const books = evt.aggSold != null
+        ? evt.aggSold
+        : evt.isLegacy
+          ? 0
+          : (evt.eventBooks?.reduce((s: number, eb: any) => s + (eb.soldStock || 0), 0) || 0);
+      return acc + (Number(books) || 0);
+    }, 0);
+
+    const totalEventsRevenue = (events || []).reduce((acc: number, evt: any) => {
+      const books = evt.aggSold != null
+        ? evt.aggSold
+        : evt.isLegacy
+          ? 0
+          : (evt.eventBooks?.reduce((s: number, eb: any) => s + (eb.soldStock || 0), 0) || 0);
+      const rev = evt.aggRevenue != null ? evt.aggRevenue : (Number(books) * 200);
+      return acc + (Number(rev) || 0);
+    }, 0);
+
+    const totalWebBooksSold = (orders || []).filter((o: any) => ['Completed', 'Delivered', 'Shipped', 'Dispatched'].includes(o.status || o.orderStatus)).reduce((sum: number, o: any) => sum + (o.items?.reduce((s: number, i: any) => s + (i.quantity || 1), 0) || o.quantity || 1), 0);
+    const totalWebRevenue = (orders || []).filter((o: any) => ['Completed', 'Delivered', 'Shipped', 'Dispatched'].includes(o.status || o.orderStatus)).reduce((sum: number, o: any) => sum + (Number(o.amount || o.total) || 0), 0);
+
+    const liveCalculatedBooksSold = (events && events.length > 0) ? (totalWebBooksSold + totalEventsBooksSold) : null;
+    const liveCalculatedRevenue = (events && events.length > 0) ? (totalWebRevenue + totalEventsRevenue) : null;
+
     return {
       lowStockBooks, pendingAuthors, pendingEdits, pendingEvents, newWebOrders, pendingBulkOrders, pendingOrdersCount, recentDispatchedOrders, recentDeliveredOrders, pendingQueries: prevQueries, pendingFines,
       delayedOrdersRate, avgParticipation, participationChartData, latestEventRate, categoryChartData,
       orderStatusData, topAuthorsData, topBooksData, revenueTrendData, totalBooksSoldWeb, totalRevenueWeb,
-      completedOrders: completedOrdersCount, topParticipatingAuthors
+      completedOrders: completedOrdersCount, topParticipatingAuthors,
+      liveCalculatedBooksSold, liveCalculatedRevenue
     };
   }, [books, authors, orders, events, stats, localDismissed, notifiedBooks, prevQueries, lastAdminVisit]);
 
@@ -352,15 +378,17 @@ export const AdminOverviewTab = React.memo(({ refreshTrigger, books, authors, or
           },
           {
             label: 'Total Revenue',
-            value: (dynamicRevenue !== null || stats?.totalRevenue !== undefined)
-              ? `₹${(dynamicRevenue !== null ? dynamicRevenue : (stats?.totalRevenue || 0)).toLocaleString()}` : null,
+            value: (liveCalculatedRevenue !== null || dynamicRevenue !== null || stats?.totalRevenue !== undefined)
+              ? `₹${(liveCalculatedRevenue !== null ? liveCalculatedRevenue : (dynamicRevenue !== null ? dynamicRevenue : (stats?.totalRevenue || 0))).toLocaleString()}` : null,
             icon: TrendingUp, bg: '#ef4444', tabId: 'sales_report' // Bright Red
           },
           { label: 'Orders Delayed', value: `${delayedOrdersRate}%`, icon: Clock, bg: '#f59e0b', tabId: 'web_orders' }, // Bright Amber
           { label: 'Pending Orders', value: pendingOrdersCount ?? 0, icon: Package, bg: '#10b981', tabId: 'web_orders' }, // Bright Emerald
           {
             label: 'Books Sold',
-            value: (dynamicBooksSold !== null ? dynamicBooksSold : (stats?.totalBooksSold || 0)).toLocaleString(),
+            value: (liveCalculatedBooksSold !== null
+              ? liveCalculatedBooksSold
+              : (dynamicBooksSold !== null ? dynamicBooksSold : (stats?.totalBooksSold || 0))).toLocaleString(),
             icon: ShoppingCart, bg: '#8b5cf6', tabId: 'sales_report' // Bright Violet
           },
         ].map((kpi: any, i) => (

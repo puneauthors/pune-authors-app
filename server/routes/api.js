@@ -1817,18 +1817,21 @@ router.get('/api/admin/dashboard-stats', verifyToken, isAdmin, async (req, res) 
       else totalLiteraryEvents++;
     });
 
-    // 1. Total Revenue & Total Books Sold (Fast Database Aggregation)
-    const [webAgg, posAgg, legacyEventsAll, webItemsAgg, posItemsAgg] = await Promise.all([
+    // 1. Total Revenue & Total Books Sold (Unified Platform Aggregation)
+    const [webAgg, allEventsForStats, webItemsAgg] = await Promise.all([
       prisma.order.aggregate({
         _sum: { amount: true },
         where: { status: { in: ['Completed', 'Delivered', 'Shipped', 'Dispatched'] } }
       }),
-      prisma.posOrder.aggregate({
-        _sum: { totalAmount: true }
-      }),
       prisma.event.findMany({
-        where: { status: 'Legacy Archive' },
-        select: { aggRevenue: true, aggSold: true }
+        where: { isArchived: false },
+        select: {
+          id: true,
+          aggRevenue: true,
+          aggSold: true,
+          status: true,
+          eventBooks: { select: { soldStock: true } }
+        }
       }),
       prisma.orderItem.aggregate({
         _sum: { quantity: true },
@@ -1836,27 +1839,23 @@ router.get('/api/admin/dashboard-stats', verifyToken, isAdmin, async (req, res) 
           order: { status: { in: ['Completed', 'Delivered', 'Shipped', 'Dispatched'] } },
           status: { notIn: ['Cancelled', 'Rejected'] }
         }
-      }),
-      prisma.posOrderItem.aggregate({
-        _sum: { quantity: true },
-        where: {
-          posOrder: { paymentStatus: 'CONFIRMED' }
-        }
       })
     ]);
 
     let webRevenue = webAgg._sum.amount || 0;
-    let posRevenue = posAgg._sum.totalAmount || 0;
-    let legacyRevenue = 0;
-    let legacyBooksSold = 0;
-    legacyEventsAll.forEach(evt => {
-      const qty = evt.aggSold || 0;
-      legacyRevenue += evt.aggRevenue || (qty * 200) || 0;
-      legacyBooksSold += qty;
+    let eventsRevenue = 0;
+    let eventsBooksSold = 0;
+    allEventsForStats.forEach(evt => {
+      const books = evt.aggSold != null
+        ? evt.aggSold
+        : (evt.eventBooks?.reduce((s, eb) => s + (eb.soldStock || 0), 0) || 0);
+      const rev = evt.aggRevenue != null ? evt.aggRevenue : (Number(books) * 200);
+      eventsBooksSold += (Number(books) || 0);
+      eventsRevenue += (Number(rev) || 0);
     });
 
-    const totalRevenue = webRevenue + posRevenue + legacyRevenue;
-    const totalBooksSold = (webItemsAgg._sum.quantity || 0) + (posItemsAgg._sum.quantity || 0) + legacyBooksSold;
+    const totalRevenue = webRevenue + eventsRevenue;
+    const totalBooksSold = (webItemsAgg._sum.quantity || 0) + eventsBooksSold;
 
     // 2. Revenue Data (Last 6 Months)
     // We can use Prisma groupBy or queryRaw. To be safe across DBs, we'll fetch only date & amount for web orders
@@ -3665,7 +3664,10 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
     let start = new Date(startDate);
     let end = new Date(endDate);
 
-    if (filterType === 'select_month' && selectedMonth && selectedYear) {
+    if (filterType === 'lifetime') {
+      start = new Date('2000-01-01');
+      end = new Date('2099-12-31');
+    } else if (filterType === 'select_month' && selectedMonth && selectedYear) {
       start = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, 1);
       end = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0);
     }
@@ -3739,8 +3741,13 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
       });
     });
 
+    const checkIsBookFair = (evt) => {
+      const name = (evt?.name || '').toLowerCase();
+      return evt?.eventType === 'Book Fair' || name.includes('book fair') || name.includes('fair') || name.includes('srinagar') || name.includes('dehradun') || name.includes('bengali mela') || name.includes('diwali stall');
+    };
+
     posOrders.forEach(po => {
-      const isBookFair = po.event?.eventType === 'Book Fair' || po.event?.name?.toLowerCase().includes('fair');
+      const isBookFair = checkIsBookFair(po.event);
       const channelName = isBookFair ? 'Book Fairs' : 'Events';
       const kpiKey = isBookFair ? 'bookFairs' : 'events';
       kpiSplits[kpiKey].orders += 1;
@@ -3756,15 +3763,16 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
 
     const manualEvents = await prisma.event.findMany({
       where: {
-        OR: [
-          { status: 'Legacy Archive' },
-          { livePosEnabled: false }
-        ]
+        isArchived: false
       },
       include: {
         eventAuthors: {
           where: { manualTotalSold: { gt: 0 } },
           include: { author: { include: { books: true } } }
+        },
+        eventBooks: {
+          where: { soldStock: { gt: 0 } },
+          include: { book: { include: { author: true } } }
         }
       }
     });
@@ -3778,15 +3786,30 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
       }
 
       if (evtDate >= start && evtDate <= end) {
-        // Prevent double counting if POS orders already exist for this event
-        if (posEventIds.has(evt.id)) return;
+        const posBooksForEvent = posOrders.filter(po => po.eventId === evt.id).reduce((sum, po) => sum + po.items.reduce((s, i) => s + i.quantity, 0), 0);
 
-        const isBookFair = evt.eventType === 'Book Fair' || evt.name?.toLowerCase().includes('fair');
+        const isBookFair = checkIsBookFair(evt);
         const channelName = isBookFair ? 'Book Fairs' : 'Events';
         const kpiKey = isBookFair ? 'bookFairs' : 'events';
 
-        let totalEvtSold = evt.aggSold || 0;
-        let totalEvtRev = evt.aggRevenue || (totalEvtSold * 200) || 0;
+        if (posBooksForEvent === 0) {
+          kpiSplits[kpiKey].orders += 1;
+          totalOrders += 1;
+        }
+
+        let totalEvtSold = evt.aggSold != null 
+          ? evt.aggSold 
+          : (evt.eventBooks?.reduce((s, eb) => s + (eb.soldStock || 0), 0) || 0);
+        
+        let totalEvtRev = evt.aggRevenue != null ? evt.aggRevenue : (totalEvtSold * 200) || 0;
+
+        if (posBooksForEvent > 0 && totalEvtSold >= posBooksForEvent) {
+          totalEvtSold -= posBooksForEvent;
+          totalEvtRev = Math.max(0, totalEvtRev - (posOrders.filter(po => po.eventId === evt.id).reduce((sum, po) => sum + (po.totalAmount || 0), 0)));
+        } else if (posBooksForEvent > 0 && totalEvtSold < posBooksForEvent) {
+          totalEvtSold = 0;
+          totalEvtRev = 0;
+        }
 
         if (totalEvtSold > 0 || totalEvtRev > 0) {
           totalRevenue += totalEvtRev;
@@ -3803,9 +3826,7 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
           channelDataMap[channelName] += totalEvtRev;
           kpiSplits[kpiKey].revenue += totalEvtRev;
           kpiSplits[kpiKey].books += totalEvtSold;
-          kpiSplits[kpiKey].orders += 1;
-          totalOrders += 1;
-
+          
           let unaccountedQty = totalEvtSold;
           let unaccountedRev = totalEvtRev;
 
