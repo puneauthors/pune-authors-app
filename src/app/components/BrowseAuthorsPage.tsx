@@ -232,12 +232,25 @@ export function BrowseAuthorsPage() {
                   
                   // Parse qualifications
                   let parsedQuals: any[] = [];
-                  if (author.qualificationsJson) {
+                  if (author.qualification) {
+                    try {
+                      const parsed = typeof author.qualification === 'string' ? JSON.parse(author.qualification) : author.qualification;
+                      if (Array.isArray(parsed) && parsed.length > 0) {
+                        parsedQuals = parsed;
+                      } else if (parsed && typeof parsed === 'object') {
+                        parsedQuals = [parsed];
+                      } else if (typeof author.qualification === 'string' && author.qualification.trim()) {
+                        parsedQuals = [{ qualification: author.qualification, institution: author.institution, subject: author.subject }];
+                      }
+                    } catch(e) {
+                      if (typeof author.qualification === 'string' && author.qualification.trim()) {
+                        parsedQuals = [{ qualification: author.qualification, institution: author.institution, subject: author.subject }];
+                      }
+                    }
+                  }
+                  if (parsedQuals.length === 0 && author.qualificationsJson) {
                     parsedQuals = Array.isArray(author.qualificationsJson) ? author.qualificationsJson : 
-                                   (typeof author.qualificationsJson === 'string' ? JSON.parse(author.qualificationsJson).catch(()=>[]) : []);
-                  } else if (author.qualification) {
-                    try { parsedQuals = JSON.parse(author.qualification); } 
-                    catch(e) { parsedQuals = [{ qualification: author.qualification, institution: author.institution }]; }
+                                   (typeof author.qualificationsJson === 'string' ? (() => { try { return JSON.parse(author.qualificationsJson); } catch(e) { return []; } })() : []);
                   }
                   if (!Array.isArray(parsedQuals)) parsedQuals = [];
 
@@ -301,13 +314,14 @@ export function BrowseAuthorsPage() {
                               </div>
                               <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
                                 {parsedQuals.slice(0, 1).map((q: any, i) => {
-                                  const degreeText = q.qualification || q.degree || "";
-                                  const subjectText = q.subject || "";
-                                  let displayStr = degreeText;
-                                  if (subjectText) displayStr += (displayStr ? ` in ${subjectText}` : subjectText);
+                                  const qualName = q.qualification || q.degree || "";
+                                  const inst = q.institution || q.college || "";
+                                  const subj = q.subject || "";
                                   return (
                                     <div key={i} style={{ fontSize: 11, color: C.muted, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                      <span style={{ fontWeight: 600, color: C.text }}>{displayStr}</span>{q.institution || q.college ? ` from ${q.institution || q.college}` : ""}
+                                      <strong style={{ fontWeight: 700, color: C.text }}>{qualName}</strong>
+                                      {inst ? ` — ${inst}` : ""}
+                                      {subj ? ` (${subj})` : ""}
                                     </div>
                                   );
                                 })}
