@@ -196,7 +196,28 @@ export function AuthorPublicProfilePage() {
     );
   }
 
-  const quals = author.qualificationsJson || [];
+  let quals: any[] = [];
+  if (author.qualification) {
+    try {
+      const parsed = typeof author.qualification === 'string' ? JSON.parse(author.qualification) : author.qualification;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        quals = parsed;
+      } else if (parsed && typeof parsed === 'object') {
+        quals = [parsed];
+      } else if (typeof author.qualification === 'string' && author.qualification.trim()) {
+        quals = [{ qualification: author.qualification, institution: author.institution, subject: author.subject }];
+      }
+    } catch(e) {
+      if (typeof author.qualification === 'string' && author.qualification.trim()) {
+        quals = [{ qualification: author.qualification, institution: author.institution, subject: author.subject }];
+      }
+    }
+  }
+  if (quals.length === 0 && author.qualificationsJson) {
+    quals = Array.isArray(author.qualificationsJson) ? author.qualificationsJson : 
+             (typeof author.qualificationsJson === 'string' ? (() => { try { return JSON.parse(author.qualificationsJson); } catch(e) { return []; } })() : []);
+  }
+  if (!Array.isArray(quals)) quals = [];
   const events = author.eventAuthors?.map((ea: any) => ea.event) || [];
 
   return (
@@ -245,20 +266,16 @@ export function AuthorPublicProfilePage() {
                 <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.5rem" }}>
                   Education
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                   {quals.map((q: any, i: number) => {
-                    const degreeText = q.qualification || q.degree || "";
-                    const subjectText = q.subject || "";
-                    const instText = q.institution || "";
-                    let displayStr = degreeText;
-                    if (subjectText) displayStr += (displayStr ? ` in ${subjectText}` : subjectText);
+                    const qualName = q.qualification || q.degree || "";
+                    const inst = q.institution || q.college || "";
+                    const subj = q.subject || "";
                     return (
-                      <div key={i}>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: C.dark }}>{displayStr || "Degree"}</div>
-                        {q.mode && (
-                          <div style={{ fontSize: 12, fontWeight: 800, color: C.primary, marginTop: "0.2rem", textTransform: "uppercase", letterSpacing: "0.03em" }}>{q.mode}</div>
-                        )}
-                        <div style={{ fontSize: 14, color: C.muted, marginTop: "0.2rem" }}>{instText || "University"}</div>
+                      <div key={i} style={{ fontSize: 13, color: '#1a1a2e', fontWeight: 500, lineHeight: 1.4 }}>
+                        <strong style={{ fontWeight: 700 }}>{qualName}</strong>
+                        {inst ? ` — ${inst}` : ""}
+                        {subj ? ` (${subj})` : ""}
                       </div>
                     );
                   })}

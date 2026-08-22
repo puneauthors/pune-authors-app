@@ -23,6 +23,7 @@ export function BrowseAuthorsPage() {
   const [authors, setAuthors] = useState<any[]>([]);
   const [filteredAuthors, setFilteredAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+<<<<<<< HEAD
   const [bannerImage, setBannerImage] = useState("");
 
   useEffect(() => {
@@ -32,9 +33,12 @@ export function BrowseAuthorsPage() {
           setBannerImage(res.data.landingConfig.inviteAuthorBannerImage);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
-  
+=======
+  const [bannerImage, setBannerImage] = useState("/panel-discussion.webp");
+>>>>>>> 32515f5976ebe6326fd6f5dc5e8f69d40bfb1010
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
@@ -57,7 +61,19 @@ export function BrowseAuthorsPage() {
         setLoading(false);
       }
     };
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/public-stats`);
+        if (res.data?.settings?.invite_author_banner_image) {
+          const imgUrl = res.data.settings.invite_author_banner_image;
+          setBannerImage(imgUrl.startsWith("http") ? imgUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${imgUrl}`);
+        }
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      }
+    };
     fetchAuthors();
+    fetchStats();
   }, []);
 
   // Compute unique filter options
@@ -113,24 +129,30 @@ export function BrowseAuthorsPage() {
   return (
     <main style={{ fontFamily: "'Google Sans', 'Montserrat', sans-serif", background: C.cream, minHeight: "100vh" }}>
       {/* Hero Section */}
-            <section style={{ padding: "11.5rem 2rem 8rem", textAlign: "center", position: "relative", overflow: "hidden", backgroundColor: "#fff" }}>
-        <div style={{ 
-          position: "absolute", 
-          inset: 0, 
-          backgroundImage: bannerImage ? `url(${bannerImage.startsWith('data:') ? bannerImage : (import.meta.env.VITE_API_URL || 'http://localhost:3001') + bannerImage})` : "url('/panel-discussion.webp')", 
-          backgroundSize: bannerImage ? "contain" : "cover", 
+      <section style={{ padding: "11.5rem 2rem 8rem", textAlign: "center", position: "relative", overflow: "hidden", backgroundColor: "#fff" }}>
+        <div style={{
+          position: "absolute",
+          inset: 0,
+<<<<<<< HEAD
+          backgroundImage: bannerImage ? `url(${bannerImage.startsWith('data:') ? bannerImage : (import.meta.env.VITE_API_URL || 'http://localhost:3001') + bannerImage})` : "url('/panel-discussion.webp')",
+          backgroundSize: bannerImage ? "contain" : "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
+=======
+          backgroundImage: `url('${bannerImage}')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center 15%",
+>>>>>>> 32515f5976ebe6326fd6f5dc5e8f69d40bfb1010
           filter: "grayscale(100%)",
         }}></div>
         <div style={{ position: "relative", zIndex: 1, maxWidth: 1000, margin: "0 auto", textAlign: "center", marginTop: "8rem" }}>
-          <h1 style={{ 
-            fontFamily: "'Playfair Display', serif", 
-            fontSize: "clamp(2.5rem, 5vw, 4.5rem)", 
-            color: "#FF6B00", 
-            fontWeight: 800, 
-            lineHeight: 1.4, 
-            letterSpacing: "-0.02em", 
+          <h1 style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(2.5rem, 5vw, 4.5rem)",
+            color: "#FF6B00",
+            fontWeight: 800,
+            lineHeight: 1.4,
+            letterSpacing: "-0.02em",
             margin: 0,
             display: "inline",
             background: "rgba(255, 255, 255, 0.4)",
@@ -160,10 +182,10 @@ export function BrowseAuthorsPage() {
 
       {/* Main Content */}
       <div style={{ maxWidth: 1350, margin: "0 auto", padding: "4rem 2rem" }} className="browse-container">
-        
+
         {/* Horizontal Filter Bar */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", background: "#fff", padding: "1rem", border: `1px solid ${C.border}`, marginBottom: "1.5rem" }} className="filter-bar">
-          
+
           <div style={{ flex: "1 1 250px", display: "flex", gap: "0.5rem", padding: "0 1rem" }}>
             <div style={{ display: "flex", alignItems: "center", color: C.muted }}>
               <Search size={20} />
@@ -183,11 +205,11 @@ export function BrowseAuthorsPage() {
             value={selectedGenre}
             onChange={(e) => setSelectedGenre(e.target.value)}
             style={{ padding: "0.8rem 1.5rem", border: "none", outline: "none", background: C.dark, borderRadius: 50, fontSize: 14, color: C.white, cursor: "pointer", fontWeight: 600 }}
-            className="filter-select"
+            className="filter-select filter-select-genre"
           >
-            <option value="">All Genres</option>
+            <option value="" style={{ color: "#ffffff", backgroundColor: "#111111" }}>All Genres</option>
             {uniqueGenres.map(g => (
-              <option key={g as string} value={g as string}>{g as string}</option>
+              <option key={g as string} value={g as string} style={{ color: "#ffffff", backgroundColor: "#111111" }}>{g as string}</option>
             ))}
           </select>
 
@@ -195,11 +217,11 @@ export function BrowseAuthorsPage() {
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
             style={{ padding: "0.8rem 1.5rem", border: "none", outline: "none", background: C.gold, borderRadius: 50, fontSize: 14, color: C.white, cursor: "pointer", fontWeight: 600 }}
-            className="filter-select"
+            className="filter-select filter-select-city"
           >
-            <option value="">All Cities</option>
+            <option value="" style={{ color: "#ffffff", backgroundColor: "#FF6600" }}>All Cities</option>
             {uniqueCities.map(c => (
-              <option key={c as string} value={c as string}>{c as string}</option>
+              <option key={c as string} value={c as string} style={{ color: "#ffffff", backgroundColor: "#FF6600" }}>{c as string}</option>
             ))}
           </select>
 
@@ -240,26 +262,39 @@ export function BrowseAuthorsPage() {
             <>
               <div style={{ display: "grid", gap: "2rem", marginBottom: "4rem" }} className="author-grid">
                 {currentAuthors.map((author, index) => {
-                  
+
                   // Parse qualifications
                   let parsedQuals: any[] = [];
-                  if (author.qualificationsJson) {
-                    parsedQuals = Array.isArray(author.qualificationsJson) ? author.qualificationsJson : 
-                                   (typeof author.qualificationsJson === 'string' ? JSON.parse(author.qualificationsJson).catch(()=>[]) : []);
-                  } else if (author.qualification) {
-                    try { parsedQuals = JSON.parse(author.qualification); } 
-                    catch(e) { parsedQuals = [{ qualification: author.qualification, institution: author.institution }]; }
+                  if (author.qualification) {
+                    try {
+                      const parsed = typeof author.qualification === 'string' ? JSON.parse(author.qualification) : author.qualification;
+                      if (Array.isArray(parsed) && parsed.length > 0) {
+                        parsedQuals = parsed;
+                      } else if (parsed && typeof parsed === 'object') {
+                        parsedQuals = [parsed];
+                      } else if (typeof author.qualification === 'string' && author.qualification.trim()) {
+                        parsedQuals = [{ qualification: author.qualification, institution: author.institution, subject: author.subject }];
+                      }
+                    } catch (e) {
+                      if (typeof author.qualification === 'string' && author.qualification.trim()) {
+                        parsedQuals = [{ qualification: author.qualification, institution: author.institution, subject: author.subject }];
+                      }
+                    }
+                  }
+                  if (parsedQuals.length === 0 && author.qualificationsJson) {
+                    parsedQuals = Array.isArray(author.qualificationsJson) ? author.qualificationsJson :
+                      (typeof author.qualificationsJson === 'string' ? (() => { try { return JSON.parse(author.qualificationsJson); } catch (e) { return []; } })() : []);
                   }
                   if (!Array.isArray(parsedQuals)) parsedQuals = [];
 
                   // Parse skills
                   let parsedSkills: string[] = [];
                   if (author.skillsJson) {
-                    parsedSkills = Array.isArray(author.skillsJson) ? author.skillsJson : 
-                                   (typeof author.skillsJson === 'string' ? JSON.parse(author.skillsJson).catch(()=>[]) : []);
+                    parsedSkills = Array.isArray(author.skillsJson) ? author.skillsJson :
+                      (typeof author.skillsJson === 'string' ? JSON.parse(author.skillsJson).catch(() => []) : []);
                   } else if (author.skills) {
-                    try { parsedSkills = JSON.parse(author.skills); } 
-                    catch(e) { parsedSkills = [author.skills]; }
+                    try { parsedSkills = JSON.parse(author.skills); }
+                    catch (e) { parsedSkills = [author.skills]; }
                   }
                   if (!Array.isArray(parsedSkills)) parsedSkills = [];
 
@@ -279,12 +314,12 @@ export function BrowseAuthorsPage() {
                     >
                       {/* Top Banner */}
                       <div style={{ height: "40px", background: "linear-gradient(135deg, rgba(0, 51, 255, 0.06) 0%, rgba(255, 107, 0, 0.06) 100%)", borderBottom: `1px solid ${C.border}`, backgroundImage: "linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)", backgroundSize: "16px 16px" }}></div>
-                      
+
                       {/* Avatar overlapping banner */}
                       <div style={{ padding: "0 1rem", marginTop: "-25px", display: "flex", flexDirection: "row", alignItems: "flex-end", gap: "0.8rem", position: "relative", zIndex: 2 }}>
                         <div style={{
                           width: 54, height: 54, borderRadius: "50%", background: C.white, border: `3px solid ${C.white}`,
-                          display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", 
+                          display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
                           boxShadow: "0 2px 6px rgba(0,0,0,0.05)", flexShrink: 0
                         }}>
                           {author.photoUrl ? (
@@ -293,16 +328,16 @@ export function BrowseAuthorsPage() {
                             <span style={{ fontSize: 20, fontWeight: 800, color: C.gold, fontFamily: "var(--font-display)" }}>{author.name.charAt(0)}</span>
                           )}
                         </div>
-                        
+
                         <div style={{ paddingBottom: "0.2rem", flex: 1, overflow: "hidden" }}>
                           <p style={{ fontSize: 9, color: C.amber, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.1rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{author.city || "Pune"}</p>
                           <h3 style={{ fontSize: 16, fontWeight: 800, color: C.dark, fontFamily: "var(--font-display)", lineHeight: 1.1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{author.name}</h3>
                         </div>
                       </div>
-                      
+
                       {/* Details & Footer */}
                       <div style={{ padding: "0.8rem 1rem", flex: 1, display: "flex", flexDirection: "column" }}>
-                        
+
                         {/* Qualifications & Skills */}
                         <div style={{ marginBottom: "0.8rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                           {parsedQuals.length > 0 && (
@@ -312,13 +347,14 @@ export function BrowseAuthorsPage() {
                               </div>
                               <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
                                 {parsedQuals.slice(0, 1).map((q: any, i) => {
-                                  const degreeText = q.qualification || q.degree || "";
-                                  const subjectText = q.subject || "";
-                                  let displayStr = degreeText;
-                                  if (subjectText) displayStr += (displayStr ? ` in ${subjectText}` : subjectText);
+                                  const qualName = q.qualification || q.degree || "";
+                                  const inst = q.institution || q.college || "";
+                                  const subj = q.subject || "";
                                   return (
                                     <div key={i} style={{ fontSize: 11, color: C.muted, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                      <span style={{ fontWeight: 600, color: C.text }}>{displayStr}</span>{q.institution || q.college ? ` from ${q.institution || q.college}` : ""}
+                                      <strong style={{ fontWeight: 700, color: C.text }}>{qualName}</strong>
+                                      {inst ? ` — ${inst}` : ""}
+                                      {subj ? ` (${subj})` : ""}
                                     </div>
                                   );
                                 })}
@@ -348,14 +384,14 @@ export function BrowseAuthorsPage() {
                             {author.bio || "No biography provided."}
                           </p>
                         </div>
-                        
+
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "0.8rem", borderTop: `1px solid ${C.border}` }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", background: C.white, padding: "0.3rem 0.6rem", borderRadius: 30, border: `1px solid ${C.border}` }}>
                             <BookOpen size={12} color={C.muted} />
                             <span style={{ fontSize: 11, fontWeight: 700, color: C.dark }}>{author.books?.length || 0}</span>
                             <span style={{ fontSize: 11, fontWeight: 600, color: C.muted }}>Books</span>
                           </div>
-                          
+
                           <div style={{ fontSize: 11, fontWeight: 700, color: C.white, background: C.amber, padding: "0.4rem 0.8rem", borderRadius: 30, display: "flex", alignItems: "center", gap: "0.2rem", transition: "all 0.2s" }} className="view-profile-btn">
                             View Profile <ChevronRight size={12} />
                           </div>
@@ -369,23 +405,23 @@ export function BrowseAuthorsPage() {
               {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem" }}>
-                  <button 
+                  <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     style={{ width: 40, height: 40, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${C.border}`, background: currentPage === 1 ? "transparent" : C.white, color: currentPage === 1 ? C.border : C.dark, cursor: currentPage === 1 ? "default" : "pointer", transition: "all 0.2s" }}
                   >
                     <ChevronLeft size={20} />
                   </button>
-                  
+
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      style={{ 
-                        width: 40, height: 40, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", 
-                        border: page === currentPage ? "none" : `1px solid ${C.border}`, 
-                        background: page === currentPage ? C.gold : C.white, 
-                        color: page === currentPage ? C.white : C.dark, 
+                      style={{
+                        width: 40, height: 40, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                        border: page === currentPage ? "none" : `1px solid ${C.border}`,
+                        background: page === currentPage ? C.gold : C.white,
+                        color: page === currentPage ? C.white : C.dark,
                         fontWeight: page === currentPage ? 800 : 600,
                         cursor: "pointer", transition: "all 0.2s",
                         fontSize: 14
@@ -395,7 +431,7 @@ export function BrowseAuthorsPage() {
                     </button>
                   ))}
 
-                  <button 
+                  <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     style={{ width: 40, height: 40, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${C.border}`, background: currentPage === totalPages ? "transparent" : C.white, color: currentPage === totalPages ? C.border : C.dark, cursor: currentPage === totalPages ? "default" : "pointer", transition: "all 0.2s" }}
@@ -436,13 +472,45 @@ export function BrowseAuthorsPage() {
         }
         .filter-select {
           border-radius: 50px;
+          border: none !important;
+          outline: none !important;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 14px;
+          padding: 0.8rem 2.2rem 0.8rem 1.5rem !important;
+          appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          background-repeat: no-repeat !important;
+          background-position: right 1.1rem center !important;
+          background-size: 12px !important;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+        }
+        .filter-select-genre {
+          background-color: #111111 !important;
+          color: #ffffff !important;
+        }
+        .filter-select-genre option {
+          background-color: #111111 !important;
+          color: #ffffff !important;
+          padding: 8px 12px;
+        }
+        .filter-select-city {
+          background-color: #FF6600 !important;
+          color: #ffffff !important;
+        }
+        .filter-select-city option {
+          background-color: #FF6600 !important;
+          color: #ffffff !important;
+          padding: 8px 12px;
         }
         @media (max-width: 768px) {
           .filter-bar {
             flex-direction: column;
             border-radius: 20px !important;
-            padding: 1.5rem !important;
+            padding: 1.25rem !important;
             align-items: stretch !important;
+            gap: 0.75rem !important;
           }
           .filter-bar > div:first-child {
             background: #f8f9fa;
@@ -451,9 +519,16 @@ export function BrowseAuthorsPage() {
             flex-basis: auto !important;
           }
           .filter-select {
-            width: 100%;
-            background: #f8f9fa !important;
-            margin-bottom: 0.5rem;
+            width: 100% !important;
+            padding: 0.85rem 2.2rem 0.85rem 1.5rem !important;
+          }
+          .filter-select-genre {
+            background-color: #111111 !important;
+            color: #ffffff !important;
+          }
+          .filter-select-city {
+            background-color: #FF6600 !important;
+            color: #ffffff !important;
           }
           .clear-btn {
             width: 100%;

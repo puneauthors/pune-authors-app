@@ -189,7 +189,12 @@ router.get('/api/public-stats', async (req, res) => {
             'landing_title_color', 'landing_highlight_color', 'landing_subtitle_color',
             'landing_featured_categories',
             'author_hero_title', 'author_hero_highlight', 'author_hero_subtitle',
+<<<<<<< HEAD
             'organizer_hero_title', 'organizer_hero_highlight', 'organizer_hero_subtitle', 'about_page_image', 'invite_author_banner_image'
+=======
+            'organizer_hero_title', 'organizer_hero_highlight', 'organizer_hero_subtitle',
+            'about_page_image', 'invite_author_banner_image'
+>>>>>>> 32515f5976ebe6326fd6f5dc5e8f69d40bfb1010
           ]
         }
       }
@@ -1819,18 +1824,21 @@ router.get('/api/admin/dashboard-stats', verifyToken, isAdmin, async (req, res) 
       else totalLiteraryEvents++;
     });
 
-    // 1. Total Revenue & Total Books Sold (Fast Database Aggregation)
-    const [webAgg, posAgg, legacyEventsAll, webItemsAgg, posItemsAgg] = await Promise.all([
+    // 1. Total Revenue & Total Books Sold (Unified Platform Aggregation)
+    const [webAgg, allEventsForStats, webItemsAgg] = await Promise.all([
       prisma.order.aggregate({
         _sum: { amount: true },
         where: { status: { in: ['Completed', 'Delivered', 'Shipped', 'Dispatched'] } }
       }),
-      prisma.posOrder.aggregate({
-        _sum: { totalAmount: true }
-      }),
       prisma.event.findMany({
-        where: { status: 'Legacy Archive' },
-        select: { aggRevenue: true, aggSold: true }
+        where: { isArchived: false },
+        select: {
+          id: true,
+          aggRevenue: true,
+          aggSold: true,
+          status: true,
+          eventBooks: { select: { soldStock: true } }
+        }
       }),
       prisma.orderItem.aggregate({
         _sum: { quantity: true },
@@ -1838,27 +1846,23 @@ router.get('/api/admin/dashboard-stats', verifyToken, isAdmin, async (req, res) 
           order: { status: { in: ['Completed', 'Delivered', 'Shipped', 'Dispatched'] } },
           status: { notIn: ['Cancelled', 'Rejected'] }
         }
-      }),
-      prisma.posOrderItem.aggregate({
-        _sum: { quantity: true },
-        where: {
-          posOrder: { paymentStatus: 'CONFIRMED' }
-        }
       })
     ]);
 
     let webRevenue = webAgg._sum.amount || 0;
-    let posRevenue = posAgg._sum.totalAmount || 0;
-    let legacyRevenue = 0;
-    let legacyBooksSold = 0;
-    legacyEventsAll.forEach(evt => {
-      const qty = evt.aggSold || 0;
-      legacyRevenue += evt.aggRevenue || (qty * 200) || 0;
-      legacyBooksSold += qty;
+    let eventsRevenue = 0;
+    let eventsBooksSold = 0;
+    allEventsForStats.forEach(evt => {
+      const books = evt.aggSold != null
+        ? evt.aggSold
+        : (evt.eventBooks?.reduce((s, eb) => s + (eb.soldStock || 0), 0) || 0);
+      const rev = evt.aggRevenue != null ? evt.aggRevenue : (Number(books) * 200);
+      eventsBooksSold += (Number(books) || 0);
+      eventsRevenue += (Number(rev) || 0);
     });
 
-    const totalRevenue = webRevenue + posRevenue + legacyRevenue;
-    const totalBooksSold = (webItemsAgg._sum.quantity || 0) + (posItemsAgg._sum.quantity || 0) + legacyBooksSold;
+    const totalRevenue = webRevenue + eventsRevenue;
+    const totalBooksSold = (webItemsAgg._sum.quantity || 0) + eventsBooksSold;
 
     // 2. Revenue Data (Last 6 Months)
     // We can use Prisma groupBy or queryRaw. To be safe across DBs, we'll fetch only date & amount for web orders
@@ -2398,7 +2402,11 @@ router.get('/api/author/dashboard-data', verifyToken, async (req, res) => {
 
     try {
       authorProfile.donationRegistrations = await prisma.donationRegistration.findMany({
-        where: { authorId: authorProfile.id },
+        where: {
+          authorId: authorProfile.id,
+          isArchived: false,
+          announcement: { isArchived: false }
+        },
         include: {
           announcement: { include: { library: true } },
           books: { include: { book: true } }
@@ -2485,7 +2493,7 @@ router.get('/api/author/dashboard-data', verifyToken, async (req, res) => {
     let activeDonations = [];
     try {
       activeDonations = await prisma.donationAnnouncement.findMany({
-        where: { visibility: 'Published' },
+        where: { visibility: 'Published', isArchived: false },
         include: { library: true }
       });
     } catch (e) { }
@@ -2879,15 +2887,15 @@ router.put('/api/admin/books/:id/cover', verifyToken, isAdmin, upload.single('co
       where: { id: bookId },
       data: { coverUrl }
     });
-    
+
     deleteCatalogueCache();
     invalidateCache('adminAuthors');
     invalidateCache('admin:dashboard-stats');
     if (book.authorId) {
-       const author = await prisma.author.findUnique({ where: { id: book.authorId } });
-       if (author) invalidateCache(`author:dashboard:${author.email}`);
+      const author = await prisma.author.findUnique({ where: { id: book.authorId } });
+      if (author) invalidateCache(`author:dashboard:${author.email}`);
     }
-    
+
     res.json(updated);
   } catch (err) {
     console.error(err);
@@ -3663,7 +3671,10 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
     let start = new Date(startDate);
     let end = new Date(endDate);
 
-    if (filterType === 'select_month' && selectedMonth && selectedYear) {
+    if (filterType === 'lifetime') {
+      start = new Date('2000-01-01');
+      end = new Date('2099-12-31');
+    } else if (filterType === 'select_month' && selectedMonth && selectedYear) {
       start = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, 1);
       end = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0);
     }
@@ -3737,8 +3748,13 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
       });
     });
 
+    const checkIsBookFair = (evt) => {
+      const name = (evt?.name || '').toLowerCase();
+      return evt?.eventType === 'Book Fair' || name.includes('book fair') || name.includes('fair') || name.includes('srinagar') || name.includes('dehradun') || name.includes('bengali mela') || name.includes('diwali stall');
+    };
+
     posOrders.forEach(po => {
-      const isBookFair = po.event?.eventType === 'Book Fair' || po.event?.name?.toLowerCase().includes('fair');
+      const isBookFair = checkIsBookFair(po.event);
       const channelName = isBookFair ? 'Book Fairs' : 'Events';
       const kpiKey = isBookFair ? 'bookFairs' : 'events';
       kpiSplits[kpiKey].orders += 1;
@@ -3754,15 +3770,16 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
 
     const manualEvents = await prisma.event.findMany({
       where: {
-        OR: [
-          { status: 'Legacy Archive' },
-          { livePosEnabled: false }
-        ]
+        isArchived: false
       },
       include: {
         eventAuthors: {
           where: { manualTotalSold: { gt: 0 } },
           include: { author: { include: { books: true } } }
+        },
+        eventBooks: {
+          where: { soldStock: { gt: 0 } },
+          include: { book: { include: { author: true } } }
         }
       }
     });
@@ -3776,15 +3793,30 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
       }
 
       if (evtDate >= start && evtDate <= end) {
-        // Prevent double counting if POS orders already exist for this event
-        if (posEventIds.has(evt.id)) return;
+        const posBooksForEvent = posOrders.filter(po => po.eventId === evt.id).reduce((sum, po) => sum + po.items.reduce((s, i) => s + i.quantity, 0), 0);
 
-        const isBookFair = evt.eventType === 'Book Fair' || evt.name?.toLowerCase().includes('fair');
+        const isBookFair = checkIsBookFair(evt);
         const channelName = isBookFair ? 'Book Fairs' : 'Events';
         const kpiKey = isBookFair ? 'bookFairs' : 'events';
 
-        let totalEvtSold = evt.aggSold || 0;
-        let totalEvtRev = evt.aggRevenue || (totalEvtSold * 200) || 0;
+        if (posBooksForEvent === 0) {
+          kpiSplits[kpiKey].orders += 1;
+          totalOrders += 1;
+        }
+
+        let totalEvtSold = evt.aggSold != null
+          ? evt.aggSold
+          : (evt.eventBooks?.reduce((s, eb) => s + (eb.soldStock || 0), 0) || 0);
+
+        let totalEvtRev = evt.aggRevenue != null ? evt.aggRevenue : (totalEvtSold * 200) || 0;
+
+        if (posBooksForEvent > 0 && totalEvtSold >= posBooksForEvent) {
+          totalEvtSold -= posBooksForEvent;
+          totalEvtRev = Math.max(0, totalEvtRev - (posOrders.filter(po => po.eventId === evt.id).reduce((sum, po) => sum + (po.totalAmount || 0), 0)));
+        } else if (posBooksForEvent > 0 && totalEvtSold < posBooksForEvent) {
+          totalEvtSold = 0;
+          totalEvtRev = 0;
+        }
 
         if (totalEvtSold > 0 || totalEvtRev > 0) {
           totalRevenue += totalEvtRev;
@@ -3801,8 +3833,6 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
           channelDataMap[channelName] += totalEvtRev;
           kpiSplits[kpiKey].revenue += totalEvtRev;
           kpiSplits[kpiKey].books += totalEvtSold;
-          kpiSplits[kpiKey].orders += 1;
-          totalOrders += 1;
 
           let unaccountedQty = totalEvtSold;
           let unaccountedRev = totalEvtRev;
@@ -5027,14 +5057,14 @@ router.post('/api/admin/events/:eventId/author/:authorId/approve', verifyToken, 
     });
 
     const isExempt = Boolean(
-      existingRegistration?.isFeeExempt || 
+      existingRegistration?.isFeeExempt ||
       (event?.exemptAuthorIds && Array.isArray(event.exemptAuthorIds) && event.exemptAuthorIds.includes(authorId))
     );
 
     if (existingRegistration) {
       await prisma.eventAuthor.update({
         where: { id: existingRegistration.id },
-        data: { 
+        data: {
           optInStatus: 'Approved',
           isFeeExempt: isExempt,
           ...(isExempt ? { paymentStatus: 'Paid' } : {})
@@ -5109,26 +5139,26 @@ router.post('/api/admin/events/:eventId/author/:authorId/verify-payment', verify
       let calcPaid = existingRegistration.amountPaid || 0;
       if (!calcPaid && existingRegistration.event) {
         if (existingRegistration.event.feeType === 'Per Title') {
-           const eventBooksCount = await prisma.eventBook.count({ where: { eventId, authorId } });
-           calcPaid = (existingRegistration.event.registrationFee || 0) * eventBooksCount;
+          const eventBooksCount = await prisma.eventBook.count({ where: { eventId, authorId } });
+          calcPaid = (existingRegistration.event.registrationFee || 0) * eventBooksCount;
         } else {
-           calcPaid = (existingRegistration.event.registrationFee || 0);
+          calcPaid = (existingRegistration.event.registrationFee || 0);
         }
       }
 
       await prisma.eventAuthor.update({
         where: { id: existingRegistration.id },
-        data: { 
+        data: {
           optInStatus: 'Registered',
           paymentStatus: 'Paid',
           amountPaid: calcPaid
         }
       });
-      
+
       if (existingRegistration.author) {
         invalidateCache(`author:dashboard:${existingRegistration.author.email}`);
         invalidateCache(`author:events:${existingRegistration.author.email}`);
-        
+
         sendNotificationEmail(
           existingRegistration.author.email,
           `Payment Verified: Event Registration Confirmed - ${existingRegistration.event?.name}`,
@@ -5161,17 +5191,17 @@ router.post('/api/admin/events/:eventId/author/:authorId/reject-payment', verify
     if (existingRegistration) {
       await prisma.eventAuthor.update({
         where: { id: existingRegistration.id },
-        data: { 
+        data: {
           paymentScreenshot: null,
           transactionId: null,
           paymentStatus: 'Rejected'
         }
       });
-      
+
       if (existingRegistration.author) {
         invalidateCache(`author:dashboard:${existingRegistration.author.email}`);
         invalidateCache(`author:events:${existingRegistration.author.email}`);
-        
+
         sendNotificationEmail(
           existingRegistration.author.email,
           `Action Required: Payment Verification Failed - ${existingRegistration.event?.name}`,
@@ -5406,7 +5436,7 @@ router.get('/api/author/events', verifyToken, async (req, res) => {
       const isAvailExempt = Boolean(Array.isArray(ae.exemptAuthorIds) && ae.exemptAuthorIds.includes(author.id));
       ae.isFeeExempt = isAvailExempt;
     });
-    eventInvites.forEach(ei => { 
+    eventInvites.forEach(ei => {
       const isExempt = Boolean(ei.isFeeExempt || (ei.event?.exemptAuthorIds && Array.isArray(ei.event.exemptAuthorIds) && ei.event.exemptAuthorIds.includes(author.id)));
       ei.isFeeExempt = isExempt;
       if (ei.event) {
@@ -5542,7 +5572,7 @@ router.get('/api/author/book-performance', verifyToken, async (req, res) => {
         book: { authorId: author.id },
         status: { in: ['Pending Verification', 'Accepted', 'Dispatched', 'Completed', 'Delivered'] }
       },
-      include: { 
+      include: {
         book: true,
         order: { select: { createdAt: true } }
       }
@@ -5555,7 +5585,7 @@ router.get('/api/author/book-performance', verifyToken, async (req, res) => {
       const orderDate = item.order?.createdAt ? new Date(item.order.createdAt) : new Date();
       const dateStr = orderDate.toISOString().split('T')[0];
       const key = `${title}_${dateStr}`;
-      
+
       if (!webOrderMap[key]) {
         webOrderMap[key] = {
           eventId: 999999, // Dummy ID for Web Orders
@@ -5919,16 +5949,16 @@ router.post('/api/author/events/:eventId/pay', verifyToken, upload.single('payme
 
     const paymentScreenshot = `/uploads/${req.file.filename}`;
     const transactionId = req.body.transactionId || null;
-    
+
     const existingRecord = await prisma.eventAuthor.findFirst({ where: { eventId, authorId: author.id } });
     if (!existingRecord) return res.status(404).json({ error: 'Registration not found' });
 
     await prisma.eventAuthor.update({
       where: { id: existingRecord.id },
-      data: { 
+      data: {
         paymentScreenshot,
         ...(transactionId && { transactionId }),
-        paymentStatus: 'Pending Verification' 
+        paymentStatus: 'Pending Verification'
       }
     });
 
@@ -5953,7 +5983,7 @@ router.post('/api/author/activities/:activityId/pay', verifyToken, upload.single
 
     await prisma.eventRegistration.update({
       where: { id: existingRecord.id },
-      data: { 
+      data: {
         paymentScreenshot,
         ...(transactionId && { transactionId })
       }
@@ -6052,8 +6082,8 @@ router.post('/api/admin/events', verifyToken, isAdmin, upload.single('banner'), 
         const feeText = isAuthorExempt
           ? '<p style="margin: 8px 0; font-size: 15px;"><strong>💰 Registration:</strong> <span style="color: #16a34a; font-weight: bold;">Free (Fee Waived by Admin)</span></p>'
           : (event.registrationFee > 0
-              ? `<p style="margin: 8px 0; font-size: 15px;"><strong>💰 Registration Fee:</strong> ₹${event.registrationFee} ${event.feeType === 'Per Title' ? 'per title' : ''}</p>`
-              : '<p style="margin: 8px 0; font-size: 15px;"><strong>💰 Registration:</strong> Free</p>');
+            ? `<p style="margin: 8px 0; font-size: 15px;"><strong>💰 Registration Fee:</strong> ₹${event.registrationFee} ${event.feeType === 'Per Title' ? 'per title' : ''}</p>`
+            : '<p style="margin: 8px 0; font-size: 15px;"><strong>💰 Registration:</strong> Free</p>');
 
         const content = `
           ${bannerHtml}
@@ -8606,7 +8636,7 @@ ${description || ''}`;
     if (typeof sendNotificationEmail === 'function' && typeof emailWrap === 'function') {
       try {
         const adminEmail = typeof getAdminEmails === 'function' ? getAdminEmails() : 'info@puneauthorsassociation.com';
-        
+
         const adminContent = `
           <p>A new event proposal has been submitted by an author on the platform.</p>
           <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">

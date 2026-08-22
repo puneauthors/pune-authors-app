@@ -31,7 +31,7 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
   const fetchMyRegistrations = async () => {
     try {
       const res = await axios.get(`${API}/api/author/donation-registrations`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-      setMyRegistrations(res.data);
+      setMyRegistrations((res.data || []).filter((r: any) => !r.isArchived && !r.announcement?.isArchived));
     } catch (err) {
       console.error(err);
     }
@@ -57,9 +57,9 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
           axios.get(`${API}/api/author/books`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
           axios.get(`${API}/api/author/donation-registrations`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
         ]);
-        setAnnouncements(annRes.data);
+        setAnnouncements((annRes.data || []).filter((a: any) => !a.isArchived));
         setAuthorBooks(booksRes.data.filter((b: any) => b.status === 'Approved'));
-        setMyRegistrations(regRes.data);
+        setMyRegistrations((regRes.data || []).filter((r: any) => !r.isArchived && !r.announcement?.isArchived));
       } catch (err) {
         toast.error('Failed to load data');
       } finally {
@@ -306,19 +306,20 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
   };
 
   // Stats Calculations
+  const validRegistrations = myRegistrations.filter((reg: any) => !reg.isArchived && !reg.announcement?.isArchived);
   const statsCampaigns = new Set(
-    myRegistrations
-      .filter((reg: any) => reg.status !== 'Rejected')
+    validRegistrations
+      .filter((reg: any) => reg.status !== 'Rejected' && reg.status !== 'Cancelled')
       .map((reg: any) => reg.announcement?.libraryId || reg.announcement?.library?.id)
       .filter(Boolean)
   ).size;
-  const statsBooksPledged = myRegistrations.reduce(
+  const statsBooksPledged = validRegistrations.reduce(
     (sum: number, reg: any) => sum + reg.books.reduce((acc: number, b: any) => acc + (b.quantityDonated || 0), 0), 0
   ) || 0;
-  const statsValue = myRegistrations.reduce(
+  const statsValue = validRegistrations.reduce(
     (sum: number, reg: any) => sum + reg.books.reduce((acc: number, b: any) => acc + ((b.quantityDonated || 0) * (b.book?.mrp || 0)), 0), 0
   ) || 0;
-  const statsPending = myRegistrations.filter((r: any) => r.status === 'Pending' || r.status === 'Registered').length || 0;
+  const statsPending = validRegistrations.filter((r: any) => r.status === 'Pending' || r.status === 'Registered').length || 0;
 
   const getPipelineStatus = (reg: any) => {
     if (reg.status === 'Rejected') {
@@ -361,7 +362,7 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
     };
   };
 
-  const sortedAnnouncements = [...announcements].sort((a, b) => {
+  const sortedAnnouncements = [...announcements].filter(a => !a.isArchived).sort((a, b) => {
     const aClosed = a.visibility === 'Closed';
     const bClosed = b.visibility === 'Closed';
     if (aClosed && !bClosed) return 1;
@@ -408,7 +409,7 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5">
         <div>
           <h2 className="text-2xl font-serif font-bold text-paa-navy flex items-center gap-2">
-            Library Donations Ecosystem <Sparkles className="w-4 h-4 text-paa-gold animate-pulse" />
+            Library Donations <Sparkles className="w-4 h-4 text-paa-gold animate-pulse" />
           </h2>
           <p className="text-gray-500 text-xs mt-0.5">Donate your books to Airport Libraries, Public Libraries, and Cafes</p>
         </div>
@@ -424,17 +425,17 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl border-none p-3.5 shadow-sm text-white">
           <div className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-0.5">Library Donated</div>
-          <div className="text-2xl font-bold font-serif">{statsCampaigns}</div>
+          <div className="text-2xl font-bold tracking-tight">{statsCampaigns}</div>
           <p className="text-[10px] text-blue-100/90 mt-0.5">Active & legacy library involvements</p>
         </div>
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl border-none p-3.5 shadow-sm text-white">
           <div className="text-[10px] font-bold text-purple-100 uppercase tracking-widest mb-0.5">Total Books Donated</div>
-          <div className="text-2xl font-bold font-serif">{statsBooksPledged}</div>
+          <div className="text-2xl font-bold tracking-tight">{statsBooksPledged}</div>
           <p className="text-[10px] text-purple-100/90 mt-0.5">Total copies committed to collections</p>
         </div>
         <div className="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl border-none p-3.5 shadow-sm text-white">
           <div className="text-[10px] font-bold text-emerald-100 uppercase tracking-widest mb-0.5">Donation Value (MRP)</div>
-          <div className="text-2xl font-bold font-serif">₹{statsValue.toLocaleString('en-IN')}</div>
+          <div className="text-2xl font-bold tracking-tight">₹{statsValue.toLocaleString('en-IN')}</div>
           <p className="text-[10px] text-emerald-100/90 mt-0.5">Total value contributed at MRP</p>
         </div>
       </div>
@@ -493,7 +494,7 @@ export function AuthorDonationsTab({ dashboardData, onRefresh }: { dashboardData
                   <div className="flex justify-between items-start mb-2 gap-2">
                     <h4 className="text-xs font-bold text-paa-navy font-serif leading-snug">{ann.title}</h4>
                     {ann.visibility === 'Closed' ? (
-                      <span className="shrink-0 px-1.5 py-0.5 bg-gray-250 border border-gray-300/30 text-gray-600 text-[8px] font-extrabold rounded-full uppercase tracking-wider">
+                      <span className="shrink-0 px-1.5 py-0.5 bg-rose-600 text-white text-[8px] font-extrabold rounded-full uppercase tracking-wider">
                         Closed
                       </span>
                     ) : (

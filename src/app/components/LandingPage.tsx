@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router";
 import axios from "axios";
-import { ArrowLeft, ArrowRight, Book, BookOpen, Megaphone, Store, Mic, Sparkles, Users, Plane, Library, PenTool, Palette, Printer, FileText, Mail, Phone, MapPin, Download, ExternalLink, Heart, Search, Landmark, Rocket, Feather, ChevronLeft, ChevronRight, Calendar, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, Book, BookOpen, Megaphone, Store, Mic, Sparkles, Users, Plane, Library, PenTool, Palette, Printer, FileText, Mail, Phone, MapPin, Download, ExternalLink, Heart, Search, Landmark, Rocket, Feather, ChevronLeft, ChevronRight, Calendar, User, Linkedin, Globe, Code2 } from "lucide-react";
 import { toast } from "sonner";
 import FocusTrap from 'focus-trap-react';
 
@@ -140,7 +140,7 @@ export function LandingPage() {
   const nfScrollRef = useRef<HTMLDivElement>(null);
   const nrScrollRef = useRef<HTMLDivElement>(null);
   const childScrollRef = useRef<HTMLDivElement>(null);
-  const scrollContainer = (ref: React.RefObject<HTMLDivElement>, direction: 'left'|'right') => {
+  const scrollContainer = (ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') => {
     if (ref.current) {
       const { scrollLeft, clientWidth } = ref.current;
       const scrollAmount = clientWidth * 0.8;
@@ -339,14 +339,14 @@ export function LandingPage() {
       {/* ════════════════════════════════════════════
           HERO — DOTTED BACKGROUND
       ════════════════════════════════════════════ */}
-      <section 
+      <section
         className="hero-section"
-        style={{ 
-          position: "relative", 
-          minHeight: "80vh", 
-          display: "flex", 
-          alignItems: "center", 
-          overflow: "hidden", 
+        style={{
+          position: "relative",
+          minHeight: "80vh",
+          display: "flex",
+          alignItems: "center",
+          overflow: "hidden",
           backgroundImage: "url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2000&auto=format&fit=crop')",
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -371,11 +371,11 @@ export function LandingPage() {
                 }}
               >
                 BUY BOOKS
-                <img 
+                <img
                   className="hero-emoji"
-                  src="/buy-books-emoji.webp" 
-                  alt="icon" 
-                  style={{ height: "1em", width: "1.2em", display: "inline-block", verticalAlign: "bottom", marginLeft: "0.25em", borderRadius: "0.15em", objectFit: "cover", paddingBottom: "0.1em" }} 
+                  src="/buy-books-emoji.webp"
+                  alt="icon"
+                  style={{ height: "1em", width: "1.2em", display: "inline-block", verticalAlign: "bottom", marginLeft: "0.25em", borderRadius: "0.15em", objectFit: "cover", paddingBottom: "0.1em" }}
                 />
               </h1>
 
@@ -408,13 +408,13 @@ export function LandingPage() {
                     transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                     fontFamily: "'Google Sans', 'Montserrat', sans-serif"
                   }}
-                  onMouseEnter={(e) => { 
+                  onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "translateY(-3px) scale(1.02)";
                     e.currentTarget.style.background = "#fff";
                     e.currentTarget.style.color = "#111";
                     e.currentTarget.style.boxShadow = "0 10px 25px rgba(0,0,0,0.3)";
                   }}
-                  onMouseLeave={(e) => { 
+                  onMouseLeave={(e) => {
                     e.currentTarget.style.transform = "translateY(0) scale(1)";
                     e.currentTarget.style.background = "#111";
                     e.currentTarget.style.color = "#ffffff";
@@ -426,12 +426,12 @@ export function LandingPage() {
               </div>
             </FadeIn>
           </div>
-          
+
 
         </div>
       </section>
 
-      
+
       {/* ════════════════════════════════════════════
           IMMERSIVE FICTION (ORANGE)
       ════════════════════════════════════════════ */}
@@ -445,8 +445,8 @@ export function LandingPage() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                   <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(ficScrollRef, 'left')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff", transition: "all 0.3s ease" }}><ArrowLeft size={16}/></div>
-                   <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(ficScrollRef, 'right')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff", transition: "all 0.3s ease" }}><ArrowRight size={16}/></div>
+                  <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(ficScrollRef, 'left')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff", transition: "all 0.3s ease" }}><ArrowLeft size={16} /></div>
+                  <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(ficScrollRef, 'right')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff", transition: "all 0.3s ease" }}><ArrowRight size={16} /></div>
                 </div>
                 <Link to="/catalogue?category=Fiction" className="view-all-btn" style={{ background: "#fff", color: "#111", padding: "0.8rem 2rem", borderRadius: 50, fontWeight: 700, textDecoration: "none", fontSize: 13, letterSpacing: "0.05em", boxShadow: "0 4px 15px rgba(0,0,0,0.1)", display: "inline-block" }}>
                   VIEW ALL
@@ -454,7 +454,7 @@ export function LandingPage() {
               </div>
             </div>
           </FadeIn>
-          
+
           <div ref={ficScrollRef} className="horizontal-scroll grid grid-rows-2 grid-flow-col gap-4 overflow-x-auto pb-4 auto-cols-[85%] sm:auto-cols-[calc(50%-0.5rem)] lg:auto-cols-[calc(25%-0.75rem)]" style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch", scrollBehavior: "smooth" }}>
             {[...galleryItems.filter(b => b.genre === "F")].sort((a, b) => a.title.localeCompare(b.title)).slice(0, 16).map((book, i) => (
               <Link to={`/book/${book.id}`} key={i} className="fic-card" style={{ background: "#fff", borderRadius: 12, padding: "0.9rem", display: "flex", gap: "0.8rem", alignItems: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", textDecoration: "none" }}>
@@ -465,9 +465,9 @@ export function LandingPage() {
                   <h4 style={{ fontSize: 15, fontWeight: 800, color: "#111", margin: "0 0 0.3rem 0", lineHeight: 1.2 }}>{book.title}</h4>
                   <p className="fic-author" style={{ fontSize: 12, color: "#666", margin: "0 0 0.5rem 0", fontWeight: 500 }}>{book.authorName}</p>
                   <div className="fic-stars" style={{ display: "flex", alignItems: "center", gap: "0.2rem", marginBottom: "0.8rem" }}>
-                     {[1,2,3,4].map(star => <span key={star} style={{ color: "#FFCC00", fontSize: 12 }}>★</span>)}
-                     <span style={{ color: "#e2e8f0", fontSize: 12 }}>★</span>
-                     <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: "0.3rem", fontWeight: 600 }}>4.0</span>
+                    {[1, 2, 3, 4].map(star => <span key={star} style={{ color: "#FFCC00", fontSize: 12 }}>★</span>)}
+                    <span style={{ color: "#e2e8f0", fontSize: 12 }}>★</span>
+                    <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: "0.3rem", fontWeight: 600 }}>4.0</span>
                   </div>
                   <span style={{ fontSize: 16, fontWeight: 800, color: "#FF6B00" }}>₹{book.mrp || 150}</span>
                 </div>
@@ -490,8 +490,8 @@ export function LandingPage() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                 <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                   <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(nfScrollRef, 'left')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,51,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#0033FF", transition: "all 0.3s ease" }}><ArrowLeft size={16}/></div>
-                   <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(nfScrollRef, 'right')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,51,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#0033FF", transition: "all 0.3s ease" }}><ArrowRight size={16}/></div>
+                  <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(nfScrollRef, 'left')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,51,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#0033FF", transition: "all 0.3s ease" }}><ArrowLeft size={16} /></div>
+                  <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(nfScrollRef, 'right')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,51,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#0033FF", transition: "all 0.3s ease" }}><ArrowRight size={16} /></div>
                 </div>
                 <Link to="/catalogue?category=Non-Fiction" className="view-all-btn" style={{ background: "#0033FF", color: "#fff", padding: "0.8rem 2rem", borderRadius: 50, fontWeight: 700, textDecoration: "none", fontSize: 13, letterSpacing: "0.05em", boxShadow: "0 4px 15px rgba(0,51,255,0.2)" }}>
                   VIEW ALL
@@ -499,7 +499,7 @@ export function LandingPage() {
               </div>
             </div>
           </FadeIn>
-          
+
           <div ref={nfScrollRef} className="horizontal-scroll grid grid-rows-2 grid-flow-col gap-4 overflow-x-auto pb-4 auto-cols-[85%] sm:auto-cols-[calc(50%-0.5rem)] lg:auto-cols-[calc(25%-0.75rem)]" style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch", scrollBehavior: "smooth" }}>
             {[...galleryItems.filter(b => b.genre === "NF")].sort((a, b) => a.title.localeCompare(b.title)).slice(0, 16).map((book, i) => (
               <Link to={`/book/${book.id}`} key={i} className="nf-card" style={{ background: "#fff", borderRadius: 12, padding: "0.9rem", display: "flex", gap: "0.8rem", alignItems: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", textDecoration: "none" }}>
@@ -510,9 +510,9 @@ export function LandingPage() {
                   <h4 style={{ fontSize: 15, fontWeight: 800, color: "#111", margin: "0 0 0.3rem 0", lineHeight: 1.2 }}>{book.title}</h4>
                   <p className="nf-author" style={{ fontSize: 12, color: "#666", margin: "0 0 0.5rem 0", fontWeight: 500 }}>{book.authorName}</p>
                   <div className="nf-stars" style={{ display: "flex", alignItems: "center", gap: "0.2rem", marginBottom: "0.8rem" }}>
-                     {[1,2,3,4].map(star => <span key={star} style={{ color: "#FFCC00", fontSize: 12 }}>★</span>)}
-                     <span style={{ color: "#e2e8f0", fontSize: 12 }}>★</span>
-                     <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: "0.3rem", fontWeight: 600 }}>4.0</span>
+                    {[1, 2, 3, 4].map(star => <span key={star} style={{ color: "#FFCC00", fontSize: 12 }}>★</span>)}
+                    <span style={{ color: "#e2e8f0", fontSize: 12 }}>★</span>
+                    <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: "0.3rem", fontWeight: 600 }}>4.0</span>
                   </div>
                   <span style={{ fontSize: 16, fontWeight: 800, color: "#0033FF" }}>₹{book.mrp || 200}</span>
                 </div>
@@ -522,7 +522,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      
+
       {/* ════════════════════════════════════════════
           CHILDREN'S CORNER (YELLOW 3D)
       ════════════════════════════════════════════ */}
@@ -543,8 +543,8 @@ export function LandingPage() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                   <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(childScrollRef, 'left')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,0,0,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#111", transition: "background 0.2s" }}><ArrowLeft size={16}/></div>
-                   <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(childScrollRef, 'right')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,0,0,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#111", transition: "background 0.2s" }}><ArrowRight size={16}/></div>
+                  <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(childScrollRef, 'left')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,0,0,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#111", transition: "background 0.2s" }}><ArrowLeft size={16} /></div>
+                  <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(childScrollRef, 'right')} style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,0,0,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#111", transition: "background 0.2s" }}><ArrowRight size={16} /></div>
                 </div>
                 <Link to="/catalogue?category=Children's Books" className="view-all-btn" style={{ background: "#111", color: "#fff", padding: "0.8rem 2rem", borderRadius: 50, fontWeight: 700, textDecoration: "none", fontSize: 13, letterSpacing: "0.05em", display: "inline-block" }}>
                   VIEW ALL
@@ -552,20 +552,20 @@ export function LandingPage() {
               </div>
             </div>
           </FadeIn>
-          
+
           <div ref={childScrollRef} className="horizontal-scroll grid grid-rows-2 grid-flow-col gap-4 overflow-x-auto pb-4 auto-cols-[85%] sm:auto-cols-[calc(50%-0.5rem)] lg:auto-cols-[calc(25%-0.75rem)]" style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch", scrollBehavior: "smooth" }}>
             {[...galleryItems.filter(b => b.genre === "C")].sort((a, b) => a.title.localeCompare(b.title)).slice(0, 16).map((book, i) => (
               <Link to={`/book/${book.id}`} key={i} className="child-card" style={{ background: "#fff", borderRadius: 12, padding: "0.9rem", display: "flex", gap: "0.8rem", alignItems: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", textDecoration: "none" }}>
                 <div className="child-img-wrapper" style={{ width: 80, height: 110, background: "#f1f5f9", borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
-                   <img src={book.coverUrl ? (book.coverUrl.match(/^(http|data:)/) ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={book.coverUrl ? (book.coverUrl.match(/^(http|data:)/) ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
                   <h4 style={{ fontSize: 15, fontWeight: 800, color: "#111", margin: "0 0 0.3rem 0", lineHeight: 1.2 }}>{book.title}</h4>
                   <p className="child-author" style={{ fontSize: 12, color: "#666", margin: "0 0 0.5rem 0", fontWeight: 500 }}>{book.authorName}</p>
                   <div className="child-stars" style={{ display: "flex", alignItems: "center", gap: "0.2rem", marginBottom: "0.8rem" }}>
-                     {[1,2,3,4].map(star => <span key={star} style={{ color: "#FFD700", fontSize: 12 }}>★</span>)}
-                     <span style={{ color: "#e2e8f0", fontSize: 12 }}>★</span>
-                     <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: "0.3rem", fontWeight: 700 }}>4.0</span>
+                    {[1, 2, 3, 4].map(star => <span key={star} style={{ color: "#FFD700", fontSize: 12 }}>★</span>)}
+                    <span style={{ color: "#e2e8f0", fontSize: 12 }}>★</span>
+                    <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: "0.3rem", fontWeight: 700 }}>4.0</span>
                   </div>
                   <span style={{ fontSize: 16, fontWeight: 800, color: "#111" }}>₹{book.mrp || 220}</span>
                 </div>
@@ -575,7 +575,7 @@ export function LandingPage() {
         </div>
       </section>
 
-{/* ════════════════════════════════════════════
+      {/* ════════════════════════════════════════════
           NEW RELEASES (SLANT GREEN)
       ════════════════════════════════════════════ */}
       <section className="bg-slant" style={{ padding: "5rem 2rem", overflow: "hidden", fontFamily: "'Google Sans', sans-serif" }}>
@@ -591,8 +591,8 @@ export function LandingPage() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(nrScrollRef, 'left')} style={{ width: 36, height: 36, borderRadius: "50%", background: "#f8f9fa", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#111", transition: "all 0.3s ease" }}><ArrowLeft size={16}/></div>
-                   <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(nrScrollRef, 'right')} style={{ width: 36, height: 36, borderRadius: "50%", background: "#f8f9fa", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#111", transition: "all 0.3s ease" }}><ArrowRight size={16}/></div>
+                  <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(nrScrollRef, 'left')} style={{ width: 36, height: 36, borderRadius: "50%", background: "#f8f9fa", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#111", transition: "all 0.3s ease" }}><ArrowLeft size={16} /></div>
+                  <div className="arrow-btn hover-bg-black" onClick={() => scrollContainer(nrScrollRef, 'right')} style={{ width: 36, height: 36, borderRadius: "50%", background: "#f8f9fa", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#111", transition: "all 0.3s ease" }}><ArrowRight size={16} /></div>
                 </div>
                 <Link to="/catalogue" className="view-all-btn" style={{ background: "#00D084", color: "#fff", padding: "0.8rem 2rem", borderRadius: 50, fontWeight: 700, textDecoration: "none", fontSize: 13, letterSpacing: "0.05em", boxShadow: "0 4px 15px rgba(0,208,132,0.2)", display: "inline-block" }}>
                   VIEW ALL
@@ -600,7 +600,7 @@ export function LandingPage() {
               </div>
             </div>
           </FadeIn>
-          
+
           <div ref={nrScrollRef} className="horizontal-scroll grid grid-rows-2 grid-flow-col gap-4 overflow-x-auto pb-4 auto-cols-[85%] sm:auto-cols-[calc(50%-0.5rem)] lg:auto-cols-[calc(25%-0.75rem)]" style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch", scrollBehavior: "smooth" }}>
             {[...galleryItems].reverse().slice(0, 16).map((book, i) => (
               <Link to={`/book/${book.id}`} key={i} className="nr-card" style={{ position: "relative", background: "#fff", borderRadius: 12, padding: "0.9rem", display: "flex", gap: "0.8rem", alignItems: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", textDecoration: "none" }}>
@@ -612,9 +612,9 @@ export function LandingPage() {
                   <h4 style={{ fontSize: 15, fontWeight: 800, color: "#111", margin: "0 0 0.3rem 0", lineHeight: 1.2 }}>{book.title}</h4>
                   <p className="nr-author" style={{ fontSize: 12, color: "#666", margin: "0 0 0.5rem 0", fontWeight: 500 }}>{book.authorName}</p>
                   <div className="nr-stars" style={{ display: "flex", alignItems: "center", gap: "0.2rem", marginBottom: "0.8rem" }}>
-                     {[1,2,3,4].map(star => <span key={star} style={{ color: "#FFCC00", fontSize: 12 }}>★</span>)}
-                     <span style={{ color: "#e2e8f0", fontSize: 12 }}>★</span>
-                     <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: "0.3rem", fontWeight: 600 }}>4.0</span>
+                    {[1, 2, 3, 4].map(star => <span key={star} style={{ color: "#FFCC00", fontSize: 12 }}>★</span>)}
+                    <span style={{ color: "#e2e8f0", fontSize: 12 }}>★</span>
+                    <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: "0.3rem", fontWeight: 600 }}>4.0</span>
                   </div>
                   <span style={{ fontSize: 16, fontWeight: 800, color: "#00D084" }}>₹{book.mrp || 250}</span>
                 </div>
@@ -625,121 +625,236 @@ export function LandingPage() {
       </section>
 
 
-  
+
       {/* ════════════════════════════════════════════
-          CONTACT SECTION (DARK DOTS)
+          CONTACT & MEET THE DEVELOPERS SECTION (DARK DOTS)
       ════════════════════════════════════════════ */}
       <section className="bg-dots-dark" style={{ padding: "6rem 2rem", fontFamily: "'Google Sans', sans-serif" }}>
-        <div style={{ maxWidth: 800, margin: "0 auto" }}>
-          <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-              <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#FFCC00", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "1.5rem" }}>
-                 <Mail size={24} color="#111" />
-              </div>
-              <h2 className="contact-heading" style={{ fontFamily: "\'Playfair Display\', serif", fontSize: "clamp(2.5rem, 4vw, 3.5rem)", fontWeight: 800, color: "#fff", marginBottom: "1rem" }}>Get in Touch</h2>
-              <p className="contact-desc" style={{ color: "rgba(255,255,255,0.7)", fontSize: 16, fontWeight: 500 }}>For Organising a Literary Event, Bulk Buying of Books, and Authors for joining this Group</p>
-            </div>
-          </FadeIn>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
 
-          <FadeIn delay={150}>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setIsSubmitting(true);
-                try {
-                  await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/contact`, {
-                    name: contactName,
-                    email: contactEmail,
-                    message: contactMessage,
-                  });
-                  // @ts-ignore
-                  toast.success("Thank you! Your message has been received.");
-                  setContactName("");
-                  setContactEmail("");
-                  setContactMessage("");
-                } catch (err) {
-                  console.error(err);
-                  // @ts-ignore
-                  toast.error("Failed to send message. Please try again.");
-                } finally {
-                  setIsSubmitting(false);
-                }
-              }}
-            >
-              <div className="contact-grid" style={{ display: "grid", gap: "3rem", marginBottom: "3rem" }}>
-                <div>
-                  <label className="contact-label" style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.8rem" }}>FIRST & LAST NAME</label>
-                  <input
-                    required
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                    type="text"
-                    placeholder="e.g. Jane Doe"
-                    className="contact-input"
-                    style={{ width: "100%" }}
-                  />
+            {/* ── LEFT COLUMN: GET IN TOUCH (5 cols) ── */}
+            <div className="lg:col-span-5">
+              <FadeIn>
+                <div style={{ marginBottom: "2.5rem" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#FFCC00", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "1.2rem" }}>
+                    <Mail size={22} color="#111" />
+                  </div>
+                  <h2 className="contact-heading" style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 3.5vw, 2.75rem)", fontWeight: 800, color: "#fff", marginBottom: "0.8rem" }}>Get in Touch</h2>
+                  <p className="contact-desc" style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: 500, lineHeight: 1.6 }}>For Organising a Literary Event, Bulk Buying of Books, and Authors for joining this Group</p>
                 </div>
-                <div>
-                  <label className="contact-label" style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.8rem" }}>EMAIL ADDRESS</label>
-                  <input
-                    required
-                    value={contactEmail}
-                    onChange={(e) => setContactEmail(e.target.value)}
-                    type="email"
-                    placeholder="jane@example.com"
-                    className="contact-input"
-                    style={{ width: "100%" }}
-                  />
-                </div>
-              </div>
-              <div className="contact-textarea-container" style={{ marginBottom: "4rem" }}>
-                <label className="contact-label" style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.8rem" }}>HOW CAN WE HELP?</label>
-                <textarea
-                  required
-                  value={contactMessage}
-                  onChange={(e) => setContactMessage(e.target.value)}
-                  rows={1}
-                  placeholder="Tell us about your project or inquiry..."
-                  className="contact-input"
-                  style={{ width: "100%", resize: "none", overflow: "hidden" }}
-                />
-              </div>
-              
-              <div className="contact-btn-container" style={{ textAlign: "right" }}>
-                <button
-                  className="contact-btn"
-                  disabled={isSubmitting}
-                  type="submit"
-                  style={{
-                    background: "#FFCC00",
-                    color: "#111",
-                    border: "none",
-                    padding: "1rem 2.5rem",
-                    fontSize: 13,
-                    fontWeight: 800,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    borderRadius: 50,
-                    cursor: isSubmitting ? "not-allowed" : "pointer",
-                    opacity: isSubmitting ? 0.7 : 1,
-                    transition: "all 0.3s",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    boxShadow: "0 4px 20px rgba(255, 204, 0, 0.2)"
+              </FadeIn>
+
+              <FadeIn delay={150}>
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setIsSubmitting(true);
+                    try {
+                      await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/contact`, {
+                        name: contactName,
+                        email: contactEmail,
+                        message: contactMessage,
+                      });
+                      // @ts-ignore
+                      toast.success("Thank you! Your message has been received.");
+                      setContactName("");
+                      setContactEmail("");
+                      setContactMessage("");
+                    } catch (err) {
+                      console.error(err);
+                      // @ts-ignore
+                      toast.error("Failed to send message. Please try again.");
+                    } finally {
+                      setIsSubmitting(false);
+                    }
                   }}
                 >
-                  {isSubmitting ? "SENDING..." : "SUBMIT INQUIRY"} <ArrowRight size={14} />
-                </button>
-              </div>
-            </form>
-          </FadeIn>
+                  <div style={{ display: "grid", gap: "1.8rem", marginBottom: "1.8rem" }}>
+                    <div>
+                      <label className="contact-label" style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.6rem" }}>FIRST & LAST NAME</label>
+                      <input
+                        required
+                        value={contactName}
+                        onChange={(e) => setContactName(e.target.value)}
+                        type="text"
+                        placeholder="e.g. Jane Doe"
+                        className="contact-input"
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="contact-label" style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.6rem" }}>EMAIL ADDRESS</label>
+                      <input
+                        required
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        type="email"
+                        placeholder="jane@example.com"
+                        className="contact-input"
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                  </div>
+                  <div className="contact-textarea-container" style={{ marginBottom: "2.5rem" }}>
+                    <label className="contact-label" style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.6rem" }}>HOW CAN WE HELP?</label>
+                    <textarea
+                      required
+                      value={contactMessage}
+                      onChange={(e) => setContactMessage(e.target.value)}
+                      rows={2}
+                      placeholder="Tell us about your project or inquiry..."
+                      className="contact-input"
+                      style={{ width: "100%", resize: "none" }}
+                    />
+                  </div>
+
+                  <div className="contact-btn-container">
+                    <button
+                      className="contact-btn w-full sm:w-auto"
+                      disabled={isSubmitting}
+                      type="submit"
+                      style={{
+                        background: "#FFCC00",
+                        color: "#111",
+                        border: "none",
+                        padding: "0.9rem 2.2rem",
+                        fontSize: 12,
+                        fontWeight: 800,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                        borderRadius: 50,
+                        cursor: isSubmitting ? "not-allowed" : "pointer",
+                        opacity: isSubmitting ? 0.7 : 1,
+                        transition: "all 0.3s",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "0.5rem",
+                        boxShadow: "0 4px 20px rgba(255, 204, 0, 0.2)"
+                      }}
+                    >
+                      {isSubmitting ? "SENDING..." : "SUBMIT INQUIRY"} <ArrowRight size={14} />
+                    </button>
+                  </div>
+                </form>
+              </FadeIn>
+            </div>
+
+            {/* ── RIGHT COLUMN: MEET THE DEVELOPERS (7 cols) ── */}
+            <div className="lg:col-span-7">
+              <FadeIn delay={100}>
+                <div style={{ marginBottom: "2.5rem" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#FFCC00", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "1.2rem" }}>
+                    <Code2 size={22} color="#111" />
+                  </div>
+                  <h2 className="contact-heading" style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 3.5vw, 2.75rem)", fontWeight: 800, color: "#fff", marginBottom: "0.8rem" }}>Meet the Developers</h2>
+                </div>
+              </FadeIn>
+
+              <FadeIn delay={200}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 sm:gap-4">
+                  {[
+                    {
+                      name: "Anoop Saini",
+                      image: "/team/anoop.jpeg",
+                      linkedin: "https://www.linkedin.com/in/anoop-saini-96a04028b/",
+                      portfolio: "https://anoopsaini.netlify.app",
+                    },
+                    {
+                      name: "Arvind Puri",
+                      image: "/team/arvind.jpeg",
+                      linkedin: "https://www.linkedin.com/in/arvindsaura/",
+                      portfolio: "https://arvindpuri.vercel.app",
+                    },
+                    {
+                      name: "Naitik Agrawal",
+                      image: "/team/naitik.jpeg",
+                      linkedin: "https://www.linkedin.com/in/naitik-agrawal-9b832128a/",
+                      portfolio: "https://naitikagrawalprofile.netlify.app/",
+                    },
+                    {
+                      name: "Baani Garg",
+                      image: "/team/baani.jpeg",
+                      linkedin: "https://www.linkedin.com/in/baani-garg-3729a1289",
+                      portfolio: "https://www.linkedin.com/in/baani-garg-3729a1289",
+                    },
+                    {
+                      name: "Sourav Mamhotra",
+                      image: "/team/sourav.jpeg",
+                      linkedin: "https://www.linkedin.com/in/sourav-mamhotra/",
+                      portfolio: "https://www.linkedin.com/in/sourav-mamhotra/",
+                    },
+                    {
+                      name: "Tarun Thakur",
+                      image: "/team/tarun.jpeg",
+                      linkedin: "https://www.linkedin.com/in/tarun-thakur-281537290/",
+                      portfolio: "https://portfolio-tau-blue-66.vercel.app/",
+                    },
+                  ].map((dev, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-[#FFCC00]/50 transition-all duration-300 rounded-2xl p-4 sm:p-5 text-center group flex flex-col items-center shadow-lg hover:-translate-y-1"
+                    >
+                      {/* Avatar Image with fallback initials */}
+                      <div className="relative mb-3">
+                        <img
+                          src={dev.image}
+                          alt={dev.name}
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                            const fallback = (e.target as HTMLElement).nextElementSibling;
+                            if (fallback) (fallback as HTMLElement).style.display = 'flex';
+                          }}
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-[#FFCC00]/40 group-hover:border-[#FFCC00] shadow-md transition-all duration-300"
+                        />
+                        <div
+                          style={{ display: 'none' }}
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-500/20 to-yellow-400/30 border-2 border-[#FFCC00]/40 items-center justify-center text-[#FFCC00] font-black text-lg shadow-md"
+                        >
+                          {dev.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                      </div>
+
+                      {/* Name */}
+                      <h4 className="text-white font-bold text-sm sm:text-base group-hover:text-[#FFCC00] transition-colors leading-tight mb-3">
+                        {dev.name}
+                      </h4>
+
+                      {/* Social Actions: Large Responsive LinkedIn & Portfolio Icons */}
+                      <div className="flex items-center justify-center gap-2.5 sm:gap-3 mt-auto pt-1 w-full">
+                        <a
+                          href={dev.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0077b5]/20 hover:bg-[#0077b5] text-[#0077b5] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-sm border border-[#0077b5]/30 hover:border-transparent cursor-pointer"
+                          title={`${dev.name}'s LinkedIn`}
+                        >
+                          <Linkedin className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </a>
+                        <a
+                          href={dev.portfolio}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#FFCC00]/20 hover:bg-[#FFCC00] text-[#FFCC00] hover:text-black flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-sm border border-[#FFCC00]/30 hover:border-transparent cursor-pointer"
+                          title={`${dev.name}'s Portfolio`}
+                        >
+                          <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </FadeIn>
+            </div>
+
+          </div>
         </div>
       </section>
 
 
-  {/* ── STYLES ── */ }
-  <style>{`\n        .view-all-btn { transition: all 0.3s ease; }\n        .view-all-btn:hover { background-color: #111 !important; color: #fff !important; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important; }\n        .hover-bg-black:hover { background-color: #111 !important; color: #fff !important; transform: scale(1.05); }
+      {/* ── STYLES ── */}
+      <style>{`\n        .view-all-btn { transition: all 0.3s ease; }\n        .view-all-btn:hover { background-color: #111 !important; color: #fff !important; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important; }\n        .hover-bg-black:hover { background-color: #111 !important; color: #fff !important; transform: scale(1.05); }
         .hero-btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
         .hero-btn-outline:hover { background: rgba(212,160,23,0.1) !important; }
         .pillar-card:hover { background: rgba(255,255,255,0.1) !important; transform: translateY(-4px); border-color: rgba(212,160,23,0.25) !important; }

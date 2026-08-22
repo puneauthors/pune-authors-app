@@ -257,8 +257,11 @@ const SettingsTabComponent = ({
     organizer_hero_title: "",
     organizer_hero_highlight: "",
     organizer_hero_subtitle: "",
+    about_page_image: "",
+    invite_author_banner_image: "",
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState<string | null>(null);
   useEffect(() => {
     axios
       .get(`${API}/api/admin/settings`, {
@@ -282,6 +285,27 @@ const SettingsTabComponent = ({
       toast.error("Failed to save settings");
     }
     setIsSaving(false);
+  };
+
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    const fd = new FormData();
+    fd.append("file", file);
+
+    setIsUploadingImage(key);
+    try {
+      const res = await axios.post(`${API}/api/upload`, fd, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (res.data && res.data.url) {
+        setSettings({ ...settings, [key]: res.data.url });
+        toast.success("Image uploaded successfully! Remember to Save Settings.");
+      }
+    } catch (err) {
+      toast.error("Failed to upload image.");
+    }
+    setIsUploadingImage(null);
   };
   const [activeSettingTab, setActiveSettingTab] = useState("system");
 
@@ -1293,7 +1317,9 @@ export function OperationsDashboardPage() {
   const fetchOverview = async (isBackground = false) => {
     if (!isBackground) setIsRefreshing(true);
     try {
-      const res = await axios.get(`${API}/api/admin/dashboard-stats`);
+      const res = await axios.get(`${API}/api/admin/dashboard-stats`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
       setStats(res.data);
       sessionStorage.setItem("adminStats", JSON.stringify(res.data));
     } catch (err) {
@@ -6628,7 +6654,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 <p className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-1">
                   Total Events Organized
                 </p>
-                <div className="text-2xl font-serif">
+                <div className="text-2xl font-bold tracking-tight">
                   {
                     allCombinedEvents.filter(e => e.status !== "Rejected" && e.status !== "Pending Approval").length
                   }
@@ -6638,7 +6664,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 <p className="text-xs font-bold text-rose-100 uppercase tracking-wider mb-1">
                   Total Books Sold
                 </p>
-                <div className="text-2xl font-serif">
+                <div className="text-2xl font-bold tracking-tight">
                   {allCombinedEvents.reduce(
                     (acc, evt) => {
                       const books =
@@ -6660,7 +6686,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 <p className="text-xs font-bold text-orange-100 uppercase tracking-wider mb-1">
                   Forthcoming Events
                 </p>
-                <div className="text-2xl font-serif">
+                <div className="text-2xl font-bold tracking-tight">
                   {
                     allCombinedEvents.filter((e) => {
                       const d = new Date(e.date).getTime();
@@ -6673,7 +6699,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 <p className="text-xs font-bold text-emerald-100 uppercase tracking-wider mb-1">
                   Total Gross Revenue
                 </p>
-                <div className="text-2xl font-serif font-bold">
+                <div className="text-2xl font-bold tracking-tight">
                   ₹
                   {allCombinedEvents
                     .reduce(
@@ -8973,7 +8999,7 @@ const totalAuthorsBase = eventRegistrations.length;
             },
             {
               id: "event-requests",
-              label: "Organize Event",
+              label: "Event Request",
               icon: CalendarIcon,
             },
             {
@@ -9494,7 +9520,7 @@ const totalAuthorsBase = eventRegistrations.length;
                   books={books}
                   authors={authors}
                   orders={orders}
-                  events={events}
+                  events={allCombinedEvents}
                   stats={stats}
                   libraries={libraries}
                   lastAdminVisit={lastAdminVisit}
@@ -13429,7 +13455,7 @@ const EventRequestsTab = ({ refreshTrigger }: any) => {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 border-b border-paa-navy/5 pb-4 gap-4">
         <div>
           <h3 className="text-xl font-serif font-medium text-paa-navy mb-1 flex items-center gap-2">
-            <CalendarIcon className="w-5 h-5 text-paa-gold" /> Organize Event
+            <CalendarIcon className="w-5 h-5 text-paa-gold" /> Event Request
           </h3>
           <p className="text-paa-gray-text text-sm">
             Manage and review incoming organizer event requests.

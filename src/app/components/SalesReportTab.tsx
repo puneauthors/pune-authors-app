@@ -53,6 +53,7 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
       }
     } else if (filterType === 'lifetime') {
       start = new Date('2000-01-01');
+      end = new Date('2099-12-31');
     }
 
     setStartDate(start.toISOString().split('T')[0]);
@@ -412,7 +413,7 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
                 <div className="flex items-start justify-between mb-4">
                   <div className="dash-kpi-icon amber"><ShoppingCart className="w-5 h-5" aria-hidden="true" /></div>
                 </div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-paa-gray-text mb-1">Total Orders</p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-paa-gray-text mb-1">Total Entries</p>
                 <h3 className="text-3xl font-black text-paa-navy tracking-tight">{salesData?.kpis?.totalOrders || 0}</h3>
               </div>
               {salesData?.kpis?.splits && (
