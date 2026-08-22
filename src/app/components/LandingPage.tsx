@@ -762,7 +762,7 @@ export function LandingPage() {
                       portfolio: "https://anoopsaini.netlify.app",
                     },
                     {
-                      name: "Arvind Puri",
+                      name: "Arvind Mamhotra",
                       image: "/team/arvind.jpeg",
                       linkedin: "https://www.linkedin.com/in/arvindsaura/",
                       portfolio: "https://arvindpuri.vercel.app",
@@ -780,7 +780,7 @@ export function LandingPage() {
                       portfolio: "https://www.linkedin.com/in/baani-garg-3729a1289",
                     },
                     {
-                      name: "Sourav Malhotra",
+                      name: "Sourav Mamhotra",
                       image: "/team/sourav.jpeg",
                       linkedin: "https://www.linkedin.com/in/sourav-mamhotra/",
                       portfolio: "https://www.linkedin.com/in/sourav-mamhotra/",
