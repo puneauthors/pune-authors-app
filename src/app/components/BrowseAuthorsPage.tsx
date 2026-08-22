@@ -23,6 +23,7 @@ export function BrowseAuthorsPage() {
   const [authors, setAuthors] = useState<any[]>([]);
   const [filteredAuthors, setFilteredAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bannerImage, setBannerImage] = useState("/panel-discussion.webp");
   
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("");
@@ -46,7 +47,19 @@ export function BrowseAuthorsPage() {
         setLoading(false);
       }
     };
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/public-stats`);
+        if (res.data?.settings?.invite_author_banner_image) {
+          const imgUrl = res.data.settings.invite_author_banner_image;
+          setBannerImage(imgUrl.startsWith("http") ? imgUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${imgUrl}`);
+        }
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      }
+    };
     fetchAuthors();
+    fetchStats();
   }, []);
 
   // Compute unique filter options
@@ -106,7 +119,7 @@ export function BrowseAuthorsPage() {
         <div style={{ 
           position: "absolute", 
           inset: 0, 
-          backgroundImage: "url('/panel-discussion.webp')", 
+          backgroundImage: `url('${bannerImage}')`, 
           backgroundSize: "cover", 
           backgroundPosition: "center 15%",
           filter: "grayscale(100%)",

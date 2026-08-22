@@ -257,8 +257,11 @@ const SettingsTabComponent = ({
     organizer_hero_title: "",
     organizer_hero_highlight: "",
     organizer_hero_subtitle: "",
+    about_page_image: "",
+    invite_author_banner_image: "",
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState<string | null>(null);
   useEffect(() => {
     axios
       .get(`${API}/api/admin/settings`, {
@@ -282,6 +285,27 @@ const SettingsTabComponent = ({
       toast.error("Failed to save settings");
     }
     setIsSaving(false);
+  };
+
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    const fd = new FormData();
+    fd.append("file", file);
+
+    setIsUploadingImage(key);
+    try {
+      const res = await axios.post(`${API}/api/upload`, fd, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (res.data && res.data.url) {
+        setSettings({ ...settings, [key]: res.data.url });
+        toast.success("Image uploaded successfully! Remember to Save Settings.");
+      }
+    } catch (err) {
+      toast.error("Failed to upload image.");
+    }
+    setIsUploadingImage(null);
   };
   const [activeSettingTab, setActiveSettingTab] = useState("system");
 
@@ -383,7 +407,75 @@ const SettingsTabComponent = ({
           </div>
         </div>
 
-        {/* Main Landing Page Content */}
+          {/* Pages & Banners */}
+          <div className="bg-white p-8 border border-paa-navy/5 shadow-premium hover:shadow-premium-hover hover:-translate-y-1 transition-all duration-500 ease-out rounded-3xl-2xl mt-8">
+            <div className="border-b border-paa-navy/5 pb-4 mb-8">
+              <h2 className="text-xl font-serif font-medium text-paa-navy mb-1">
+                Pages & Banners
+              </h2>
+              <p className="text-paa-gray-text text-sm">
+                Manage the images for the About page and Invite Author page here.
+              </p>
+            </div>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-xs font-bold tracking-widest uppercase text-paa-navy mb-2">
+                  About Page Image
+                </label>
+                {settings.about_page_image && (
+                  <div className="mb-3">
+                    <img
+                      src={settings.about_page_image.startsWith('http') ? settings.about_page_image : `${API}${settings.about_page_image}`}
+                      alt="About Page Preview"
+                      className="w-full max-w-sm rounded border border-gray-200"
+                    />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleUploadImage(e, 'about_page_image')}
+                  disabled={isUploadingImage === 'about_page_image'}
+                  className="w-full border border-paa-navy/20 bg-gray-50 rounded-lg p-3 text-sm outline-none focus:border-paa-navy focus:bg-white transition-colors"
+                />
+                {isUploadingImage === 'about_page_image' && <span className="text-xs text-blue-500 mt-1 block">Uploading...</span>}
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold tracking-widest uppercase text-paa-navy mb-2">
+                  Invite Author Banner Image
+                </label>
+                {settings.invite_author_banner_image && (
+                  <div className="mb-3">
+                    <img
+                      src={settings.invite_author_banner_image.startsWith('http') ? settings.invite_author_banner_image : `${API}${settings.invite_author_banner_image}`}
+                      alt="Invite Author Banner Preview"
+                      className="w-full max-w-sm rounded border border-gray-200 object-cover h-32"
+                    />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleUploadImage(e, 'invite_author_banner_image')}
+                  disabled={isUploadingImage === 'invite_author_banner_image'}
+                  className="w-full border border-paa-navy/20 bg-gray-50 rounded-lg p-3 text-sm outline-none focus:border-paa-navy focus:bg-white transition-colors"
+                />
+                {isUploadingImage === 'invite_author_banner_image' && <span className="text-xs text-blue-500 mt-1 block">Uploading...</span>}
+              </div>
+            </div>
+            <div className="mt-8 flex justify-end">
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-6 py-2.5 bg-paa-navy text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-paa-gold hover:text-paa-navy transition-all duration-300 disabled:opacity-50 shadow-md"
+              >
+                {isSaving ? "Saving..." : "Save Settings"}
+              </button>
+            </div>
+          </div>
+  
+          {/* Main Landing Page Content */}
         <div className="bg-white p-8 border border-paa-navy/5 shadow-premium hover:shadow-premium-hover hover:-translate-y-1 transition-all duration-500 ease-out rounded-3xl-2xl">
           <div className="border-b border-paa-navy/5 pb-4 mb-8">
             <h2 className="text-xl font-serif font-medium text-paa-navy mb-1">

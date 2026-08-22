@@ -189,7 +189,8 @@ router.get('/api/public-stats', async (req, res) => {
             'landing_title_color', 'landing_highlight_color', 'landing_subtitle_color',
             'landing_featured_categories',
             'author_hero_title', 'author_hero_highlight', 'author_hero_subtitle',
-            'organizer_hero_title', 'organizer_hero_highlight', 'organizer_hero_subtitle'
+            'organizer_hero_title', 'organizer_hero_highlight', 'organizer_hero_subtitle',
+            'about_page_image', 'invite_author_banner_image'
           ]
         }
       }
