@@ -2566,18 +2566,18 @@ function InventoryPage({ onRefresh, dashboardData }: { onRefresh: () => void, da
       {/* Stat Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Total Titles', value: inventory.length, icon: <BookOpen size={18} />, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'QTY Sold (Web)', value: totalWebSold, icon: <ShoppingCart size={18} />, color: 'text-green-600', bg: 'bg-green-50' },
-          { label: 'QTY to Airport', value: totalAirport, icon: <MapPin size={18} />, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'QTY to Book Fairs', value: totalEvent, icon: <CalendarIcon size={18} />, color: 'text-purple-600', bg: 'bg-purple-50' },
-        ].map(({ label, value, icon, color, bg }) => (
-          <div key={label} className="bg-white border rounded-xl p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+          { label: 'Total Titles', value: inventory.length, icon: <BookOpen size={18} />, color: 'text-white', bg: 'bg-white/20', cardBg: 'bg-[#6366f1] border-transparent' },
+          { label: 'QTY Sold (Web)', value: totalWebSold, icon: <ShoppingCart size={18} />, color: 'text-white', bg: 'bg-white/20', cardBg: 'bg-[#10b981] border-transparent' },
+          { label: 'QTY to Airport', value: totalAirport, icon: <MapPin size={18} />, color: 'text-white', bg: 'bg-white/20', cardBg: 'bg-[#0ea5e9] border-transparent' },
+          { label: 'QTY to Book Fairs', value: totalEvent, icon: <CalendarIcon size={18} />, color: 'text-white', bg: 'bg-white/20', cardBg: 'bg-[#a855f7] border-transparent' },
+        ].map(({ label, value, icon, color, bg, cardBg }) => (
+          <div key={label} className={`${cardBg} border rounded-xl p-4 flex items-center gap-3 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out`}>
             <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${bg} ${color}`}>
               {icon}
             </div>
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">{label}</p>
-              <p className="text-2xl font-black text-paa-navy leading-none m-0">{value}</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest text-white/80 mb-0.5">{label}</p>
+              <p className="text-2xl font-black text-white leading-none m-0">{value}</p>
             </div>
           </div>
         ))}
@@ -2727,7 +2727,7 @@ function InventoryPage({ onRefresh, dashboardData }: { onRefresh: () => void, da
                     <React.Fragment key={book.id}>
                       <tr
                         onClick={() => handleRowClick(book)}
-                        className={`cursor-pointer transition-colors  border-b border-black/5 ${isSelected ? 'bg-blue-300 ring-2 ring-blue-500 ring-inset' : idx % 2 === 0 ? 'bg-white' : 'bg-white'}`}
+                        className={`cursor-pointer transition-colors border-b border-black/5 ${isSelected ? 'bg-blue-300 ring-2 ring-blue-500 ring-inset' : idx % 2 === 0 ? 'bg-white' : 'bg-indigo-50/60'}`}
                       >
                       {/* S.No */}
                       <td className="px-2 py-2 text-center text-sm font-bold text-gray-500">{idx + 1}</td>
