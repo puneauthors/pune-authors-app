@@ -8905,7 +8905,7 @@ const totalAuthorsBase = eventRegistrations.length;
             },
             {
               id: "event-requests",
-              label: "Organize Event",
+              label: "Event Request",
               icon: CalendarIcon,
             },
             {
@@ -13361,7 +13361,7 @@ const EventRequestsTab = ({ refreshTrigger }: any) => {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 border-b border-paa-navy/5 pb-4 gap-4">
         <div>
           <h3 className="text-xl font-serif font-medium text-paa-navy mb-1 flex items-center gap-2">
-            <CalendarIcon className="w-5 h-5 text-paa-gold" /> Organize Event
+            <CalendarIcon className="w-5 h-5 text-paa-gold" /> Event Request
           </h3>
           <p className="text-paa-gray-text text-sm">
             Manage and review incoming organizer event requests.
