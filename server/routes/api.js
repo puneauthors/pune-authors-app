@@ -2396,7 +2396,11 @@ router.get('/api/author/dashboard-data', verifyToken, async (req, res) => {
 
     try {
       authorProfile.donationRegistrations = await prisma.donationRegistration.findMany({
-        where: { authorId: authorProfile.id },
+        where: { 
+          authorId: authorProfile.id,
+          isArchived: false,
+          announcement: { isArchived: false }
+        },
         include: {
           announcement: { include: { library: true } },
           books: { include: { book: true } }
@@ -2483,7 +2487,7 @@ router.get('/api/author/dashboard-data', verifyToken, async (req, res) => {
     let activeDonations = [];
     try {
       activeDonations = await prisma.donationAnnouncement.findMany({
-        where: { visibility: 'Published' },
+        where: { visibility: 'Published', isArchived: false },
         include: { library: true }
       });
     } catch (e) { }

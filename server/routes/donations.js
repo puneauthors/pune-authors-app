@@ -268,7 +268,7 @@ router.delete('/api/admin/donation-announcements/:id', verifyToken, isAdmin, asy
   try {
     await prisma.donationAnnouncement.update({
       where: { id: parseInt(req.params.id) },
-      data: { isArchived: true }
+      data: { isArchived: true, visibility: 'Draft' }
     });
     res.json({ success: true });
   } catch (err) {
@@ -344,6 +344,7 @@ router.get('/api/author/donation-announcements', verifyToken, async (req, res) =
   try {
     const announcements = await prisma.donationAnnouncement.findMany({
       where: {
+        isArchived: false,
         visibility: {
           in: ['Published', 'Closed']
         }
@@ -364,7 +365,13 @@ router.get('/api/author/donation-registrations', verifyToken, async (req, res) =
     if (!author) return res.status(404).json({ error: 'Author not found' });
     
     const registrations = await prisma.donationRegistration.findMany({
-      where: { authorId: author.id },
+      where: { 
+        authorId: author.id,
+        isArchived: false,
+        announcement: {
+          isArchived: false
+        }
+      },
       include: {
         announcement: { include: { library: true } },
         books: { include: { book: true } }
@@ -385,7 +392,13 @@ router.get('/api/author/donation-summary', verifyToken, async (req, res) => {
     if (!author) return res.status(404).json({ error: 'Author not found' });
     
     const registrations = await prisma.donationRegistration.findMany({
-      where: { authorId: author.id },
+      where: { 
+        authorId: author.id,
+        isArchived: false,
+        announcement: {
+          isArchived: false
+        }
+      },
       include: {
         books: { include: { book: true } }
       }

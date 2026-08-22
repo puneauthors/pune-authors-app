@@ -467,7 +467,8 @@ export function LibraryDonationsTab() {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Global Registry');
 
-    const totalCols = 5 + drives.length;
+    const activeDrives = drives.filter(d => !d.isArchived);
+    const totalCols = 5 + activeDrives.length;
     const getColLetter = (n: number) => {
       let result = '';
       while (n > 0) {
@@ -492,7 +493,7 @@ export function LibraryDonationsTab() {
     sheet.mergeCells(`A2:${lastColLetter}2`);
     const subtitleCell = sheet.getCell('A2');
     const todayStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
-    subtitleCell.value = `Report Type: Ecosystem Global Registry Summary  |  Total Registered Authors: ${authors.length}  |  Generated: ${todayStr}`;
+    subtitleCell.value = `Report Type: Global Authors Registry  |  Active Drives: ${activeDrives.length}  |  Total Participating Authors: ${authors.length}  |  Generated: ${todayStr}`;
     subtitleCell.font = { name: 'Arial', size: 10, italic: true, color: { argb: 'FFFFFFFF' } };
     subtitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '3B6290' } }; // Muted Blue
     subtitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -503,7 +504,7 @@ export function LibraryDonationsTab() {
 
     // Table Headers
     const headers = ['Author Name', 'City', 'Registration Date', 'Drives Participated'];
-    drives.forEach(d => {
+    activeDrives.forEach(d => {
       const dateObj = new Date(d.expectedDispatchDate || d.eventDate || d.createdAt);
       const monthName = dateObj.toLocaleDateString('en-IN', { month: 'short' });
       const yearTwoDigits = dateObj.getFullYear().toString().slice(-2);
@@ -537,7 +538,7 @@ export function LibraryDonationsTab() {
         drivesParticipated
       ];
 
-      drives.forEach(d => {
+      activeDrives.forEach(d => {
         const driveData = a.drives[d.id];
         rowData.push(driveData ? driveData.totalBooks : 0);
       });
@@ -1785,13 +1786,15 @@ export function LibraryDonationsTab() {
     return true;
   });
 
+  const activeTabScopedDrives = tabScopedDrives.filter(d => !d.isArchived);
+
   const tabScopedLibraries = libraries.filter(lib => {
     if (activeMainTab === 'Airport') return isAirportLibrary(lib);
     if (activeMainTab === 'Other') return !isAirportLibrary(lib);
     return true;
   });
 
-  const nonDraftDrives = tabScopedDrives.filter(d => d.visibility !== 'Draft');
+  const nonDraftDrives = activeTabScopedDrives.filter(d => d.visibility !== 'Draft');
   const nonDraftDrivesCount = nonDraftDrives.length;
 
   const calculatedBooks = nonDraftDrives.reduce((sum, drive) => {
@@ -1814,12 +1817,12 @@ export function LibraryDonationsTab() {
     return sum + authors;
   }, 0);
 
-  const activeLibrariesCount = tabScopedLibraries.filter(lib => tabScopedDrives.some(d => d.libraryId === lib.id && d.visibility !== 'Draft')).length;
+  const activeLibrariesCount = tabScopedLibraries.filter(lib => !lib.isArchived && activeTabScopedDrives.some(d => d.libraryId === lib.id && d.visibility !== 'Draft')).length;
 
-  const filteredBySearch = tabScopedDrives.filter(d => d.title.toLowerCase().includes(driveSearch.toLowerCase()));
-  const allDrivesCount = tabScopedDrives.length;
-  const openDrivesCount = tabScopedDrives.filter(d => d.visibility === 'Published').length;
-  const closedDrivesCount = tabScopedDrives.filter(d => d.visibility === 'Closed').length;
+  const filteredBySearch = (showArchivedDrives ? tabScopedDrives.filter(d => d.isArchived) : activeTabScopedDrives).filter(d => d.title.toLowerCase().includes(driveSearch.toLowerCase()));
+  const allDrivesCount = activeTabScopedDrives.length;
+  const openDrivesCount = activeTabScopedDrives.filter(d => d.visibility === 'Published').length;
+  const closedDrivesCount = activeTabScopedDrives.filter(d => d.visibility === 'Closed').length;
 
   const filteredDrives = filteredBySearch.filter(d => {
     if (showArchivedDrives) return d.isArchived;
@@ -1885,7 +1888,7 @@ export function LibraryDonationsTab() {
         >
           <Plane className="w-4 h-4" /> Airport Libraries
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${activeMainTab === 'Airport' ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-700'}`}>
-            {drives.filter(d => (d.library?.type === 'Airport Library' || (d.library?.name || '').toLowerCase().includes('airport') || (d.title || '').toLowerCase().includes('airport'))).length}
+            {drives.filter(d => !d.isArchived && (d.library?.type === 'Airport Library' || (d.library?.name || '').toLowerCase().includes('airport') || (d.title || '').toLowerCase().includes('airport'))).length}
           </span>
         </button>
         <button
@@ -1894,7 +1897,7 @@ export function LibraryDonationsTab() {
         >
           <Building2 className="w-4 h-4" /> Other Libraries
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${activeMainTab === 'Other' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700'}`}>
-            {drives.filter(d => !(d.library?.type === 'Airport Library' || (d.library?.name || '').toLowerCase().includes('airport') || (d.title || '').toLowerCase().includes('airport'))).length}
+            {drives.filter(d => !d.isArchived && !(d.library?.type === 'Airport Library' || (d.library?.name || '').toLowerCase().includes('airport') || (d.title || '').toLowerCase().includes('airport'))).length}
           </span>
         </button>
         <button
