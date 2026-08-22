@@ -608,7 +608,7 @@ export function AuthorLandingPage() {
                   {carouselImages.map((img: any, idx) => (
                     <div key={idx} style={{ width: `${100 / totalSlides}%`, height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <img
-                        src={img.url.startsWith('http') ? img.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${img.url.startsWith('/') ? img.url : '/' + img.url}`}
+                        src={img.url.match(/^(http|data:)/) ? img.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${img.url.startsWith('/') ? img.url : '/' + img.url}`}
                         style={{ width: "100%", height: "100%", objectFit: "contain", padding: "1rem" }} alt=""
                       />
                     </div>
@@ -857,7 +857,7 @@ export function AuthorLandingPage() {
                         </p>
                       </div>
                       <a 
-                        href={`${doc.documentUrl?.startsWith('http') ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001')}${doc.documentUrl}`} 
+                        href={`${doc.documentUrl?.match(/^(http|data:)/) ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001')}${doc.documentUrl}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         style={{

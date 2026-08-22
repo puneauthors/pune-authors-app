@@ -2829,7 +2829,15 @@ router.put('/api/author/books/:id/cover', verifyToken, upload.single('cover'), a
     const book = await prisma.book.findUnique({ where: { id: bookId } });
     if (!book || book.authorId !== author.id) return res.status(403).json({ error: 'Not authorized' });
 
-    const coverUrl = `/uploads/${req.file.filename}`;
+    let coverUrl = `/uploads/${req.file.filename}`;
+    try {
+      const sharp = require('sharp');
+      const buffer = await sharp(req.file.path).resize(600, 900, { fit: 'cover' }).webp({ quality: 80 }).toBuffer();
+      coverUrl = `data:image/webp;base64,${buffer.toString('base64')}`;
+      require('fs').unlinkSync(req.file.path);
+    } catch (e) {
+      console.error('Sharp error:', e);
+    }
 
     const updated = await prisma.book.update({
       where: { id: bookId },
@@ -2843,6 +2851,45 @@ router.put('/api/author/books/:id/cover', verifyToken, upload.single('cover'), a
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to update cover' });
+  }
+});
+
+// Admin: Update book cover image
+router.put('/api/admin/books/:id/cover', verifyToken, isAdmin, upload.single('cover'), async (req, res) => {
+  try {
+    const bookId = parseInt(req.params.id);
+    if (!req.file) return res.status(400).json({ error: 'No cover image uploaded' });
+
+    const book = await prisma.book.findUnique({ where: { id: bookId } });
+    if (!book) return res.status(404).json({ error: 'Book not found' });
+
+    let coverUrl = `/uploads/${req.file.filename}`;
+    try {
+      const sharp = require('sharp');
+      const buffer = await sharp(req.file.path).resize(600, 900, { fit: 'cover' }).webp({ quality: 80 }).toBuffer();
+      coverUrl = `data:image/webp;base64,${buffer.toString('base64')}`;
+      require('fs').unlinkSync(req.file.path);
+    } catch (e) {
+      console.error('Sharp error:', e);
+    }
+
+    const updated = await prisma.book.update({
+      where: { id: bookId },
+      data: { coverUrl }
+    });
+    
+    deleteCatalogueCache();
+    invalidateCache('adminAuthors');
+    invalidateCache('admin:dashboard-stats');
+    if (book.authorId) {
+       const author = await prisma.author.findUnique({ where: { id: book.authorId } });
+       if (author) invalidateCache(`author:dashboard:${author.email}`);
+    }
+    
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update cover by admin' });
   }
 });
 
@@ -2870,8 +2917,27 @@ router.post('/api/author/books', verifyToken, upload.fields([{ name: 'cover', ma
     const author = await prisma.author.findUnique({ where: { email: req.user.email } });
     if (!author) return res.status(403).json({ error: 'Not an author' });
 
-    const coverUrl = req.files && req.files['cover'] ? `/uploads/${req.files['cover'][0].filename}` : null;
-    const backCoverUrl = req.files && req.files['backCover'] ? `/uploads/${req.files['backCover'][0].filename}` : null;
+    let coverUrl = req.files && req.files['cover'] ? `/uploads/${req.files['cover'][0].filename}` : null;
+    let backCoverUrl = req.files && req.files['backCover'] ? `/uploads/${req.files['backCover'][0].filename}` : null;
+
+    const processImage = async (fileObj) => {
+      try {
+        const sharp = require('sharp');
+        const buffer = await sharp(fileObj.path).resize(600, 900, { fit: 'cover' }).webp({ quality: 80 }).toBuffer();
+        require('fs').unlinkSync(fileObj.path);
+        return `data:image/webp;base64,${buffer.toString('base64')}`;
+      } catch (e) {
+        console.error('Sharp error:', e);
+        return `/uploads/${fileObj.filename}`;
+      }
+    };
+
+    if (req.files && req.files['cover']) {
+      coverUrl = await processImage(req.files['cover'][0]);
+    }
+    if (req.files && req.files['backCover']) {
+      backCoverUrl = await processImage(req.files['backCover'][0]);
+    }
 
     const newBook = await prisma.book.create({
       data: {

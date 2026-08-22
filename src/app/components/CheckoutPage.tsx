@@ -173,7 +173,7 @@ export function CheckoutPage() {
           ...b,
           id: b.id.toString(),
           authorName: b.author?.name || 'Unknown Author',
-          coverUrl: b.coverUrl ? (b.coverUrl.startsWith('http') ? b.coverUrl : `${(import.meta.env.VITE_API_URL || 'http://localhost:3001').trim()}${b.coverUrl}`) : null
+          coverUrl: b.coverUrl ? (b.coverUrl.match(/^(http|data:)/) ? b.coverUrl : `${(import.meta.env.VITE_API_URL || 'http://localhost:3001').trim()}${b.coverUrl}`) : null
         }));
         w.__apiCache.catalogueBooks = mapped;
 
@@ -672,7 +672,7 @@ export function CheckoutPage() {
                             <div key={book.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #e2e8f0", paddingTop: "0.75rem", marginTop: "0.75rem" }}>
                               <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
                                 {book.coverUrl ? (
-                                   <img src={book.coverUrl.startsWith('http') ? book.coverUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${book.coverUrl}`} alt={book.title} style={{ width: 40, height: 56, objectFit: "cover", borderRadius: 4, boxShadow: "0 2px 4px #eaeaea" }} />
+                                   <img src={book.coverUrl.match(/^(http|data:)/) ? book.coverUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${book.coverUrl}`} alt={book.title} style={{ width: 40, height: 56, objectFit: "cover", borderRadius: 4, boxShadow: "0 2px 4px #eaeaea" }} />
                                 ) : (
                                    <div style={{ width: 40, height: 56, background: "#e2e8f0", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center" }}><Package size={16} color="#94a3b8" /></div>
                                 )}
@@ -741,7 +741,7 @@ export function CheckoutPage() {
                     <div key={book.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 0", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
                       <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                           {book.coverUrl ? (
-                             <img src={book.coverUrl.startsWith('http') ? book.coverUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${book.coverUrl}`} alt={book.title} style={{ width: 48, height: 64, objectFit: "cover", borderRadius: 4, boxShadow: "0 2px 4px #eaeaea" }} />
+                             <img src={book.coverUrl.match(/^(http|data:)/) ? book.coverUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${book.coverUrl}`} alt={book.title} style={{ width: 48, height: 64, objectFit: "cover", borderRadius: 4, boxShadow: "0 2px 4px #eaeaea" }} />
                           ) : (
                              <div style={{ width: 48, height: 64, background: "#f0f0f4", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center" }}><Package size={20} color="#9ca3af" /></div>
                           )}
@@ -768,7 +768,7 @@ export function CheckoutPage() {
                     <p style={{ fontSize: 14, fontWeight: 600, color: "#111", marginBottom: "0.75rem" }}>Scan Author's QR to Pay ₹{totalAmount}</p>
                     {currentAuthor?.qrCodeUrl ? (
                       <img
-                        src={currentAuthor.qrCodeUrl.startsWith('http') ? currentAuthor.qrCodeUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${currentAuthor.qrCodeUrl}`}
+                        src={currentAuthor.qrCodeUrl.match(/^(http|data:)/) ? currentAuthor.qrCodeUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${currentAuthor.qrCodeUrl}`}
                         alt="Author Payment QR"
                         style={{ width: 160, height: 160, objectFit: "contain", margin: "0 auto", display: "block", borderRadius: 4, border: "2px solid #eaeaea" }}
                       />

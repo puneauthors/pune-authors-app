@@ -128,7 +128,7 @@ export function EventsPage() {
   const getEventBanner = (event: any) => {
     let url = event.bannerUrl;
     if (url) {
-      return url.startsWith('http') ? url : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${url}`;
+      return url.match(/^(http|data:)/) ? url : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${url}`;
     }
     return null;
   };

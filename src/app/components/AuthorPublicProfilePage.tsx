@@ -211,7 +211,7 @@ export function AuthorPublicProfilePage() {
           <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-start", flexWrap: "wrap", paddingBottom: "1.5rem" }} className="profile-header">
             <div style={{ width: 140, height: 140, borderRadius: "50%", background: "#f8f9fa", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }} className="profile-avatar">
               {author.photoUrl ? (
-                <img src={author.photoUrl.startsWith('http') ? author.photoUrl : `${API}${author.photoUrl.startsWith('/') ? author.photoUrl : '/' + author.photoUrl}`} alt={author.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={author.photoUrl.match(/^(http|data:)/) ? author.photoUrl : `${API}${author.photoUrl.startsWith('/') ? author.photoUrl : '/' + author.photoUrl}`} alt={author.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
                 <span style={{ fontSize: 64, fontWeight: 700, color: C.gold }}>{author.name.charAt(0)}</span>
               )}
@@ -324,7 +324,7 @@ export function AuthorPublicProfilePage() {
                     <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap", alignItems: "flex-start", padding: "1.5rem 0" }} className="book-row">
                       <div style={{ width: 140, flexShrink: 0 }}>
                         {book.coverUrl ? (
-                          <img src={book.coverUrl.startsWith('http') ? book.coverUrl : `${API}${book.coverUrl.startsWith('/') ? book.coverUrl : '/' + book.coverUrl}`} alt={book.title} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: 4, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+                          <img src={book.coverUrl.match(/^(http|data:)/) ? book.coverUrl : `${API}${book.coverUrl.startsWith('/') ? book.coverUrl : '/' + book.coverUrl}`} alt={book.title} style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: 4, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
                         ) : (
                           <div style={{ width: "100%", height: 200, background: C.white, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 4 }}>
                             <BookOpen size={32} color={C.border} />

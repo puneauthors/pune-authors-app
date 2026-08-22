@@ -291,16 +291,16 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
       if (author.whatsapp && author.whatsapp !== 'NA') socials.push(`<a href="https://wa.me/${author.whatsapp.replace(/\D/g, '')}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
           &#128222; WhatsApp
         </a>`);
-      if (author.linkedin && author.linkedin !== 'NA') socials.push(`<a href="${author.linkedin.startsWith('http') ? author.linkedin : 'https://linkedin.com/in/' + author.linkedin}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+      if (author.linkedin && author.linkedin !== 'NA') socials.push(`<a href="${author.linkedin.match(/^(http|data:)/) ? author.linkedin : 'https://linkedin.com/in/' + author.linkedin}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
           &#128188; LinkedIn
         </a>`);
-      if (author.youtube && author.youtube !== 'NA') socials.push(`<a href="${author.youtube.startsWith('http') ? author.youtube : 'https://youtube.com/' + author.youtube}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+      if (author.youtube && author.youtube !== 'NA') socials.push(`<a href="${author.youtube.match(/^(http|data:)/) ? author.youtube : 'https://youtube.com/' + author.youtube}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
           &#128250; YouTube
         </a>`);
-      if (author.instagram && author.instagram !== 'NA') socials.push(`<a href="${author.instagram.startsWith('http') ? author.instagram : 'https://instagram.com/' + author.instagram}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+      if (author.instagram && author.instagram !== 'NA') socials.push(`<a href="${author.instagram.match(/^(http|data:)/) ? author.instagram : 'https://instagram.com/' + author.instagram}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
           &#128247; Instagram
         </a>`);
-      if (author.facebook && author.facebook !== 'NA') socials.push(`<a href="${author.facebook.startsWith('http') ? author.facebook : 'https://facebook.com/' + author.facebook}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+      if (author.facebook && author.facebook !== 'NA') socials.push(`<a href="${author.facebook.match(/^(http|data:)/) ? author.facebook : 'https://facebook.com/' + author.facebook}" style="background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
           &#128101; Facebook
         </a>`);
 
@@ -316,7 +316,7 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
              
              <div style="display: flex; gap: 50px; align-items: center; position: relative; z-index: 2;">
                  <div style="flex-shrink: 0; width: 220px; height: 220px; border-radius: 50%; border: 6px solid #b44d28; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); background: #1e293b;">
-                   ${author.photoUrl ? `<img src="${author.photoUrl.startsWith('http') ? author.photoUrl : (import.meta.env.VITE_API_URL || 'http://localhost:3001').trim() + (author.photoUrl.startsWith('/') ? author.photoUrl : '/' + author.photoUrl)}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.opacity='0';" />` : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 80px; color: #94a3b8; font-family: serif;">${author.name.charAt(0)}</div>`}
+                   ${author.photoUrl ? `<img src="${author.photoUrl.match(/^(http|data:)/) ? author.photoUrl : (import.meta.env.VITE_API_URL || 'http://localhost:3001').trim() + (author.photoUrl.startsWith('/') ? author.photoUrl : '/' + author.photoUrl)}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.opacity='0';" />` : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 80px; color: #94a3b8; font-family: serif;">${author.name.charAt(0)}</div>`}
                  </div>
                  
                  <div style="flex: 1;">
@@ -353,7 +353,7 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
         const booksHtml = chunk.map((b, bIdx) => `
            <div style="display: flex; gap: 22px; padding-bottom: ${chunk.length > 1 && bIdx < chunk.length - 1 ? '22px' : '0'}; border-bottom: ${chunk.length > 1 && bIdx < chunk.length - 1 ? '1px solid #cbd5e1' : 'none'}; break-inside: avoid;">
              <div style="flex-shrink: 0; width: 155px;">
-               ${b.coverUrl ? `<img src="${b.coverUrl.startsWith('http') ? b.coverUrl : (import.meta.env.VITE_API_URL || 'http://localhost:3001').trim() + (b.coverUrl.startsWith('/') ? b.coverUrl : '/' + b.coverUrl)}" crossorigin="anonymous" style="width: 100%; height: 220px; object-fit: cover; border-radius: 4px; box-shadow: 10px 10px 20px rgba(0,0,0,0.1); border: 1px solid #94a3b8;" onerror="this.style.opacity='0';" />` : `<div style="width: 100%; height: 220px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: 1px dashed #94a3b8;"><span style="color:#64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">No Cover</span></div>`}
+               ${b.coverUrl ? `<img src="${b.coverUrl.match(/^(http|data:)/) ? b.coverUrl : (import.meta.env.VITE_API_URL || 'http://localhost:3001').trim() + (b.coverUrl.startsWith('/') ? b.coverUrl : '/' + b.coverUrl)}" crossorigin="anonymous" style="width: 100%; height: 220px; object-fit: cover; border-radius: 4px; box-shadow: 10px 10px 20px rgba(0,0,0,0.1); border: 1px solid #94a3b8;" onerror="this.style.opacity='0';" />` : `<div style="width: 100%; height: 220px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: 1px dashed #94a3b8;"><span style="color:#64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">No Cover</span></div>`}
              </div>
              <div style="flex: 1; display: flex; flex-direction: column;">
                <div style="margin-bottom: 6px;">

@@ -4990,7 +4990,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
 
                        {evt.bannerUrl && (
                          <div className="w-full h-32 relative mb-0 rounded-xl overflow-hidden shadow-inner border border-black/10 z-10">
-                           <img src={evt.bannerUrl.startsWith('http') ? evt.bannerUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${evt.bannerUrl}`} alt="Banner" className="w-full h-full object-cover" style={{ objectPosition: 'center 20%' }} />
+                           <img src={evt.bannerUrl.match(/^(http|data:)/) ? evt.bannerUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${evt.bannerUrl}`} alt="Banner" className="w-full h-full object-cover" style={{ objectPosition: 'center 20%' }} />
                          </div>
                        )}
 
@@ -5461,7 +5461,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                         <div className="w-40 shrink-0">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 flex items-center gap-1"><ImageIcon className="w-3 h-3"/> Event Banner</p>
                                             <div className="rounded-lg overflow-hidden border border-gray-200 shadow-sm aspect-video relative group">
-                                              <img src={evt.bannerUrl.startsWith('http') ? evt.bannerUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${evt.bannerUrl}`} alt="Banner" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                              <img src={evt.bannerUrl.match(/^(http|data:)/) ? evt.bannerUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${evt.bannerUrl}`} alt="Banner" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                             </div>
                                         </div>
                                       )}
@@ -6266,7 +6266,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                     </td>
                                     <td className="px-4 py-4 text-center">
                                         {payment.screenshotUrl ? (
-                                            <a href={payment.screenshotUrl.startsWith('http') ? payment.screenshotUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${payment.screenshotUrl}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-200 transition-all text-xs font-bold shadow-sm group">
+                                            <a href={payment.screenshotUrl.match(/^(http|data:)/) ? payment.screenshotUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${payment.screenshotUrl}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-200 transition-all text-xs font-bold shadow-sm group">
                                                 <ImageIcon className="w-3.5 h-3.5 text-gray-400 group-hover:text-indigo-500 transition-colors" /> View Proof
                                             </a>
                                         ) : (

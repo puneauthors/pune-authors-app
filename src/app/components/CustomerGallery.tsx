@@ -248,7 +248,7 @@ export function CustomerGallery({ eventId }: { eventId?: string }) {
               className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === carouselIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
             >
                {img.url ? (
-                 <img src={img.url.startsWith('http') ? img.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${img.url}`} className="w-full h-full object-cover" alt="Featured event" />
+                 <img src={img.url.match(/^(http|data:)/) ? img.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${img.url}`} className="w-full h-full object-cover" alt="Featured event" />
                ) : (
                  <div className="w-full h-full bg-stripes-gray flex items-center justify-center bg-gray-100">
                     <ImageIcon className="w-32 h-32 text-gray-300 opacity-20" />
@@ -338,7 +338,7 @@ export function CustomerGallery({ eventId }: { eventId?: string }) {
                        onClick={() => openLightbox(ev.images, idx)}
                      >
                        <img 
-                         src={img.url.startsWith('http') ? img.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${img.url}`} 
+                         src={img.url.match(/^(http|data:)/) ? img.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${img.url}`} 
                          alt={img.caption || 'Event photo'} 
                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                        />
@@ -378,7 +378,7 @@ export function CustomerGallery({ eventId }: { eventId?: string }) {
                <div className="relative w-full h-48 md:h-64 rounded-2xl overflow-hidden bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center">
                   <div className="absolute inset-0 opacity-10">
                      {ev.bannerUrl ? (
-                        <img src={ev.bannerUrl.startsWith('http') ? ev.bannerUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${ev.bannerUrl}`} className="w-full h-full object-cover" alt="Placeholder" />
+                        <img src={ev.bannerUrl.match(/^(http|data:)/) ? ev.bannerUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${ev.bannerUrl}`} className="w-full h-full object-cover" alt="Placeholder" />
                      ) : (
                         <div className="w-full h-full bg-stripes-gray"></div>
                      )}

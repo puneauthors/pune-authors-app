@@ -177,7 +177,7 @@ export const AdminInvitationsTab = () => {
                   <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200 shrink-0 shadow-xs">
                     {inv.author?.photoUrl ? (
                       <img 
-                        src={inv.author.photoUrl.startsWith('http') ? inv.author.photoUrl : `${API}${inv.author.photoUrl.startsWith('/') ? inv.author.photoUrl : '/' + inv.author.photoUrl}`} 
+                        src={inv.author.photoUrl.match(/^(http|data:)/) ? inv.author.photoUrl : `${API}${inv.author.photoUrl.startsWith('/') ? inv.author.photoUrl : '/' + inv.author.photoUrl}`} 
                         alt={inv.author?.name || 'Author'} 
                         className="w-full h-full object-cover" 
                       />

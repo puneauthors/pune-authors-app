@@ -106,7 +106,7 @@ export function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 <div key={book.id} style={{ display: "flex", gap: "1rem", borderBottom: "1px solid #f0f0f4", paddingBottom: "1rem" }}>
                   <div style={{ width: 60, height: 90, background: "#f9f9f9", flexShrink: 0, border: "1px solid #eaeaea" }}>
                     {book.coverUrl ? (
-                      <img src={book.coverUrl.startsWith("http") ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <img src={book.coverUrl.match(/^(http|data:)/) ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : null}
                   </div>
                   <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>

@@ -172,7 +172,7 @@ function WizardEventsStep() {
                   <div key={index} style={style} className="bg-white rounded-2xl border border-paa-navy/10 shadow-lg overflow-hidden flex flex-col">
                     <div className="h-40 bg-gray-100 relative">
                       {(event as any).photoUrl ? (
-                        <img src={(event as any).photoUrl.startsWith('http') ? (event as any).photoUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${(event as any).photoUrl}`} alt={event.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        <img src={(event as any).photoUrl.match(/^(http|data:)/) ? (event as any).photoUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${(event as any).photoUrl}`} alt={event.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center p-4 text-center bg-paa-navy/5">
                            <h3 className="font-serif text-lg text-gray-400 leading-tight">{event.name}</h3>
@@ -326,10 +326,10 @@ export function AuthorRegistrationPage({ initialData, isReapply = false, onReapp
     const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
     const origData = initialData.extraData.originalProfileData;
     let origVal = origData[key] ? String(origData[key]) : "";
-    if (origVal && !origVal.startsWith('http')) origVal = API + origVal;
+    if (origVal && !origVal.match(/^(http|data:)/)) origVal = API + origVal;
     
     let curVal = currentUrl || "";
-    if (curVal && !curVal.startsWith('http') && curVal.startsWith('/uploads')) curVal = API + curVal;
+    if (curVal && !curVal.match(/^(http|data:)/) && curVal.startsWith('/uploads')) curVal = API + curVal;
 
     // Check if both are empty/null
     if (!origVal && !curVal) return null;
@@ -377,10 +377,10 @@ export function AuthorRegistrationPage({ initialData, isReapply = false, onReapp
 
     const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
     let origVal = origBook[key] ? String(origBook[key]) : "";
-    if (origVal && !origVal.startsWith('http')) origVal = API + origVal;
+    if (origVal && !origVal.match(/^(http|data:)/)) origVal = API + origVal;
     
     let curVal = currentUrl || "";
-    if (curVal && !curVal.startsWith('http') && curVal.startsWith('/uploads')) curVal = API + curVal;
+    if (curVal && !curVal.match(/^(http|data:)/) && curVal.startsWith('/uploads')) curVal = API + curVal;
 
     if (!origVal && !curVal) return null;
     
@@ -570,7 +570,7 @@ export function AuthorRegistrationPage({ initialData, isReapply = false, onReapp
           if (currentQuals.length > 0) {
             currentQuals = currentQuals.map((q: any) => ({
               ...q,
-              certificateUrl: q.certificateUrl && !q.certificateUrl.startsWith('blob:') && !q.certificateUrl.startsWith('http') 
+              certificateUrl: q.certificateUrl && !q.certificateUrl.startsWith('blob:') && !q.certificateUrl.match(/^(http|data:)/) 
                 ? `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${q.certificateUrl}` 
                 : (q.certificateUrl || "")
             }));

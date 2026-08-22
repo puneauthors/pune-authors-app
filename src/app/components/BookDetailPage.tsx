@@ -227,7 +227,7 @@ export function BookDetailPage() {
                 ? (
                   <>
                     <div style={{ flex: 1, position: "relative" }}>
-                      <img src={images[currentImageIndex].startsWith('http') ? images[currentImageIndex] : `${API}${images[currentImageIndex].startsWith('/') ? images[currentImageIndex] : '/' + images[currentImageIndex]}`} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", top: 0, left: 0 }} />
+                      <img src={images[currentImageIndex].match(/^(http|data:)/) ? images[currentImageIndex] : `${API}${images[currentImageIndex].startsWith('/') ? images[currentImageIndex] : '/' + images[currentImageIndex]}`} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", top: 0, left: 0 }} />
                     </div>
                     {images.length > 1 && (
                       <div style={{ position: "absolute", bottom: 16, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 8, zIndex: 20 }}>
@@ -423,7 +423,7 @@ export function BookDetailPage() {
               <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
                 <div style={{ width: 56, height: 56, borderRadius: "50%", background: meta.bg, border: `2px solid ${meta.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 22, fontWeight: 700, color: meta.color }}>
                   {book.author.photoUrl
-                    ? <img src={book.author.photoUrl.startsWith('http') ? book.author.photoUrl : `${API}${book.author.photoUrl.startsWith('/') ? book.author.photoUrl : '/' + book.author.photoUrl}`} alt={book.author.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                    ? <img src={book.author.photoUrl.match(/^(http|data:)/) ? book.author.photoUrl : `${API}${book.author.photoUrl.startsWith('/') ? book.author.photoUrl : '/' + book.author.photoUrl}`} alt={book.author.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
                     : book.author.name.charAt(0)}
                 </div>
                 <p style={{ fontWeight: 700, color: "#1a1a2e", margin: 0, fontSize: 16 }}>{book.author.name}</p>
@@ -641,7 +641,7 @@ export function BookDetailPage() {
                     
                     <div style={{ width: 110, height: 150, flexShrink: 0, background: `linear-gradient(135deg, ${meta.color}15 0%, ${meta.color}05 100%)`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                       <img
-                        src={relatedBook.coverUrl ? (relatedBook.coverUrl.startsWith("http") ? relatedBook.coverUrl : `${API}${relatedBook.coverUrl.startsWith('/') ? relatedBook.coverUrl : '/' + relatedBook.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"}
+                        src={relatedBook.coverUrl ? (relatedBook.coverUrl.match(/^(http|data:)/) ? relatedBook.coverUrl : `${API}${relatedBook.coverUrl.startsWith('/') ? relatedBook.coverUrl : '/' + relatedBook.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"}
                         alt={relatedBook.title}
                         style={{ width: "75%", height: "85%", objectFit: "cover", borderRadius: 6, boxShadow: "5px 10px 20px rgba(0,0,0,0.1), -2px -2px 10px rgba(255,255,255,0.7)", transition: "transform 0.4s ease" }}
                         onMouseEnter={e => e.currentTarget.style.transform="scale(1.08)"}
@@ -691,7 +691,7 @@ export function BookDetailPage() {
                     
                     <div style={{ width: 110, height: 150, flexShrink: 0, background: `linear-gradient(135deg, ${meta.color}15 0%, ${meta.color}05 100%)`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                       <img
-                        src={relatedBook.coverUrl ? (relatedBook.coverUrl.startsWith("http") ? relatedBook.coverUrl : `${API}${relatedBook.coverUrl.startsWith('/') ? relatedBook.coverUrl : '/' + relatedBook.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"}
+                        src={relatedBook.coverUrl ? (relatedBook.coverUrl.match(/^(http|data:)/) ? relatedBook.coverUrl : `${API}${relatedBook.coverUrl.startsWith('/') ? relatedBook.coverUrl : '/' + relatedBook.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"}
                         alt={relatedBook.title}
                         style={{ width: "75%", height: "85%", objectFit: "cover", borderRadius: 6, boxShadow: "5px 10px 20px rgba(0,0,0,0.1), -2px -2px 10px rgba(255,255,255,0.7)", transition: "transform 0.4s ease" }}
                         onMouseEnter={e => e.currentTarget.style.transform="scale(1.08)"}

@@ -186,7 +186,7 @@ export function LandingPage() {
           authorName: b.author?.name || "Unknown",
           genre: b.genre?.includes("Children") ? "C" : b.genre?.includes("Non-Fiction") || b.genre === "NF" ? "NF" : "F",
           description: b.synopsis,
-          coverUrl: b.coverUrl?.startsWith("http") ? b.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${b.coverUrl?.startsWith('/') ? '' : '/'}${b.coverUrl}`,
+          coverUrl: b.coverUrl?.match(/^(http|data:)/) ? b.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${b.coverUrl?.startsWith('/') ? '' : '/'}${b.coverUrl}`,
         }));
         setGalleryItems(mapped);
       })
@@ -459,7 +459,7 @@ export function LandingPage() {
             {[...galleryItems.filter(b => b.genre === "F")].sort((a, b) => a.title.localeCompare(b.title)).slice(0, 16).map((book, i) => (
               <Link to={`/book/${book.id}`} key={i} className="fic-card" style={{ background: "#fff", borderRadius: 12, padding: "0.9rem", display: "flex", gap: "0.8rem", alignItems: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", textDecoration: "none" }}>
                 <div className="fic-img-wrapper" style={{ width: 80, height: 110, background: "#f1f5f9", borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
-                  <img src={book.coverUrl ? (book.coverUrl.startsWith("http") ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={book.coverUrl ? (book.coverUrl.match(/^(http|data:)/) ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
                   <h4 style={{ fontSize: 15, fontWeight: 800, color: "#111", margin: "0 0 0.3rem 0", lineHeight: 1.2 }}>{book.title}</h4>
@@ -504,7 +504,7 @@ export function LandingPage() {
             {[...galleryItems.filter(b => b.genre === "NF")].sort((a, b) => a.title.localeCompare(b.title)).slice(0, 16).map((book, i) => (
               <Link to={`/book/${book.id}`} key={i} className="nf-card" style={{ background: "#fff", borderRadius: 12, padding: "0.9rem", display: "flex", gap: "0.8rem", alignItems: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", textDecoration: "none" }}>
                 <div className="nf-img-wrapper" style={{ width: 80, height: 110, background: "#f1f5f9", borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
-                  <img src={book.coverUrl ? (book.coverUrl.startsWith("http") ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={book.coverUrl ? (book.coverUrl.match(/^(http|data:)/) ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
                   <h4 style={{ fontSize: 15, fontWeight: 800, color: "#111", margin: "0 0 0.3rem 0", lineHeight: 1.2 }}>{book.title}</h4>
@@ -557,7 +557,7 @@ export function LandingPage() {
             {[...galleryItems.filter(b => b.genre === "C")].sort((a, b) => a.title.localeCompare(b.title)).slice(0, 16).map((book, i) => (
               <Link to={`/book/${book.id}`} key={i} className="child-card" style={{ background: "#fff", borderRadius: 12, padding: "0.9rem", display: "flex", gap: "0.8rem", alignItems: "center", boxShadow: "0 4px 15px rgba(0,0,0,0.03)", textDecoration: "none" }}>
                 <div className="child-img-wrapper" style={{ width: 80, height: 110, background: "#f1f5f9", borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
-                   <img src={book.coverUrl ? (book.coverUrl.startsWith("http") ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                   <img src={book.coverUrl ? (book.coverUrl.match(/^(http|data:)/) ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
                   <h4 style={{ fontSize: 15, fontWeight: 800, color: "#111", margin: "0 0 0.3rem 0", lineHeight: 1.2 }}>{book.title}</h4>
@@ -606,7 +606,7 @@ export function LandingPage() {
               <Link to={`/book/${book.id}`} key={i} className="nr-card" style={{ flex: "0 0 240px", width: 240, background: "#fff", borderRadius: 16, padding: "1.2rem", position: "relative", display: "flex", flexDirection: "column", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", textDecoration: "none" }}>
                 <div style={{ position: "absolute", top: "0.5rem", right: "0.5rem", background: "#00D084", color: "#fff", fontSize: "10px", fontWeight: 800, padding: "0.3rem 0.6rem", borderRadius: "50px", letterSpacing: "0.1em", zIndex: 10, boxShadow: "0 2px 10px rgba(0,208,132,0.3)" }}>NEW</div>
                 <div className="nr-img-wrapper" style={{ width: "100%", height: 260, background: "linear-gradient(180deg, #e6f9f0 0%, #ccf4df 100%)", borderRadius: 8, marginBottom: "1.2rem", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                   <img src={book.coverUrl ? (book.coverUrl.startsWith("http") ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"} alt={book.title} style={{ width: "80%", height: "90%", objectFit: "cover", borderRadius: 4, boxShadow: "0 10px 20px rgba(0,208,132,0.2)" }} />
+                   <img src={book.coverUrl ? (book.coverUrl.match(/^(http|data:)/) ? book.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${book.coverUrl}`) : "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop"} alt={book.title} style={{ width: "80%", height: "90%", objectFit: "cover", borderRadius: 4, boxShadow: "0 10px 20px rgba(0,208,132,0.2)" }} />
                 </div>
                 <div className="nr-content-wrapper" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                   <div>

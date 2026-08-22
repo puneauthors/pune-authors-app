@@ -88,7 +88,7 @@ export function FlybrariesPage() {
       }
     }
     if (url) {
-      if (url.startsWith('http')) return url;
+      if (url.match(/^(http|data:)/)) return url;
       if (url.startsWith('/uploads/') || url.startsWith('uploads/')) {
         const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
         return `${apiBase}${url.startsWith('/') ? '' : '/'}${url}`;

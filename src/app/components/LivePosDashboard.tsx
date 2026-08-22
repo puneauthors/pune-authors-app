@@ -402,7 +402,7 @@ export function LivePosDashboard() {
                     <>
                       <p className="text-xs md:text-sm text-gray-500 mb-4 font-medium px-4">Ask customer to scan this QR code to pay directly to you.</p>
                       <div className="p-2 md:p-3 bg-white border-2 border-gray-100 rounded-2xl shadow-premium">
-                        <img src={author.qrCodeUrl.startsWith('http') ? author.qrCodeUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${author.qrCodeUrl}`} alt="QR Code" className="w-full max-w-[200px] md:max-w-[240px] aspect-square object-contain rounded-xl" />
+                        <img src={author.qrCodeUrl.match(/^(http|data:)/) ? author.qrCodeUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${author.qrCodeUrl}`} alt="QR Code" className="w-full max-w-[200px] md:max-w-[240px] aspect-square object-contain rounded-xl" />
                       </div>
                     </>
                   ) : (
@@ -583,7 +583,7 @@ export function LivePosDashboard() {
                               <div className="font-bold text-green-700">₹{o.totalAmount}</div>
                               <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{o.items.reduce((acc: number, curr: any) => acc + curr.quantity, 0)} items</div>
                               {o.paymentProofUrl && (
-                                 <a href={o.paymentProofUrl.startsWith('http') ? o.paymentProofUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${o.paymentProofUrl}`} target="_blank" rel="noreferrer" className="text-[9px] text-indigo-600 hover:underline border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 rounded flex items-center gap-1 mt-1">
+                                 <a href={o.paymentProofUrl.match(/^(http|data:)/) ? o.paymentProofUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${o.paymentProofUrl}`} target="_blank" rel="noreferrer" className="text-[9px] text-indigo-600 hover:underline border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 rounded flex items-center gap-1 mt-1">
                                     <ImageIcon className="w-2 h-2" /> Proof
                                  </a>
                               )}

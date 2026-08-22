@@ -3660,7 +3660,7 @@ export function OperationsDashboardPage() {
                           {[book.coverUrl, book.backCoverUrl].map((url, ci) => (
                             <div key={ci} className="relative w-11 h-16 bg-gray-100 rounded border border-gray-300 overflow-hidden shrink-0">
                               {url
-                                ? <img loading="lazy" src={(url.startsWith('http') ? url : `${API}${url.startsWith('/') ? '' : '/'}${url}`) + `?t=${lastFetchedBooks}`} alt={ci === 0 ? 'Front' : 'Back'} className="absolute inset-0 w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                ? <img loading="lazy" src={(url.match(/^(http|data:)/) ? url : `${API}${url.startsWith('/') ? '' : '/'}${url}`) + (url.startsWith('data:') ? '' : `?t=${lastFetchedBooks}`)} alt={ci === 0 ? 'Front' : 'Back'} className="absolute inset-0 w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                 : <span className="text-[7px] text-gray-300 font-bold absolute inset-0 flex items-center justify-center">{ci === 0 ? 'F' : 'B'}</span>}
                             </div>
                           ))}
@@ -4711,7 +4711,7 @@ const totalAuthorsBase = eventRegistrations.length;
                               {author.photoUrl ? (
                                 <img
                                   src={
-                                    author.photoUrl.startsWith("http")
+                                    author.photoUrl.match(/^(http|data:)/)
                                       ? author.photoUrl
                                       : `${API}${author.photoUrl.startsWith("/") ? author.photoUrl : "/" + author.photoUrl}`
                                   }
@@ -7200,7 +7200,7 @@ const totalAuthorsBase = eventRegistrations.length;
                                     <img
                                       loading="lazy"
                                       src={
-                                        evt.bannerUrl.startsWith("http")
+                                        evt.bannerUrl.match(/^(http|data:)/)
                                           ? evt.bannerUrl
                                           : `${API}${evt.bannerUrl}`
                                       }
@@ -8305,11 +8305,11 @@ const totalAuthorsBase = eventRegistrations.length;
                     {filteredEvents.map((evt: any) => {
                       const firstImage = evt.galleryEvent?.images?.[0]?.url;
                       const bannerUrl = firstImage
-                        ? firstImage.startsWith("http")
+                        ? firstImage.match(/^(http|data:)/)
                           ? firstImage
                           : `${API}${firstImage}`
                         : evt.bannerUrl
-                          ? evt.bannerUrl.startsWith("http")
+                          ? evt.bannerUrl.match(/^(http|data:)/)
                             ? evt.bannerUrl
                             : `${API}${evt.bannerUrl}`
                           : null;
@@ -9810,9 +9810,9 @@ const totalAuthorsBase = eventRegistrations.length;
                     <img
                       loading="lazy"
                       src={
-                        (selectedBookDetails.coverUrl.startsWith("http")
+                        (selectedBookDetails.coverUrl.match(/^(http|data:)/)
                           ? selectedBookDetails.coverUrl
-                          : `${API}${selectedBookDetails.coverUrl}`) + `?t=${lastFetchedBooks}`
+                          : `${API}${selectedBookDetails.coverUrl}`) + (selectedBookDetails.coverUrl.startsWith('data:') ? '' : `?t=${lastFetchedBooks}`)
                       }
                       alt="Cover"
                       className="w-28 h-40 object-cover border border-paa-navy/20 shadow-sm rounded"
@@ -9827,9 +9827,9 @@ const totalAuthorsBase = eventRegistrations.length;
                     <img
                       loading="lazy"
                       src={
-                        (selectedBookDetails.backCoverUrl.startsWith("http")
+                        (selectedBookDetails.backCoverUrl.match(/^(http|data:)/)
                           ? selectedBookDetails.backCoverUrl
-                          : `${API}${selectedBookDetails.backCoverUrl}`) + `?t=${lastFetchedBooks}`
+                          : `${API}${selectedBookDetails.backCoverUrl}`) + (selectedBookDetails.backCoverUrl.startsWith('data:') ? '' : `?t=${lastFetchedBooks}`)
                       }
                       alt="Back Cover"
                       className="w-28 h-40 object-cover border border-paa-navy/20 shadow-sm rounded"
@@ -10430,7 +10430,7 @@ const totalAuthorsBase = eventRegistrations.length;
                                 {author.photoUrl ? (
                                   <img
                                     src={
-                                      author.photoUrl.startsWith("http")
+                                      author.photoUrl.match(/^(http|data:)/)
                                         ? author.photoUrl
                                         : `${API}${author.photoUrl.startsWith("/") ? author.photoUrl : "/" + author.photoUrl}`
                                     }
@@ -11667,6 +11667,34 @@ const totalAuthorsBase = eventRegistrations.length;
                   rows={4}
                 ></textarea>
               </div>
+              <div>
+                <label className="dash-label">Update Cover Image (Optional)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setLoadingAction("updateBookCover");
+                    try {
+                      const formData = new FormData();
+                      formData.append("cover", file);
+                      await axios.put(`${API}/api/admin/books/${editingBook.id}/cover`, formData, {
+                        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                      });
+                      toast.success("Cover updated successfully!");
+                      fetchBooks();
+                      fetchAuthors();
+                    } catch (err) {
+                      toast.error("Failed to update cover");
+                    } finally {
+                      setLoadingAction(null);
+                    }
+                  }}
+                  className="dash-input text-xs w-full bg-white"
+                  disabled={loadingAction === "updateBookCover"}
+                />
+              </div>
               <button
                 type="submit"
                 disabled={loadingAction === "updateBook"}
@@ -12405,17 +12433,51 @@ const totalAuthorsBase = eventRegistrations.length;
                               className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-4"
                             >
                               <div className="flex gap-4">
-                                {b.coverUrl && (
-                                  <img
-                                    loading="lazy"
-                                    src={
-                                      (import.meta.env.VITE_API_URL || "http://localhost:3001") + 
-                                      b.coverUrl + `?t=${lastFetchedBooks}`
-                                    }
-                                    className="w-16 h-24 object-cover border border-gray-200"
-                                    alt="Cover"
-                                  />
-                                )}
+                                <div className="flex flex-col gap-2 items-center shrink-0">
+                                  {b.coverUrl ? (
+                                    <img
+                                      loading="lazy"
+                                      src={
+                                        (b.coverUrl.match(/^(http|data:)/) ? b.coverUrl : (import.meta.env.VITE_API_URL || 'http://localhost:3001') + b.coverUrl) + (b.coverUrl.startsWith('data:') ? '' : `?t=${lastFetchedBooks}`)
+                                      }
+                                      className="w-16 h-24 object-cover border border-gray-200"
+                                      alt="Cover"
+                                    />
+                                  ) : (
+                                    <div className="w-16 h-24 bg-gray-100 border border-gray-200 flex flex-col items-center justify-center text-[10px] text-gray-400">
+                                      No Cover
+                                    </div>
+                                  )}
+                                  <label className="cursor-pointer text-[9px] font-bold text-paa-navy hover:text-paa-gold uppercase tracking-widest text-center whitespace-nowrap">
+                                    {loadingAction === `updateCover_${b.id}` ? 'Uploading...' : 'Change Cover'}
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      className="hidden"
+                                      disabled={loadingAction === `updateCover_${b.id}`}
+                                      onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file || !b.id) return;
+                                        setLoadingAction(`updateCover_${b.id}`);
+                                        try {
+                                          const formData = new FormData();
+                                          formData.append('cover', file);
+                                          const res = await axios.put(`${API}/api/admin/books/${b.id}/cover`, formData, {
+                                            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                          });
+                                          toast.success("Cover updated successfully!");
+                                          updateBookField("coverUrl", res.data.coverUrl);
+                                          fetchAuthors();
+                                          fetchBooks();
+                                        } catch (err) {
+                                          toast.error("Failed to update cover");
+                                        } finally {
+                                          setLoadingAction(null);
+                                        }
+                                      }}
+                                    />
+                                  </label>
+                                </div>
                                 <div className="flex-1 space-y-2">
                                   <div>
                                     <label className="text-[10px] uppercase text-gray-400 font-bold block mb-1">

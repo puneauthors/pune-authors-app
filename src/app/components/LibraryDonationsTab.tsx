@@ -1394,14 +1394,14 @@ export function LibraryDonationsTab() {
                             <div className="flex items-center gap-3">
                               {reg.paymentScreenshot ? (
                                 <a
-                                  href={reg.paymentScreenshot.startsWith('http') ? reg.paymentScreenshot : `${API}${reg.paymentScreenshot}`}
+                                  href={reg.paymentScreenshot.match(/^(http|data:)/) ? reg.paymentScreenshot : `${API}${reg.paymentScreenshot}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="block w-10 h-10 border border-gray-300 rounded overflow-hidden shadow-sm hover:opacity-80 transition-opacity bg-gray-50 animate-in zoom-in-50 duration-300"
                                   title="View Receipt"
                                 >
                                   <img
-                                    src={reg.paymentScreenshot.startsWith('http') ? reg.paymentScreenshot : `${API}${reg.paymentScreenshot}`}
+                                    src={reg.paymentScreenshot.match(/^(http|data:)/) ? reg.paymentScreenshot : `${API}${reg.paymentScreenshot}`}
                                     className="w-full h-full object-cover"
                                     alt="Receipt"
                                   />

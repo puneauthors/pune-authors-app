@@ -277,7 +277,7 @@ export function BrowseAuthorsPage() {
                           boxShadow: "0 2px 6px rgba(0,0,0,0.05)", flexShrink: 0
                         }}>
                           {author.photoUrl ? (
-                            <img src={author.photoUrl.startsWith('http') ? author.photoUrl : `${API}${author.photoUrl.startsWith('/') ? author.photoUrl : '/' + author.photoUrl}`} alt={author.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            <img src={author.photoUrl.match(/^(http|data:)/) ? author.photoUrl : `${API}${author.photoUrl.startsWith('/') ? author.photoUrl : '/' + author.photoUrl}`} alt={author.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           ) : (
                             <span style={{ fontSize: 20, fontWeight: 800, color: C.gold, fontFamily: "var(--font-display)" }}>{author.name.charAt(0)}</span>
                           )}
