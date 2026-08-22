@@ -3859,7 +3859,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
         
         {/* KPI Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 h-max">
-          <div className="bg-blue-600 rounded-xl shadow-sm p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors col-span-2 md:col-span-3 text-white border-2 border-black">
+          <div className="bg-blue-600 rounded-xl shadow-sm p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors col-span-2 md:col-span-3 text-white">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 shadow-sm border border-white/10">
                 <TrendingUp size={18} />
@@ -3878,7 +3878,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
               </span>
             </div>
           </div>
-          <div className="bg-emerald-500 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white border-2 border-black">
+          <div className="bg-emerald-500 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white">
             <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
               <Check size={18} />
             </div>
@@ -3887,7 +3887,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
               <h3 className="text-xl font-bold text-white">{uniqueAllOrders.filter((o: any) => o.status === 'Completed' || o.status === 'Delivered' || o.orderStatus === 'Completed' || o.orderStatus === 'Delivered').length}</h3>
             </div>
           </div>
-          <div className="bg-amber-500 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white border-2 border-black">
+          <div className="bg-amber-500 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white">
             <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
               <AlertCircle size={18} />
             </div>
@@ -3896,7 +3896,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
               <h3 className="text-xl font-bold text-white">{uniqueAllOrders.filter((o: any) => ((o.status === 'Pending Verification' || o.status === 'Processing' || o.status === 'Pending') && !o.isBulk) || (o.isBulk && (o.orderStatus === 'Pending' || String(o.orderStatus).includes('PENDING')))).length}</h3>
             </div>
           </div>
-          <div className="bg-purple-600 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white border-2 border-black">
+          <div className="bg-purple-600 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white">
             <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
               <Package size={18} />
             </div>
@@ -3905,7 +3905,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
               <h3 className="text-xl font-bold text-white">{uniqueAllOrders.filter((o: any) => o.status === 'Accepted' || o.orderStatus === 'Accepted').length}</h3>
             </div>
           </div>
-          <div className="bg-teal-500 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white border-2 border-black">
+          <div className="bg-teal-500 rounded-xl shadow-sm p-4 flex items-center gap-4 transition-colors text-white">
             <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
               <MapPin size={18} />
             </div>
@@ -3914,7 +3914,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
               <h3 className="text-xl font-bold text-white">{uniqueAllOrders.filter((o: any) => o.status === 'Dispatched' || o.orderStatus === 'Dispatched').length}</h3>
             </div>
           </div>
-          <div className="bg-red-500 rounded-xl shadow-sm p-4 flex items-center gap-4 text-white border-2 border-black">
+          <div className="bg-red-500 rounded-xl shadow-sm p-4 flex items-center gap-4 text-white">
             <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0 shadow-sm border border-white/10">
               <TrendingDown size={18} />
             </div>
