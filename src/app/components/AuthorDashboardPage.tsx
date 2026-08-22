@@ -5316,7 +5316,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                     >
                       <td className="p-1 px-1.5 text-center align-middle border-[1.5px] border-black font-semibold">
                          <div className="flex items-center justify-center gap-1">
-                           <span>{i + 1}</span>
+                           <span>{filteredEvents.length - i}</span>
                            <ChevronDown className={`w-3 h-3 shrink-0 text-gray-500 transition-transform ${expandedEventId === evt.id ? 'rotate-180' : ''}`} />
                          </div>
                       </td>
