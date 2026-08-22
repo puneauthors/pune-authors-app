@@ -6753,123 +6753,74 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
         </div>
       </div>
 
-      {/* METRICS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-        {/* Card 1: Total Revenue */}
-        <div className="dash-kpi-card emerald flex flex-col justify-between p-4 bg-emerald-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-          <div>
-            <div className="flex items-start justify-between mb-3 relative z-10">
-              <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
-                <DollarSign className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="text-[9px] font-bold tracking-widest uppercase text-emerald-50 mb-0.5 relative z-10">Total Revenue</p>
-            <h3 className="text-2xl font-black text-white tracking-tight relative z-10">₹{totalRevenue.toLocaleString('en-IN')}</h3>
-          </div>
-          <div className="mt-3 pt-2.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
-            <span>Web: ₹{kpiSplits.web.revenue.toLocaleString('en-IN')}</span>
-            <span>Events: ₹{kpiSplits.events.revenue.toLocaleString('en-IN')}</span>
-            <span>Fairs: ₹{kpiSplits.bookFairs.revenue.toLocaleString('en-IN')}</span>
-          </div>
-        </div>
-
-        {/* Card 2: Books Sold */}
-        <div className="dash-kpi-card blue flex flex-col justify-between p-4 bg-blue-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-          <div>
-            <div className="flex items-start justify-between mb-3 relative z-10">
-              <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
-                <BookOpen className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="text-[9px] font-bold tracking-widest uppercase text-blue-50 mb-0.5 relative z-10">Total Books Sold</p>
-            <h3 className="text-2xl font-black text-white tracking-tight relative z-10">{totalBooksSold} <span className="text-[10px] font-medium text-blue-100 lowercase tracking-normal">units</span></h3>
-          </div>
-          <div className="mt-3 pt-2.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
-            <span>Web: {kpiSplits.web.books}</span>
-            <span>Events: {kpiSplits.events.books}</span>
-            <span>Fairs: {kpiSplits.bookFairs.books}</span>
-          </div>
-        </div>
-
-        {/* Card 3: Net Earnings */}
-        <div className="dash-kpi-card amber flex flex-col justify-between p-4 bg-amber-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-          <div>
-            <div className="flex items-start justify-between mb-3 relative z-10">
-              <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
-                <TrendingUp className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="text-[9px] font-bold tracking-widest uppercase text-amber-50 mb-0.5 relative z-10">Net Earnings</p>
-            <h3 className={`text-2xl font-black tracking-tight relative z-10 ${(totalRevenue - totalFeesPaid) < 0 ? 'text-red-200' : 'text-white'}`}>
-              ₹{(totalRevenue - totalFeesPaid).toLocaleString('en-IN')}
-            </h3>
-          </div>
-          <div className="mt-3 pt-2.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
-            <span>Gross: ₹{totalRevenue.toLocaleString('en-IN')}</span>
-            <span>Fees: -₹{totalFeesPaid.toLocaleString('en-IN')}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 2: Visualizations */}
+      {/* METRICS & PIE CHART GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         
-        {/* AreaChart: Revenue Trajectory */}
-        <div className="lg:col-span-2 border border-paa-navy/5 p-5 md:p-6 rounded-2xl bg-white shadow-sm flex flex-col justify-between">
-          <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-6">Revenue Trajectory</h4>
-          <div className="h-[250px] w-full">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorReportRev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="date" fontSize={10} tick={{ fill: '#94a3b8' }} axisLine={false} tickLine={false} tickMargin={10} minTickGap={20} />
-                  <YAxis fontSize={10} tick={{ fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val}`} width={60} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
-                    itemStyle={{ fontSize: '13px', fontWeight: 'bold' }}
-                    labelStyle={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}
-                    formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']}
-                  />
-                  <Area type="linear" dataKey="revenue" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorReportRev)" dot={(props: any) => { const { cx, cy, index } = props; const total = chartData.length; if (total <= 30 || index % Math.ceil(total / 15) === 0 || index === total - 1) { return <circle cx={cx} cy={cy} r={4} fill="#fff" stroke="#4f46e5" strokeWidth={2} key={`dot-${index}`} />; } return null; }} activeDot={{ r: 6 }}>
-                    <LabelList dataKey="revenue" position="top" content={(props: any) => {
-                      const { x, y, value, index } = props;
-                      const total = chartData.length;
-                      if (total <= 30 || index % Math.ceil(total / 15) === 0 || index === total - 1) {
-                        let anchor: "inherit" | "end" | "start" | "middle" = "middle";
-                        let xOffset = x;
-                        if (index === 0) {
-                            anchor = "start";
-                            xOffset = x; // Starts from dot center and extends right
-                        } else if (index === total - 1) {
-                            anchor = "end";
-                            xOffset = x;
-                        }
-                        return <text x={xOffset} y={y - 10} fill="#4f46e5" fontSize="10px" fontWeight="bold" textAnchor={anchor}>₹{value}</text>;
-                      }
-                      return null;
-                    }} />
-                  </Area>
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400 text-sm italic">No sales data for this period.</div>
-            )}
+        {/* Left Column: Stacked KPIs */}
+        <div className="lg:col-span-1 flex flex-col gap-4">
+          {/* Card 1: Total Revenue */}
+          <div className="dash-kpi-card emerald flex flex-col justify-between p-4 bg-emerald-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex-1">
+            <div>
+              <div className="flex items-start justify-between mb-3 relative z-10">
+                <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
+                  <DollarSign className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-[9px] font-bold tracking-widest uppercase text-emerald-50 mb-0.5 relative z-10">Total Revenue</p>
+              <h3 className="text-2xl font-black text-white tracking-tight relative z-10">₹{totalRevenue.toLocaleString('en-IN')}</h3>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
+              <span>Web: ₹{kpiSplits.web.revenue.toLocaleString('en-IN')}</span>
+              <span>Events: ₹{kpiSplits.events.revenue.toLocaleString('en-IN')}</span>
+              <span>Fairs: ₹{kpiSplits.bookFairs.revenue.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+
+          {/* Card 2: Books Sold */}
+          <div className="dash-kpi-card blue flex flex-col justify-between p-4 bg-blue-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex-1">
+            <div>
+              <div className="flex items-start justify-between mb-3 relative z-10">
+                <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-[9px] font-bold tracking-widest uppercase text-blue-50 mb-0.5 relative z-10">Total Books Sold</p>
+              <h3 className="text-2xl font-black text-white tracking-tight relative z-10">{totalBooksSold} <span className="text-[10px] font-medium text-blue-100 lowercase tracking-normal">units</span></h3>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
+              <span>Web: {kpiSplits.web.books}</span>
+              <span>Events: {kpiSplits.events.books}</span>
+              <span>Fairs: {kpiSplits.bookFairs.books}</span>
+            </div>
+          </div>
+
+          {/* Card 3: Net Earnings */}
+          <div className="dash-kpi-card amber flex flex-col justify-between p-4 bg-amber-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex-1">
+            <div>
+              <div className="flex items-start justify-between mb-3 relative z-10">
+                <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-[9px] font-bold tracking-widest uppercase text-amber-50 mb-0.5 relative z-10">Net Earnings</p>
+              <h3 className={`text-2xl font-black tracking-tight relative z-10 ${(totalRevenue - totalFeesPaid) < 0 ? 'text-red-200' : 'text-white'}`}>
+                ₹{(totalRevenue - totalFeesPaid).toLocaleString('en-IN')}
+              </h3>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
+              <span>Gross: ₹{totalRevenue.toLocaleString('en-IN')}</span>
+              <span>Fees: -₹{totalFeesPaid.toLocaleString('en-IN')}</span>
+            </div>
           </div>
         </div>
 
-        {/* PieChart: Sales by Channel */}
-        <div className="border border-paa-navy/5 p-5 md:p-6 rounded-2xl bg-white shadow-sm flex flex-col justify-between">
+        {/* Right Column: PieChart: Sales by Channel */}
+        <div className="lg:col-span-2 border border-paa-navy/5 p-5 md:p-6 rounded-2xl bg-white shadow-sm flex flex-col justify-between h-[450px]">
           <div>
             <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-2">Sales by Channel</h4>
             <p className="text-[10px] text-gray-400 mb-6 font-medium">Split of total books sold per channel</p>
           </div>
-          <div className="h-[200px] w-full">
+          <div className="flex-1 w-full min-h-[300px]">
             {totalBooksSold === 0 ? (
               <div className="h-full flex items-center justify-center text-gray-400 text-xs italic">No channel data available.</div>
             ) : (
@@ -6881,7 +6832,7 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
                       { name: 'Events', value: kpiSplits.events.books },
                       { name: 'Book Fairs', value: kpiSplits.bookFairs.books }
                     ].filter(item => item.value > 0)}
-                    cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={4} dataKey="value"
+                    cx="50%" cy="50%" innerRadius="55%" outerRadius="80%" paddingAngle={4} dataKey="value"
                   >
                     {[
                       { name: 'Web Orders', color: '#3b82f6' },
@@ -6893,16 +6844,16 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
                   </Pie>
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: number) => [`${value.toLocaleString('en-IN')}`, 'Books Sold']}
+                    formatter={(value) => [`${value.toLocaleString('en-IN')}`, 'Books Sold']}
                   />
                 </PieChart>
               </ResponsiveContainer>
             )}
           </div>
-          <div className="flex justify-center gap-4 mt-4 flex-wrap">
-            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-blue-500/85"></div><span className="text-[10px] text-gray-500 font-bold uppercase">Web</span></div>
-            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div><span className="text-[10px] text-gray-500 font-bold uppercase">Events</span></div>
-            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div><span className="text-[10px] text-gray-500 font-bold uppercase">Fairs</span></div>
+          <div className="mt-6 flex justify-center gap-6 text-[10px] font-bold tracking-widest uppercase">
+            <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-blue-500 shadow-sm"></span> Web</span>
+            <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-amber-500 shadow-sm"></span> Events</span>
+            <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm"></span> Fairs</span>
           </div>
         </div>
       </div>
