@@ -2390,6 +2390,7 @@ export function LibraryDonationsTab() {
                       <option>Institutional Library</option>
                       <option>Military Library</option>
                       <option>Café Library</option>
+                      <option>Other</option>
                     </select>
                   </div>
                   <div>
@@ -2451,6 +2452,7 @@ export function LibraryDonationsTab() {
                       else if (lib.type?.includes("Institutional")) typeColor = "bg-purple-100 text-purple-800 border-purple-200";
                       else if (lib.type?.includes("Military")) typeColor = "bg-amber-100 text-amber-800 border-amber-200";
                       else if (lib.type?.includes("Caf")) typeColor = "bg-orange-100 text-orange-800 border-orange-200";
+                      else if (lib.type?.includes("Other")) typeColor = "bg-slate-100 text-slate-800 border-slate-200";
 
                       return (
                       <tr key={lib.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-[#f4fcf7]'} hover:bg-[#e6f4ea] transition-colors`}>
