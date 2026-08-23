@@ -6870,7 +6870,6 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
               </ResponsiveContainer>
             )}
           </div>
-          </div>
         </div>
       </div>
 
