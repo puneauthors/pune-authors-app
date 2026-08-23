@@ -12,7 +12,8 @@ async function sendDriveAnnouncementEmailToAuthors(announcement) {
   try {
     const authors = await prisma.author.findMany({
       where: {
-        status: { in: ['Active', 'Approved'] }
+        status: { in: ['Active', 'Approved'] },
+        isArchived: false
       },
       select: { id: true, name: true, email: true }
     });
@@ -37,8 +38,11 @@ async function sendDriveAnnouncementEmailToAuthors(announcement) {
 
     for (const author of authors) {
       if (!author.email) continue;
+      const cleanEmail = author.email.trim();
+      if (!cleanEmail) continue;
+
       const htmlContent = `
-        <p>Dear ${author.name || 'Author'},</p>
+        <p>Dear ${author.name?.trim() || 'Author'},</p>
         <p>A new Library Donation Drive has been announced for <strong>${libName}</strong>.</p>
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;">
           <h3 style="margin-top: 0; color: #1e293b; font-size: 16px;">${announcement.title}</h3>
@@ -59,7 +63,13 @@ async function sendDriveAnnouncementEmailToAuthors(announcement) {
         <p>Log in to your Author Portal to register your books and participate in this donation drive.</p>
       `;
 
-      sendNotificationEmail(author.email, subject, emailWrap(heading, htmlContent));
+      try {
+        await sendNotificationEmail(cleanEmail, subject, emailWrap(heading, htmlContent));
+        // 200ms delay between emails to avoid SMTP socket concurrency throttling
+        await new Promise(resolve => setTimeout(resolve, 200));
+      } catch (err) {
+        console.error(`Failed to send donation drive email to ${cleanEmail}:`, err.message);
+      }
     }
   } catch (emailErr) {
     console.error('Error broadcasting donation announcement to authors:', emailErr);
