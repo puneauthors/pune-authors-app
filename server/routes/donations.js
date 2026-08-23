@@ -72,10 +72,12 @@ async function sendDriveAnnouncementEmailToAuthors(announcement) {
 router.get('/api/admin/libraries', verifyToken, isAdmin, async (req, res) => {
   try {
     const libraries = await prisma.library.findMany({
+      where: { isArchived: false },
       orderBy: { createdAt: 'desc' },
       include: { 
         galleryEvent: { include: { images: true } },
         announcements: {
+          where: { isArchived: false },
           orderBy: { registrationEndDate: 'asc' }
         }
       }
@@ -91,10 +93,12 @@ router.get('/api/admin/libraries', verifyToken, isAdmin, async (req, res) => {
 router.get('/api/public/libraries', async (req, res) => {
   try {
     const libraries = await prisma.library.findMany({
+      where: { isArchived: false, status: 'Active' },
       orderBy: { createdAt: 'desc' },
       include: { 
         galleryEvent: { include: { images: true } },
         announcements: {
+          where: { isArchived: false, visibility: 'Published' },
           orderBy: { registrationEndDate: 'asc' }
         }
       }
@@ -193,12 +197,18 @@ router.delete('/api/admin/libraries/:id/banner', verifyToken, isAdmin, async (re
 // Delete library
 router.delete('/api/admin/libraries/:id', verifyToken, isAdmin, async (req, res) => {
   try {
+    const id = parseInt(req.params.id);
     await prisma.library.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id },
       data: { isArchived: true, status: 'Archived' }
+    });
+    await prisma.donationAnnouncement.updateMany({
+      where: { libraryId: id },
+      data: { isArchived: true, visibility: 'Draft' }
     });
     res.json({ success: true });
   } catch (err) {
+    console.error('Failed to delete library:', err);
     res.status(500).json({ error: 'Failed to delete library' });
   }
 });
@@ -659,8 +669,8 @@ router.post('/api/admin/donation-registrations/:id/publish', verifyToken, isAdmi
 
 router.get('/api/admin/donation-dashboard', verifyToken, isAdmin, async (req, res) => {
   try {
-    const activeLibraries = await prisma.library.count({ where: { status: 'Active' } });
-    const activeCampaigns = await prisma.donationAnnouncement.count({ where: { visibility: 'Published' } });
+    const activeLibraries = await prisma.library.count({ where: { status: 'Active', isArchived: false } });
+    const activeCampaigns = await prisma.donationAnnouncement.count({ where: { visibility: 'Published', isArchived: false } });
     
     // Unique authors participated
     const authors = await prisma.donationRegistration.findMany({

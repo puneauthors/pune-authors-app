@@ -2443,7 +2443,7 @@ export function LibraryDonationsTab() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {libraries.map((lib, index) => {
+                    {libraries.filter(lib => !lib.isArchived).map((lib, index) => {
                       // Color coding based on type
                       let typeColor = "bg-gray-100 text-gray-700 border-gray-200";
                       if (lib.type?.includes("Airport")) typeColor = "bg-blue-100 text-blue-800 border-blue-200";
@@ -2479,7 +2479,7 @@ export function LibraryDonationsTab() {
                         </td>
                       </tr>
                     )})}
-                    {libraries.length === 0 && (
+                    {libraries.filter(lib => !lib.isArchived).length === 0 && (
                       <tr><td colSpan={4} className="p-8 text-center text-gray-500 font-medium">No libraries found in the registry.</td></tr>
                     )}
                   </tbody>
