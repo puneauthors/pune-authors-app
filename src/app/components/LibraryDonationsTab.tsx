@@ -2081,32 +2081,57 @@ export function LibraryDonationsTab() {
                   ))}
                 </select>
                 {/* Legends */}
-                <div className="flex items-center gap-1.5"><div className="w-3.5 h-1.5 rounded-full bg-paa-navy"></div> Books Donated</div>
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-3.5 h-2 rounded-xs ${activeMainTab === 'Other' ? 'bg-emerald-500' : 'bg-paa-navy'}`}></div> Books Donated
+                </div>
               </div>
             </div>
 
             <div className="h-64 w-full animate-in fade-in duration-500">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B7280' }} dy={10} tickFormatter={(v) => v.length > 15 ? v.substring(0, 15) + '...' : v} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B7280' }} />
-                  <RechartsTooltip
-                    cursor={{ stroke: '#E5E7EB', strokeWidth: 1 }}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontSize: '12px' }}
-                  />
-                  <Line 
-                    type="linear" 
-                    dataKey="booksDonated" 
-                    name="Books Donated" 
-                    stroke="var(--color-paa-navy, #1e3a8a)" 
-                    strokeWidth={3} 
-                    activeDot={{ r: 6 }} 
-                    dot={(props: any) => { const { cx, cy, index } = props; const total = chartData.length; if (total <= 30 || index % Math.ceil(total / 15) === 0 || index === total - 1) { return <circle cx={cx} cy={cy} r={3} fill="#fff" stroke="var(--color-paa-navy, #1e3a8a)" strokeWidth={2} key={`dot-books-${index}`} />; } return null; }}
-                  >
-                    <LabelList dataKey="booksDonated" position="top" offset={10} style={{ fill: '#4b5563', fontSize: 10, fontWeight: 'bold' }} />
-                  </Line>
-                </LineChart>
+                {activeMainTab === 'Other' ? (
+                  <BarChart data={chartData} margin={{ top: 20, right: 15, left: -15, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={{ stroke: '#E5E7EB' }} 
+                      tickLine={false} 
+                      tick={{ fontSize: 11, fill: '#374151', fontWeight: 600 }} 
+                      dy={10} 
+                      tickFormatter={(v) => v.length > 20 ? v.substring(0, 20) + '...' : v} 
+                    />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B7280' }} />
+                    <RechartsTooltip
+                      cursor={{ fill: 'rgba(16, 185, 129, 0.08)' }}
+                      contentStyle={{ borderRadius: '10px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontSize: '12px', fontWeight: 600 }}
+                      formatter={(val: number) => [`${val} Books Donated`, 'Total Donated']}
+                    />
+                    <Bar dataKey="booksDonated" name="Books Donated" fill="#10b981" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                      <LabelList dataKey="booksDonated" position="top" offset={8} style={{ fill: '#065f46', fontSize: 11, fontWeight: 'bold' }} />
+                    </Bar>
+                  </BarChart>
+                ) : (
+                  <LineChart data={chartData} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B7280' }} dy={10} tickFormatter={(v) => v.length > 15 ? v.substring(0, 15) + '...' : v} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B7280' }} />
+                    <RechartsTooltip
+                      cursor={{ stroke: '#E5E7EB', strokeWidth: 1 }}
+                      contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontSize: '12px' }}
+                    />
+                    <Line 
+                      type="linear" 
+                      dataKey="booksDonated" 
+                      name="Books Donated" 
+                      stroke="var(--color-paa-navy, #1e3a8a)" 
+                      strokeWidth={3} 
+                      activeDot={{ r: 6 }} 
+                      dot={(props: any) => { const { cx, cy, index } = props; const total = chartData.length; if (total <= 30 || index % Math.ceil(total / 15) === 0 || index === total - 1) { return <circle cx={cx} cy={cy} r={3} fill="#fff" stroke="var(--color-paa-navy, #1e3a8a)" strokeWidth={2} key={`dot-books-${index}`} />; } return null; }}
+                    >
+                      <LabelList dataKey="booksDonated" position="top" offset={10} style={{ fill: '#4b5563', fontSize: 10, fontWeight: 'bold' }} />
+                    </Line>
+                  </LineChart>
+                )}
               </ResponsiveContainer>
             </div>
           </div>
