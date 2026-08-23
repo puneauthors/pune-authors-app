@@ -2236,7 +2236,7 @@ export function LibraryDonationsTab() {
 
                         return (
                           <tr key={drive.id} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-[#ebd8c0]'} hover:bg-slate-200/60 transition-colors`}>
-                            <td className="p-4 text-center font-bold text-gray-500">{idx + 1}</td>
+                            <td className="p-4 text-center font-bold text-gray-500">{sortedList.length - idx}</td>
                             <td className="p-4 max-w-[200px]">
                               <div className="font-bold text-sm text-paa-navy leading-snug line-clamp-2" title={drive.title}>{drive.title}</div>
                             </td>
