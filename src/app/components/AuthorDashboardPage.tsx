@@ -6776,14 +6776,14 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
           <div className="dash-kpi-card emerald p-2.5 bg-emerald-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
             <div className="flex items-center justify-between relative z-10">
               <div>
-                <p className="text-[8px] font-bold tracking-widest uppercase text-emerald-50 mb-0.5">Total Revenue</p>
-                <h3 className="text-lg font-black text-white leading-none">₹{totalRevenue.toLocaleString('en-IN')}</h3>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-emerald-50 mb-0.5">Total Revenue</p>
+                <h3 className="text-2xl font-black text-white leading-none">₹{totalRevenue.toLocaleString('en-IN')}</h3>
               </div>
               <div className="w-6 h-6 rounded bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
                 <DollarSign className="w-3 h-3" />
               </div>
             </div>
-            <div className="mt-1.5 pt-1.5 border-t border-white/20 flex justify-between text-[7.5px] font-bold uppercase tracking-widest text-white relative z-10">
+            <div className="mt-1.5 pt-1.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
               <span>Web: ₹{kpiSplits.web.revenue.toLocaleString('en-IN')}</span>
               <span>Evt: ₹{kpiSplits.events.revenue.toLocaleString('en-IN')}</span>
               <span>Fair: ₹{kpiSplits.bookFairs.revenue.toLocaleString('en-IN')}</span>
@@ -6794,14 +6794,14 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
           <div className="dash-kpi-card blue p-2.5 bg-blue-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
             <div className="flex items-center justify-between relative z-10">
               <div>
-                <p className="text-[8px] font-bold tracking-widest uppercase text-blue-50 mb-0.5">Total Books Sold</p>
-                <h3 className="text-lg font-black text-white leading-none">{totalBooksSold} <span className="text-[9px] font-medium text-blue-100 lowercase tracking-normal">units</span></h3>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-blue-50 mb-0.5">Total Books Sold</p>
+                <h3 className="text-2xl font-black text-white leading-none">{totalBooksSold} <span className="text-[10px] font-medium text-blue-100 lowercase tracking-normal">units</span></h3>
               </div>
               <div className="w-6 h-6 rounded bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
                 <BookOpen className="w-3 h-3" />
               </div>
             </div>
-            <div className="mt-1.5 pt-1.5 border-t border-white/20 flex justify-between text-[7.5px] font-bold uppercase tracking-widest text-white relative z-10">
+            <div className="mt-1.5 pt-1.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
               <span>Web: {kpiSplits.web.books}</span>
               <span>Evt: {kpiSplits.events.books}</span>
               <span>Fair: {kpiSplits.bookFairs.books}</span>
@@ -6812,8 +6812,8 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
           <div className="dash-kpi-card amber p-2.5 bg-amber-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
             <div className="flex items-center justify-between relative z-10">
               <div>
-                <p className="text-[8px] font-bold tracking-widest uppercase text-amber-50 mb-0.5">Net Earnings</p>
-                <h3 className={`text-lg font-black leading-none ${(totalRevenue - totalFeesPaid) < 0 ? 'text-red-200' : 'text-white'}`}>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-amber-50 mb-0.5">Net Earnings</p>
+                <h3 className={`text-2xl font-black leading-none ${(totalRevenue - totalFeesPaid) < 0 ? 'text-red-200' : 'text-white'}`}>
                   ₹{(totalRevenue - totalFeesPaid).toLocaleString('en-IN')}
                 </h3>
               </div>
@@ -6821,7 +6821,7 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
                 <TrendingUp className="w-3 h-3" />
               </div>
             </div>
-            <div className="mt-1.5 pt-1.5 border-t border-white/20 flex justify-between text-[7.5px] font-bold uppercase tracking-widest text-white relative z-10">
+            <div className="mt-1.5 pt-1.5 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-widest text-white relative z-10">
               <span>Gross: ₹{totalRevenue.toLocaleString('en-IN')}</span>
               <span>Fees: -₹{totalFeesPaid.toLocaleString('en-IN')}</span>
             </div>
