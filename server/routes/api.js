@@ -8080,18 +8080,24 @@ router.put('/api/author/books/:id/stock', verifyToken, async (req, res) => {
       });
     }
 
+    // Actually update the book stock
+    await prisma.book.update({
+      where: { id: book.id },
+      data: { stock: newStock }
+    });
+
     const history = await prisma.stockHistory.create({
       data: {
         bookId: bookId,
         changeQty: qty,
         lastStock: book.stock,
         currentStock: newStock,
-        status: 'Pending'
+        status: 'Approved'
       }
     });
 
     invalidateCache(`author:dashboard:${req.user.email}`);
-    res.json({ id: book.id, title: book.title, currentStock: book.stock, adjustment: qty, pending: true });
+    res.json({ id: book.id, title: book.title, currentStock: newStock, adjustment: qty, pending: false });
   } catch (err) {
     console.error('[PUT /api/author/books/:id/stock]', err);
     res.status(500).json({ error: 'Failed to update stock' });

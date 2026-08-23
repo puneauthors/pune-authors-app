@@ -281,7 +281,7 @@ export function LivePosDashboard() {
             {inventory.map((eb: any) => {
               const cartItem = cart.find(c => c.bookId === eb.book.id);
               const cartQty = cartItem ? cartItem.quantity : 0;
-              const available = eb.listedStock - eb.soldStock - cartQty;
+              const available = eb.listedStock - eb.soldStock - (eb.returnedStock || 0) - cartQty;
               return (
                 <div key={eb.id} className="bg-white border border-paa-navy/5 rounded-xl p-5 flex flex-col shadow-premium hover:shadow-premium-hover hover:-translate-y-1 transition-all duration-500 ease-out h-[300px]">
                   <div className="h-36 bg-gray-100 mb-4 rounded-lg flex items-center justify-center overflow-hidden shrink-0 w-full relative">
@@ -306,7 +306,7 @@ export function LivePosDashboard() {
 </div>
                     </div>
                     <button 
-                      onClick={() => addToCart(eb.book, eb.listedStock - eb.soldStock)}
+                      onClick={() => addToCart(eb.book, eb.listedStock - eb.soldStock - (eb.returnedStock || 0))}
                       disabled={available <= 0}
                       className="w-10 h-10 bg-paa-navy/5 text-paa-navy border border-paa-navy/10 rounded-full flex items-center justify-center hover:bg-paa-navy hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
                     >
@@ -368,13 +368,13 @@ export function LivePosDashboard() {
               onClick={() => setShowPaymentModal(true)}
               disabled={cart.length === 0 || cart.some(item => {
                 const eb = inventory.find((e: any) => e.book.id === item.bookId);
-                return !eb || item.quantity > (eb.listedStock - eb.soldStock);
+                return !eb || item.quantity > (eb.listedStock - eb.soldStock - (eb.returnedStock || 0));
               })}
               className="dash-btn dash-btn-primary w-full justify-center bg-green-600 border-none hover:bg-green-700 text-white py-3 shadow-md disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               {cart.some(item => {
                 const eb = inventory.find((e: any) => e.book.id === item.bookId);
-                return !eb || item.quantity > (eb.listedStock - eb.soldStock);
+                return !eb || item.quantity > (eb.listedStock - eb.soldStock - (eb.returnedStock || 0));
               }) ? 'Out of Stock' : `Charge Customer (₹${totalAmount})`}
             </button>
           </div>
@@ -534,7 +534,7 @@ export function LivePosDashboard() {
                      <div className="bg-[#e4ebf5] p-3 rounded text-center border border-paa-navy/10 shadow-sm flex flex-col justify-center">
                         <div className="text-[10px] font-bold text-paa-navy uppercase tracking-widest mb-1">Inventory Left</div>
                         <div className="text-xl font-bold text-paa-navy">
-                           {filteredEventBooks.reduce((acc: number, eb: any) => acc + Math.max(0, eb.listedStock - eb.totalSold), 0)}
+                           {filteredEventBooks.reduce((acc: number, eb: any) => acc + Math.max(0, eb.listedStock - eb.totalSold - (eb.returnedStock || 0)), 0)}
                         </div>
                      </div>
                    </div>
@@ -556,7 +556,7 @@ export function LivePosDashboard() {
                                </div>
                                <div className="text-center">
                                  <div className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Left</div>
-                                 <div className={`font-bold ${eb.listedStock - eb.totalSold > 0 ? 'text-green-700' : 'text-red-500'}`}>{eb.listedStock - eb.totalSold}</div>
+                                 <div className={`font-bold ${eb.listedStock - eb.totalSold - (eb.returnedStock || 0) > 0 ? 'text-green-700' : 'text-red-500'}`}>{eb.listedStock - eb.totalSold - (eb.returnedStock || 0)}</div>
                                </div>
                              </div>
                            </div>
