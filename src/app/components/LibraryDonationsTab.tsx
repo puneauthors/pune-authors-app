@@ -1886,7 +1886,7 @@ export function LibraryDonationsTab() {
           onClick={() => { setActiveMainTab('Airport'); localStorage.setItem('paa_lib_donations_subtab', 'Airport'); }}
           className={`pb-2.5 px-2 border-b-2 font-bold text-sm transition-all flex items-center gap-2 ${activeMainTab === 'Airport' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
         >
-          <Plane className="w-4 h-4" /> Airport Libraries
+          <Plane className="w-4 h-4" /> Airport Flybrary
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${activeMainTab === 'Airport' ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-700'}`}>
             {drives.filter(d => !d.isArchived && (d.library?.type === 'Airport Library' || (d.library?.name || '').toLowerCase().includes('airport') || (d.title || '').toLowerCase().includes('airport'))).length}
           </span>
@@ -1915,7 +1915,7 @@ export function LibraryDonationsTab() {
       <div className="mb-2.5 flex justify-between items-center mt-3">
         <span className="text-xs text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
           {activeMainTab === 'Airport' ? <Plane className="w-3.5 h-3.5 text-blue-600" /> : <Building2 className="w-3.5 h-3.5 text-emerald-600" />}
-          Summary {activeMainTab === 'Airport' ? '— Airport Libraries' : activeMainTab === 'Other' ? '— Other Partner Libraries' : '— All Libraries'}
+          Summary {activeMainTab === 'Airport' ? '— Airport Flybrary' : activeMainTab === 'Other' ? '— Other Partner Libraries' : '— All Libraries'}
         </span>
         {isEditingStats ? (
           <div className="flex gap-2">
