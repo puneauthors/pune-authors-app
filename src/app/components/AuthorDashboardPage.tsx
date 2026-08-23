@@ -6855,7 +6855,7 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
                     cx="50%" cy="50%" innerRadius="45%" outerRadius="70%" paddingAngle={4} dataKey="value"
                     label={({ name, value }) => `${name}: ${value}`}
                     labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
-                    style={{ fontSize: '10px', fontWeight: 'bold', fill: '#334155' }}
+                    style={{ fontSize: '10px', fontWeight: 'bold' }}
                   >
                     {[
                       { name: 'Web', color: '#3b82f6' },
