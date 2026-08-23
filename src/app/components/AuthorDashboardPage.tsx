@@ -1458,7 +1458,12 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
       {latestUpcomingEvent && !dismissEventsBanner.includes(String(latestUpcomingEvent.id)) && (
         <div className="mb-3.5 relative group cursor-pointer">
           <div 
-            onClick={() => navigate('/dashboard/events')}
+            onClick={() => {
+              const next = Array.from(new Set([...dismissEventsBanner, String(latestUpcomingEvent?.id || 'none')]));
+              setDismissEventsBanner(next);
+              localStorage.setItem('paa_dismissed_events_banner', JSON.stringify(next));
+              navigate('/dashboard/events');
+            }}
             className="relative overflow-hidden w-full flex flex-col sm:flex-row items-center justify-between gap-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl shadow-xs transition-colors duration-300"
           >
             <div className="relative z-10 flex items-center gap-3">
@@ -1487,7 +1492,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
               )}
               <button onClick={(e) => { 
                   e.stopPropagation(); 
-                  const next = [...dismissEventsBanner, String(latestUpcomingEvent?.id || 'none')];
+                  const next = Array.from(new Set([...dismissEventsBanner, String(latestUpcomingEvent?.id || 'none')]));
                   setDismissEventsBanner(next);
                   localStorage.setItem('paa_dismissed_events_banner', JSON.stringify(next));
                 }} className="p-1.5 text-white/50 hover:text-white transition-colors rounded-full hover:bg-white/10" aria-label="Dismiss">
@@ -1557,7 +1562,12 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
               return (
                 <div
                   key={item.id}
-                  onClick={() => { if (item.link) navigate(item.link); }}
+                  onClick={() => {
+                    const next = Array.from(new Set([...dismissedActions, item.id]));
+                    setDismissedActions(next);
+                    localStorage.setItem('paa_author_dismissed', JSON.stringify(next));
+                    if (item.link) navigate(item.link);
+                  }}
                   className={`group relative flex items-center gap-3 pl-4 pr-3 py-3 rounded-xl border cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 w-full sm:w-auto ${containerClass}`}
                 >
                   <Icon size={18} aria-hidden="true" className={`text-${colorName}-600`} />
@@ -1568,7 +1578,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
                     aria-label={`Dismiss ${item.text}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      const next = [...dismissedActions, item.id];
+                      const next = Array.from(new Set([...dismissedActions, item.id]));
                       setDismissedActions(next);
                       localStorage.setItem('paa_author_dismissed', JSON.stringify(next));
                     }}
