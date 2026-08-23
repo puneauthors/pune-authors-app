@@ -6848,17 +6848,20 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
                 <PieChart>
                   <Pie
                     data={[
-                      { name: 'Web Orders', value: kpiSplits.web.books },
+                      { name: 'Web', value: kpiSplits.web.books },
                       { name: 'Events', value: kpiSplits.events.books },
-                      { name: 'Book Fairs', value: kpiSplits.bookFairs.books }
+                      { name: 'Fairs', value: kpiSplits.bookFairs.books }
                     ].filter(item => item.value > 0)}
-                    cx="50%" cy="50%" innerRadius="55%" outerRadius="80%" paddingAngle={4} dataKey="value"
+                    cx="50%" cy="50%" innerRadius="45%" outerRadius="70%" paddingAngle={4} dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                    labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
+                    style={{ fontSize: '10px', fontWeight: 'bold', fill: '#334155' }}
                   >
                     {[
-                      { name: 'Web Orders', color: '#3b82f6' },
+                      { name: 'Web', color: '#3b82f6' },
                       { name: 'Events', color: '#f59e0b' },
-                      { name: 'Book Fairs', color: '#10b981' }
-                    ].filter(c => (c.name === 'Web Orders' ? kpiSplits.web.books : c.name === 'Events' ? kpiSplits.events.books : kpiSplits.bookFairs.books) > 0).map((c, index) => (
+                      { name: 'Fairs', color: '#10b981' }
+                    ].filter(c => (c.name === 'Web' ? kpiSplits.web.books : c.name === 'Events' ? kpiSplits.events.books : kpiSplits.bookFairs.books) > 0).map((c, index) => (
                       <Cell key={`cell-${index}`} fill={c.color} />
                     ))}
                   </Pie>
