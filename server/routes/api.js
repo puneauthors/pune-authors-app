@@ -8096,6 +8096,30 @@ router.put('/api/author/books/:id/stock', verifyToken, async (req, res) => {
       }
     });
 
+    // Create a pending action (Query) for the admin
+    await prisma.query.create({
+      data: {
+        authorId: author.id,
+        subject: `Stock Updated: ${book.title}`,
+        message: `System Notification: Author has added ${qty} units of "${book.title}". The stock has been automatically approved and is now ${newStock}.`,
+        status: 'Pending'
+      }
+    });
+
+    // Send an email to the admin
+    const adminEmail = getAdminEmails();
+    const subject = `Author Stock Update: ${qty} added to ${book.title}`;
+    const content = `
+      <p>Author <strong>${author.name}</strong> (${author.email}) has added stock to their book.</p>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <tr><td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; width: 30%;">Book Title</td><td style="padding: 10px; border: 1px solid #ddd;">${book.title}</td></tr>
+        <tr><td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Quantity Added</td><td style="padding: 10px; border: 1px solid #ddd; color: #16a34a; font-weight: bold;">+${qty}</td></tr>
+        <tr><td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">New Total Stock</td><td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">${newStock}</td></tr>
+      </table>
+      <p style="margin-top: 15px;">This stock update was automatically approved and applied to the author's inventory.</p>
+    `;
+    await sendNotificationEmail(adminEmail, subject, emailWrap('Author Stock Added', content));
+
     invalidateCache(`author:dashboard:${req.user.email}`);
     res.json({ id: book.id, title: book.title, currentStock: newStock, adjustment: qty, pending: false });
   } catch (err) {
