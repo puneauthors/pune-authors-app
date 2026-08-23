@@ -6768,60 +6768,60 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
       </div>
 
       {/* METRICS & PIE CHART GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
         
         {/* Left Column: Stacked KPIs */}
-        <div className="lg:col-span-1 flex flex-col gap-4">
+        <div className="lg:col-span-1 flex flex-col gap-2">
           {/* Card 1: Total Revenue */}
-          <div className="dash-kpi-card emerald flex flex-col justify-between p-3 bg-emerald-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex-1 min-h-[110px]">
-            <div>
-              <div className="flex items-start justify-between mb-1.5 relative z-10">
-                <div className="w-6 h-6 rounded bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
-                  <DollarSign className="w-3 h-3" />
-                </div>
+          <div className="dash-kpi-card emerald p-2.5 bg-emerald-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div className="flex items-center justify-between relative z-10">
+              <div>
+                <p className="text-[8px] font-bold tracking-widest uppercase text-emerald-50 mb-0.5">Total Revenue</p>
+                <h3 className="text-lg font-black text-white leading-none">₹{totalRevenue.toLocaleString('en-IN')}</h3>
               </div>
-              <p className="text-[8px] font-bold tracking-widest uppercase text-emerald-50 mb-0.5 relative z-10">Total Revenue</p>
-              <h3 className="text-xl font-black text-white tracking-tight relative z-10">₹{totalRevenue.toLocaleString('en-IN')}</h3>
+              <div className="w-6 h-6 rounded bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
+                <DollarSign className="w-3 h-3" />
+              </div>
             </div>
-            <div className="mt-2 pt-2 border-t border-white/20 flex justify-between text-[8px] font-bold uppercase tracking-widest text-white relative z-10">
+            <div className="mt-1.5 pt-1.5 border-t border-white/20 flex justify-between text-[7.5px] font-bold uppercase tracking-widest text-white relative z-10">
               <span>Web: ₹{kpiSplits.web.revenue.toLocaleString('en-IN')}</span>
-              <span>Events: ₹{kpiSplits.events.revenue.toLocaleString('en-IN')}</span>
-              <span>Fairs: ₹{kpiSplits.bookFairs.revenue.toLocaleString('en-IN')}</span>
+              <span>Evt: ₹{kpiSplits.events.revenue.toLocaleString('en-IN')}</span>
+              <span>Fair: ₹{kpiSplits.bookFairs.revenue.toLocaleString('en-IN')}</span>
             </div>
           </div>
 
           {/* Card 2: Books Sold */}
-          <div className="dash-kpi-card blue flex flex-col justify-between p-3 bg-blue-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex-1 min-h-[110px]">
-            <div>
-              <div className="flex items-start justify-between mb-1.5 relative z-10">
-                <div className="w-6 h-6 rounded bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
-                  <BookOpen className="w-3 h-3" />
-                </div>
+          <div className="dash-kpi-card blue p-2.5 bg-blue-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div className="flex items-center justify-between relative z-10">
+              <div>
+                <p className="text-[8px] font-bold tracking-widest uppercase text-blue-50 mb-0.5">Total Books Sold</p>
+                <h3 className="text-lg font-black text-white leading-none">{totalBooksSold} <span className="text-[9px] font-medium text-blue-100 lowercase tracking-normal">units</span></h3>
               </div>
-              <p className="text-[8px] font-bold tracking-widest uppercase text-blue-50 mb-0.5 relative z-10">Total Books Sold</p>
-              <h3 className="text-xl font-black text-white tracking-tight relative z-10">{totalBooksSold} <span className="text-[9px] font-medium text-blue-100 lowercase tracking-normal">units</span></h3>
+              <div className="w-6 h-6 rounded bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
+                <BookOpen className="w-3 h-3" />
+              </div>
             </div>
-            <div className="mt-2 pt-2 border-t border-white/20 flex justify-between text-[8px] font-bold uppercase tracking-widest text-white relative z-10">
+            <div className="mt-1.5 pt-1.5 border-t border-white/20 flex justify-between text-[7.5px] font-bold uppercase tracking-widest text-white relative z-10">
               <span>Web: {kpiSplits.web.books}</span>
-              <span>Events: {kpiSplits.events.books}</span>
-              <span>Fairs: {kpiSplits.bookFairs.books}</span>
+              <span>Evt: {kpiSplits.events.books}</span>
+              <span>Fair: {kpiSplits.bookFairs.books}</span>
             </div>
           </div>
 
           {/* Card 3: Net Earnings */}
-          <div className="dash-kpi-card amber flex flex-col justify-between p-3 bg-amber-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex-1 min-h-[110px]">
-            <div>
-              <div className="flex items-start justify-between mb-1.5 relative z-10">
-                <div className="w-6 h-6 rounded bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
-                  <TrendingUp className="w-3 h-3" />
-                </div>
+          <div className="dash-kpi-card amber p-2.5 bg-amber-500 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div className="flex items-center justify-between relative z-10">
+              <div>
+                <p className="text-[8px] font-bold tracking-widest uppercase text-amber-50 mb-0.5">Net Earnings</p>
+                <h3 className={`text-lg font-black leading-none ${(totalRevenue - totalFeesPaid) < 0 ? 'text-red-200' : 'text-white'}`}>
+                  ₹{(totalRevenue - totalFeesPaid).toLocaleString('en-IN')}
+                </h3>
               </div>
-              <p className="text-[8px] font-bold tracking-widest uppercase text-amber-50 mb-0.5 relative z-10">Net Earnings</p>
-              <h3 className={`text-xl font-black tracking-tight relative z-10 ${(totalRevenue - totalFeesPaid) < 0 ? 'text-red-200' : 'text-white'}`}>
-                ₹{(totalRevenue - totalFeesPaid).toLocaleString('en-IN')}
-              </h3>
+              <div className="w-6 h-6 rounded bg-white/20 text-white flex items-center justify-center shrink-0 border border-white/10">
+                <TrendingUp className="w-3 h-3" />
+              </div>
             </div>
-            <div className="mt-2 pt-2 border-t border-white/20 flex justify-between text-[8px] font-bold uppercase tracking-widest text-white relative z-10">
+            <div className="mt-1.5 pt-1.5 border-t border-white/20 flex justify-between text-[7.5px] font-bold uppercase tracking-widest text-white relative z-10">
               <span>Gross: ₹{totalRevenue.toLocaleString('en-IN')}</span>
               <span>Fees: -₹{totalFeesPaid.toLocaleString('en-IN')}</span>
             </div>
@@ -6829,14 +6829,20 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
         </div>
 
         {/* Right Column: PieChart: Sales by Channel */}
-        <div className="lg:col-span-2 border border-paa-navy/5 p-4 rounded-2xl bg-white shadow-sm flex flex-col justify-between">
-          <div>
-            <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-1">Sales by Channel</h4>
-            <p className="text-[9px] text-gray-400 mb-2 font-medium">Split of total books sold per channel</p>
+        <div className="lg:col-span-2 border border-paa-navy/5 p-3 rounded-2xl bg-white shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-1">
+            <div>
+              <h4 className="text-[11px] font-bold text-paa-navy uppercase tracking-widest">Sales by Channel</h4>
+            </div>
+            <div className="flex justify-center gap-3 text-[8px] font-bold tracking-widest uppercase">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 shadow-sm"></span> Web</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 shadow-sm"></span> Events</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm"></span> Fairs</span>
+            </div>
           </div>
-          <div className="flex-1 w-full min-h-[180px] max-h-[220px]">
+          <div className="flex-1 w-full min-h-[160px] max-h-[180px]">
             {totalBooksSold === 0 ? (
-              <div className="h-full flex items-center justify-center text-gray-400 text-xs italic">No channel data available.</div>
+              <div className="h-full flex items-center justify-center text-gray-400 text-[10px] italic">No channel data available.</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -6864,10 +6870,6 @@ function AuthorSalesReport({ data, onRefresh }: { data: any, onRefresh: () => vo
               </ResponsiveContainer>
             )}
           </div>
-          <div className="mt-2 flex justify-center gap-4 text-[9px] font-bold tracking-widest uppercase">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></span> Web</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm"></span> Events</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></span> Fairs</span>
           </div>
         </div>
       </div>
