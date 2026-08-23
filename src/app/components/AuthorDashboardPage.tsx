@@ -6226,32 +6226,36 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {allPayments.filter(p => paymentTypeFilter === 'All' || p.type === paymentTypeFilter).length === 0 ? (
-                            <tr>
-                              <td colSpan={6} className="p-16 text-center">
-                                <div className="flex flex-col items-center justify-center text-gray-400">
-                                  <FileText className="w-10 h-10 mb-3 opacity-30" />
-                                  <p className="text-sm font-medium">No payment records found for the selected filter.</p>
-                                </div>
-                              </td>
-                            </tr>
-                        ) : (
-                            allPayments.filter(p => paymentTypeFilter === 'All' || p.type === paymentTypeFilter).map((payment, idx) => {
-                                const getTypeColor = (type: string) => {
-                                    switch (type) {
-                                        case 'Late Fine': return { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', dot: 'bg-red-500' };
-                                        case 'Book Fair Fee': return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500/85' };
-                                        case 'Literary Event Fee': return { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200', dot: 'bg-cyan-500/85' };
-                                        case 'Donation Drive Fee': return { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', dot: 'bg-purple-500/85' };
-                                        case 'Author Registration': return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500/85' };
-                                        default: return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', dot: 'bg-gray-500' };
-                                    }
-                                };
-                                const colors = getTypeColor(payment.type);
+                        {(() => {
+                          const filteredPayments = allPayments.filter(p => paymentTypeFilter === 'All' || p.type === paymentTypeFilter);
+                          if (filteredPayments.length === 0) {
+                            return (
+                              <tr>
+                                <td colSpan={6} className="p-16 text-center">
+                                  <div className="flex flex-col items-center justify-center text-gray-400">
+                                    <FileText className="w-10 h-10 mb-3 opacity-30" />
+                                    <p className="text-sm font-medium">No payment records found for the selected filter.</p>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          }
+                          return filteredPayments.map((payment, idx) => {
+                            const getTypeColor = (type: string) => {
+                              switch (type) {
+                                case 'Late Fine': return { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', dot: 'bg-red-500' };
+                                case 'Book Fair Fee': return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500/85' };
+                                case 'Literary Event Fee': return { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200', dot: 'bg-cyan-500/85' };
+                                case 'Donation Drive Fee': return { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', dot: 'bg-purple-500/85' };
+                                case 'Author Registration': return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500/85' };
+                                default: return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', dot: 'bg-gray-500' };
+                              }
+                            };
+                            const colors = getTypeColor(payment.type);
 
-                                return (
-                                <tr key={idx} className={`transition-colors  ${idx % 2 === 0 ? 'bg-white' : 'bg-[#ebd8c0]'}`}>
-                                    <td className="px-4 py-4 text-center font-bold text-gray-500 text-xs">{idx + 1}</td>
+                            return (
+                              <tr key={idx} className={`transition-colors  ${idx % 2 === 0 ? 'bg-white' : 'bg-[#ebd8c0]'}`}>
+                                <td className="px-4 py-4 text-center font-bold text-gray-500 text-xs">{filteredPayments.length - idx}</td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className={`w-2 h-2 rounded-full ${colors.dot} shadow-sm`}></div>
@@ -6287,8 +6291,8 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                     </td>
                                 </tr>
                             );
-                        })
-                        )}
+                        });
+                        })()}
                       </tbody>
                    </table>
                </div>
