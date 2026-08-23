@@ -4,8 +4,8 @@ import { Download, Activity, DollarSign, BookOpen, ShoppingCart, ChevronDown, Ch
 import { toast } from 'sonner';
 
 import { 
-  ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, 
-  Tooltip as RechartsTooltip, LabelList, PieChart as RechartsPieChart, Pie, Cell 
+  ResponsiveContainer, LineChart, Line, BarChart, Bar, CartesianGrid, XAxis, YAxis, 
+  Tooltip as RechartsTooltip, LabelList, Cell 
 } from 'recharts';
 
 export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) => {
@@ -317,6 +317,14 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
     return { books, revenue, channels };
   }, [salesData?.tableData, kpiGenreFilter, kpiSubGenreFilter]);
 
+  const channelBarData = useMemo(() => {
+    return [
+      { name: 'Web', fullName: 'Web Orders', revenue: salesData?.kpis?.splits?.web?.revenue || 0, books: salesData?.kpis?.splits?.web?.books || 0, color: '#3b82f6' },
+      { name: 'Events', fullName: 'Events', revenue: salesData?.kpis?.splits?.events?.revenue || 0, books: salesData?.kpis?.splits?.events?.books || 0, color: '#f59e0b' },
+      { name: 'Fairs', fullName: 'Book Fairs', revenue: salesData?.kpis?.splits?.bookFairs?.revenue || 0, books: salesData?.kpis?.splits?.bookFairs?.books || 0, color: '#10b981' }
+    ];
+  }, [salesData?.kpis?.splits]);
+
   return (
     <div className="space-y-3.5">
       {/* Top Bar: Controls */}
@@ -408,18 +416,18 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
         </div>
       ) : (
         <div className="space-y-3.5 animate-in fade-in duration-300">
-          {/* Row 1: KPI Summary Cards - Compact, space-efficient */}
+          {/* Row 1: KPI Summary Cards - Black Text, Larger Font Size */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 relative">
-            <div className="dash-kpi-card green flex flex-col justify-between !p-3.5 !rounded-xl shadow-xs" style={{ contentVisibility: 'auto' }}>
+            <div className="rounded-xl !p-4 shadow-sm flex flex-col justify-between transition-all hover:-translate-y-0.5 relative overflow-hidden bg-[#22c55e] border border-green-600/30" style={{ contentVisibility: 'auto' }}>
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-[10px] font-bold tracking-widest uppercase text-white/90">Total Revenue</p>
-                  <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-white"><DollarSign className="w-4 h-4" aria-hidden="true" /></div>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs md:text-sm font-black tracking-wider uppercase text-black">Total Revenue</p>
+                  <div className="w-8 h-8 rounded-lg bg-black/10 flex items-center justify-center text-black shadow-xs"><DollarSign className="w-4.5 h-4.5" aria-hidden="true" /></div>
                 </div>
-                <h3 className="text-2xl md:text-[26px] font-black text-white tracking-tight leading-tight">₹{(salesData?.kpis?.totalRevenue || 0).toLocaleString()}</h3>
+                <h3 className="text-3xl md:text-[34px] font-black text-black tracking-tight leading-tight my-1">₹{(salesData?.kpis?.totalRevenue || 0).toLocaleString()}</h3>
               </div>
               {salesData?.kpis?.splits && (
-                <div className="mt-2.5 pt-2 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-wider text-white">
+                <div className="mt-3 pt-2.5 border-t border-black/20 flex justify-between text-[11px] md:text-xs font-black uppercase tracking-wider text-black">
                   <span>Web: ₹{(salesData.kpis.splits.web?.revenue || 0).toLocaleString()}</span>
                   <span>Events: ₹{(salesData.kpis.splits.events?.revenue || 0).toLocaleString()}</span>
                   <span>Fairs: ₹{(salesData.kpis.splits.bookFairs?.revenue || 0).toLocaleString()}</span>
@@ -427,16 +435,16 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
               )}
             </div>
 
-            <div className="dash-kpi-card blue flex flex-col justify-between !p-3.5 !rounded-xl shadow-xs" style={{ contentVisibility: 'auto' }}>
+            <div className="rounded-xl !p-4 shadow-sm flex flex-col justify-between transition-all hover:-translate-y-0.5 relative overflow-hidden bg-[#3b82f6] border border-blue-600/30" style={{ contentVisibility: 'auto' }}>
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-[10px] font-bold tracking-widest uppercase text-white/90">Total Books Sold</p>
-                  <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-white"><BookOpen className="w-4 h-4" aria-hidden="true" /></div>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs md:text-sm font-black tracking-wider uppercase text-black">Total Books Sold</p>
+                  <div className="w-8 h-8 rounded-lg bg-black/10 flex items-center justify-center text-black shadow-xs"><BookOpen className="w-4.5 h-4.5" aria-hidden="true" /></div>
                 </div>
-                <h3 className="text-2xl md:text-[26px] font-black text-white tracking-tight leading-tight">{salesData?.kpis?.totalBooksSold || 0} <span className="text-xs font-medium text-white/80 lowercase tracking-normal">units</span></h3>
+                <h3 className="text-3xl md:text-[34px] font-black text-black tracking-tight leading-tight my-1">{salesData?.kpis?.totalBooksSold || 0} <span className="text-sm font-bold text-black/80 lowercase tracking-normal">units</span></h3>
               </div>
               {salesData?.kpis?.splits && (
-                <div className="mt-2.5 pt-2 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-wider text-white">
+                <div className="mt-3 pt-2.5 border-t border-black/20 flex justify-between text-[11px] md:text-xs font-black uppercase tracking-wider text-black">
                   <span>Web: {salesData.kpis.splits.web?.books || 0}</span>
                   <span>Events: {salesData.kpis.splits.events?.books || 0}</span>
                   <span>Fairs: {salesData.kpis.splits.bookFairs?.books || 0}</span>
@@ -444,16 +452,16 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
               )}
             </div>
 
-            <div className="dash-kpi-card amber flex flex-col justify-between !p-3.5 !rounded-xl shadow-xs" style={{ contentVisibility: 'auto' }}>
+            <div className="rounded-xl !p-4 shadow-sm flex flex-col justify-between transition-all hover:-translate-y-0.5 relative overflow-hidden bg-[#f97316] border border-orange-600/30" style={{ contentVisibility: 'auto' }}>
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-[10px] font-bold tracking-widest uppercase text-white/90">Total Entries</p>
-                  <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-white"><ShoppingCart className="w-4 h-4" aria-hidden="true" /></div>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs md:text-sm font-black tracking-wider uppercase text-black">Total Entries</p>
+                  <div className="w-8 h-8 rounded-lg bg-black/10 flex items-center justify-center text-black shadow-xs"><ShoppingCart className="w-4.5 h-4.5" aria-hidden="true" /></div>
                 </div>
-                <h3 className="text-2xl md:text-[26px] font-black text-white tracking-tight leading-tight">{salesData?.kpis?.totalOrders || 0}</h3>
+                <h3 className="text-3xl md:text-[34px] font-black text-black tracking-tight leading-tight my-1">{salesData?.kpis?.totalOrders || 0}</h3>
               </div>
               {salesData?.kpis?.splits && (
-                <div className="mt-2.5 pt-2 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-wider text-white">
+                <div className="mt-3 pt-2.5 border-t border-black/20 flex justify-between text-[11px] md:text-xs font-black uppercase tracking-wider text-black">
                   <span>Web: {salesData.kpis.splits.web?.orders || 0}</span>
                   <span>Events: {salesData.kpis.splits.events?.orders || 0}</span>
                   <span>Fairs: {salesData.kpis.splits.bookFairs?.orders || 0}</span>
@@ -462,16 +470,16 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
             </div>
           </div>
 
-          {/* Row 2: Visualizations - Compact Recharts */}
+          {/* Row 2: Visualizations - With rich background styling */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 relative">
-            <div className="border border-paa-navy/5 p-4 rounded-xl bg-white shadow-xs flex flex-col justify-between">
+            <div className="border border-indigo-100 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-slate-50 to-blue-50/60 shadow-xs flex flex-col justify-between">
               <div>
                 <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-2.5">Genre Insights</h4>
                 <div className="flex flex-col sm:flex-row gap-2 mb-3.5">
                   <select 
                     value={kpiGenreFilter} 
                     onChange={e => setKpiGenreFilter(e.target.value)} 
-                    className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest text-paa-navy border border-gray-200 outline-none focus:border-indigo-500 bg-gray-50/50 hover:bg-gray-50 transition-colors w-full"
+                    className="px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-widest text-paa-navy border border-indigo-200/80 outline-none focus:border-indigo-500 bg-white shadow-2xs hover:bg-indigo-50/30 transition-colors w-full"
                   >
                     {uniqueGenres.map(g => (
                       <option key={g} value={g}>{g === 'All' ? 'All Genres' : g}</option>
@@ -482,7 +490,7 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
                     <select 
                       value={kpiSubGenreFilter} 
                       onChange={e => setKpiSubGenreFilter(e.target.value)} 
-                      className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest text-paa-navy border border-gray-200 outline-none focus:border-indigo-500 bg-gray-50/50 hover:bg-gray-50 transition-colors w-full"
+                      className="px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-widest text-paa-navy border border-indigo-200/80 outline-none focus:border-indigo-500 bg-white shadow-2xs hover:bg-indigo-50/30 transition-colors w-full"
                     >
                       {kpiUniqueSubGenres.map(sg => (
                         <option key={sg} value={sg}>{sg === 'All' ? 'All Sub-genres' : sg}</option>
@@ -493,62 +501,79 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
               </div>
 
               <div className="flex-1 flex flex-col justify-end">
-                <div className="flex justify-between items-end mb-3">
+                <div className="bg-white/85 backdrop-blur-xs p-3.5 rounded-xl border border-indigo-100/70 shadow-xs mb-3 flex justify-between items-end">
                   <div>
-                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Books Sold</p>
-                    <p className="text-xl font-black text-paa-navy leading-none">{kpiStats.books}</p>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Books Sold</p>
+                    <p className="text-2xl font-black text-paa-navy leading-none">{kpiStats.books}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Revenue</p>
-                    <p className="text-xl font-black text-indigo-600 leading-none">₹{kpiStats.revenue.toLocaleString()}</p>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Revenue</p>
+                    <p className="text-2xl font-black text-indigo-600 leading-none">₹{kpiStats.revenue.toLocaleString()}</p>
                   </div>
                 </div>
                 
-                <div className="space-y-1.5 border-t border-gray-100 pt-2.5">
-                  <p className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">Revenue by Channel</p>
+                <div className="bg-white/85 backdrop-blur-xs p-3 rounded-xl border border-indigo-100/70 shadow-xs space-y-2">
+                  <p className="text-[10px] font-bold tracking-widest text-gray-500 uppercase mb-1">Revenue by Channel</p>
                   <div className="flex justify-between items-center text-xs">
-                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500" aria-hidden="true"></div><span className="text-gray-500 font-semibold uppercase tracking-wider text-[9px]">Web</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-blue-500" aria-hidden="true"></div><span className="text-gray-600 font-bold uppercase tracking-wider text-[10px]">Web</span></div>
                     <span className="text-paa-navy font-bold text-xs">₹{kpiStats.channels['Web Orders'].toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true"></div><span className="text-gray-500 font-semibold uppercase tracking-wider text-[9px]">Events</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-amber-500" aria-hidden="true"></div><span className="text-gray-600 font-bold uppercase tracking-wider text-[10px]">Events</span></div>
                     <span className="text-paa-navy font-bold text-xs">₹{kpiStats.channels['Events'].toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#ebd8c0]" aria-hidden="true"></div><span className="text-gray-500 font-semibold uppercase tracking-wider text-[9px]">Fairs</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#ebd8c0]" aria-hidden="true"></div><span className="text-gray-600 font-bold uppercase tracking-wider text-[10px]">Fairs</span></div>
                     <span className="text-paa-navy font-bold text-xs">₹{kpiStats.channels['Book Fairs'].toLocaleString()}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="border border-paa-navy/5 p-4 rounded-xl bg-white shadow-xs flex flex-col justify-between">
+            <div className="border border-sky-100 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-sky-50/70 via-slate-50 to-emerald-50/60 shadow-xs flex flex-col justify-between">
               <div>
                 <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-0.5">Sales by Channel</h4>
-                <p className="text-[10px] text-gray-400 mb-2 font-medium">Includes Legacy Archive & Airport Libraries</p>
+                <p className="text-[11px] text-gray-500 mb-2 font-medium">Revenue distribution across sales channels</p>
               </div>
-              <div className="w-full h-[160px]">
+              <div className="w-full h-[180px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RechartsPieChart>
-                    <Pie
-                      data={salesData?.channelData || []}
-                      cx="50%" cy="50%" innerRadius={48} outerRadius={68} paddingAngle={4} dataKey="value"
-                    >
-                      {(salesData?.channelData || []).map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={entry.name === 'Web Orders' ? '#3b82f6' : entry.name === 'Events' ? '#f59e0b' : '#10b981'} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip
-                      contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px' }}
-                      formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                  <BarChart data={channelBarData} margin={{ top: 18, right: 15, left: -15, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{ fill: '#1e293b', fontSize: 11, fontWeight: 700 }}
+                      axisLine={{ stroke: '#cbd5e1' }}
+                      tickLine={false}
                     />
-                  </RechartsPieChart>
+                    <YAxis 
+                      tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(val) => `₹${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
+                    />
+                    <RechartsTooltip
+                      contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 600 }}
+                      formatter={(value: number, name: string, item: any) => [`₹${value.toLocaleString()} (${item.payload.books} books)`, 'Revenue']}
+                      labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
+                    />
+                    <Bar dataKey="revenue" radius={[6, 6, 0, 0]} maxBarSize={45}>
+                      <LabelList 
+                        dataKey="revenue" 
+                        position="top" 
+                        formatter={(val: number) => val > 0 ? `₹${val.toLocaleString()}` : '₹0'}
+                        style={{ fill: '#0f172a', fontSize: '10px', fontWeight: 800 }}
+                      />
+                      {channelBarData.map((entry, index) => (
+                        <Cell key={`bar-cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex justify-center gap-5 mt-2 flex-wrap">
-                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs" aria-hidden="true"></div><span className="text-[10px] text-gray-600 font-bold tracking-wide uppercase">Web</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#ebd8c0] shadow-xs" aria-hidden="true"></div><span className="text-[10px] text-gray-600 font-bold tracking-wide uppercase">Fairs</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs" aria-hidden="true"></div><span className="text-[10px] text-gray-600 font-bold tracking-wide uppercase">Events</span></div>
+              <div className="bg-white/85 backdrop-blur-xs py-2 px-4 rounded-full border border-sky-100/70 shadow-xs flex justify-center gap-6 mt-2 flex-wrap">
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#3b82f6] shadow-xs" aria-hidden="true"></div><span className="text-[10px] text-gray-700 font-bold tracking-wide uppercase">Web</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] shadow-xs" aria-hidden="true"></div><span className="text-[10px] text-gray-700 font-bold tracking-wide uppercase">Events</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#10b981] shadow-xs" aria-hidden="true"></div><span className="text-[10px] text-gray-700 font-bold tracking-wide uppercase">Fairs</span></div>
               </div>
             </div>
           </div>
