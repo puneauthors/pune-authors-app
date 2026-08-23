@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
-import { Download, Activity, DollarSign, BookOpen, ShoppingCart } from 'lucide-react';
+import { Download, Activity, DollarSign, BookOpen, ShoppingCart, ChevronDown, ChevronRight, ChevronUp, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { 
@@ -194,26 +194,93 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
     saveAs(blob, `sales_report_${startDate}_to_${endDate}.xlsx`);
   };
 
-  // Memoized filtered data to avoid recalculating on re-renders
-  const filteredTableData = useMemo(() => {
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  const toggleRow = (key: string) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  // Group tableData by Place / Event / Order ID for true single-place cumulative view
+  const groupedTableData = useMemo(() => {
     if (!salesData?.tableData) return [];
-    return salesData.tableData.filter((r: any) => tableChannelFilter === 'All' || r.channel === tableChannelFilter);
-  }, [salesData?.tableData, tableChannelFilter]);
+    const groupsMap = new Map<string, {
+      key: string;
+      date: string;
+      dates: string[];
+      orderId: string;
+      channel: string;
+      event: string;
+      totalQty: number;
+      totalRevenue: number;
+      items: any[];
+      uniqueAuthors: string[];
+    }>();
+
+    salesData.tableData.forEach((row: any) => {
+      const placeOrOrderId = row.orderId || row.event || 'Unknown';
+      const groupKey = `${row.channel}_${placeOrOrderId}`;
+      if (!groupsMap.has(groupKey)) {
+        groupsMap.set(groupKey, {
+          key: groupKey,
+          date: row.date,
+          dates: [row.date],
+          orderId: placeOrOrderId,
+          channel: row.channel,
+          event: row.event || placeOrOrderId,
+          totalQty: 0,
+          totalRevenue: 0,
+          items: [],
+          uniqueAuthors: []
+        });
+      }
+      const g = groupsMap.get(groupKey)!;
+      g.totalQty += (row.qty || 0);
+      g.totalRevenue += (row.revenue || 0);
+      if (row.date && !g.dates.includes(row.date)) {
+        g.dates.push(row.date);
+      }
+      g.dates.sort();
+      g.date = g.dates.length > 1 ? `${g.dates[0]} ~ ${g.dates[g.dates.length - 1]}` : g.dates[0];
+
+      g.items.push(row);
+      if (row.author && !g.uniqueAuthors.includes(row.author)) {
+        g.uniqueAuthors.push(row.author);
+      }
+    });
+
+    return Array.from(groupsMap.values());
+  }, [salesData?.tableData]);
+
+  const filteredGroupedData = useMemo(() => {
+    return groupedTableData.filter((g: any) => tableChannelFilter === 'All' || g.channel === tableChannelFilter);
+  }, [groupedTableData, tableChannelFilter]);
+
+  const channelCounts = useMemo(() => {
+    return {
+      All: groupedTableData.length,
+      'Web Orders': groupedTableData.filter((g: any) => g.channel === 'Web Orders').length,
+      'Events': groupedTableData.filter((g: any) => g.channel === 'Events').length,
+      'Book Fairs': groupedTableData.filter((g: any) => g.channel === 'Book Fairs').length,
+    };
+  }, [groupedTableData]);
+
+  const toggleAllRows = () => {
+    if (expandedRows.size === filteredGroupedData.length) {
+      setExpandedRows(new Set());
+    } else {
+      setExpandedRows(new Set(filteredGroupedData.map(g => g.key)));
+    }
+  };
 
   const uniqueGenres = useMemo(() => {
     if (!salesData?.tableData) return ['All'];
     const genres = Array.from(new Set(salesData.tableData.map((r: any) => r.genre).filter((g: any) => g && g !== '-')));
     return ['All', ...genres.sort() as string[]];
-  }, [salesData?.tableData]);
-
-  const channelCounts = useMemo(() => {
-    if (!salesData?.tableData) return { All: 0, 'Web Orders': 0, 'Events': 0, 'Book Fairs': 0 };
-    return {
-      All: salesData.tableData.length,
-      'Web Orders': salesData.tableData.filter((r: any) => r.channel === 'Web Orders').length,
-      'Events': salesData.tableData.filter((r: any) => r.channel === 'Events').length,
-      'Book Fairs': salesData.tableData.filter((r: any) => r.channel === 'Book Fairs').length,
-    };
   }, [salesData?.tableData]);
 
   const kpiUniqueSubGenres = useMemo(() => {
@@ -251,22 +318,22 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
   }, [salesData?.tableData, kpiGenreFilter, kpiSubGenreFilter]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3.5">
       {/* Top Bar: Controls */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white p-3 md:p-3.5 rounded-xl shadow-xs border border-gray-100">
         <div>
-          <h3 className="text-xl font-serif font-medium text-paa-navy mb-1 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-paa-gold" aria-hidden="true" /> Dynamic Sales Report
+          <h3 className="text-base font-serif font-bold text-paa-navy flex items-center gap-2">
+            <Activity className="w-4 h-4 text-paa-gold" aria-hidden="true" /> Dynamic Sales Report
           </h3>
-          <p className="text-xs text-gray-500 font-medium">Aggregate revenue data instantly across any date range.</p>
+          <p className="text-[11px] text-gray-500 font-medium mt-0.5">Aggregate revenue data instantly across any date range.</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto items-center">
           <label htmlFor="filterType" className="sr-only">Date Range Filter</label>
           <select
             id="filterType"
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="text-xs font-bold tracking-widest uppercase py-2.5 px-4 rounded-xl border border-gray-200 bg-gray-50 text-paa-navy outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all w-full sm:w-auto cursor-pointer"
+            className="text-xs font-bold tracking-widest uppercase py-1.5 px-3 rounded-lg border border-gray-200 bg-gray-50 text-paa-navy outline-none focus:border-indigo-500 transition-all w-full sm:w-auto cursor-pointer"
           >
             <option value="today">Today</option>
             <option value="weekly">Weekly (Last 7 Days)</option>
@@ -286,29 +353,29 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
                 type="month"
                 value={selectedMonthValue}
                 onChange={(e) => setSelectedMonthValue(e.target.value)}
-                className="text-xs font-bold tracking-widest uppercase py-2.5 px-4 rounded-xl border border-gray-200 bg-white text-paa-navy outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer"
+                className="text-xs font-bold tracking-widest uppercase py-1.5 px-3 rounded-lg border border-gray-200 bg-white text-paa-navy outline-none focus:border-indigo-500 transition-all cursor-pointer"
               />
             </div>
           )}
 
           {filterType === 'custom' && (
-            <div className="flex items-center gap-2 animate-fade-in">
+            <div className="flex items-center gap-1.5 animate-fade-in">
               <label htmlFor="startDate" className="sr-only">Start Date</label>
               <input
                 id="startDate"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="text-xs font-bold tracking-widest uppercase py-2 px-3 rounded-xl border border-gray-200 bg-white text-paa-navy outline-none focus:border-indigo-500"
+                className="text-xs font-bold tracking-widest uppercase py-1.5 px-2.5 rounded-lg border border-gray-200 bg-white text-paa-navy outline-none focus:border-indigo-500"
               />
-              <span className="text-gray-400 font-medium text-sm">to</span>
+              <span className="text-gray-400 font-medium text-xs">to</span>
               <label htmlFor="endDate" className="sr-only">End Date</label>
               <input
                 id="endDate"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="text-xs font-bold tracking-widest uppercase py-2 px-3 rounded-xl border border-gray-200 bg-white text-paa-navy outline-none focus:border-indigo-500"
+                className="text-xs font-bold tracking-widest uppercase py-1.5 px-2.5 rounded-lg border border-gray-200 bg-white text-paa-navy outline-none focus:border-indigo-500"
               />
             </div>
           )}
@@ -317,73 +384,42 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
             onClick={handleExport} 
             disabled={!salesData?.tableData?.length || isLoading} 
             aria-label="Export Excel Sales Report"
-            className="flex items-center justify-center gap-2 bg-green-700 hover:bg-green-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest shadow-premium hover:shadow-premium-hover hover:-translate-y-0.5 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="flex items-center justify-center gap-1.5 bg-green-700 hover:bg-green-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest shadow-xs hover:-translate-y-0.5 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shrink-0"
           >
-            <Download size={14} aria-hidden="true" /> Export Excel
+            <Download size={13} aria-hidden="true" /> Export Excel
           </button>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="space-y-6 animate-in fade-in duration-300">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="space-y-3.5 animate-in fade-in duration-300">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-[140px] bg-white border border-gray-100 rounded-2xl shadow-sm p-5 flex flex-col justify-between">
+              <div key={i} className="h-[100px] bg-white border border-gray-100 rounded-xl shadow-xs p-3.5 flex flex-col justify-between">
                 <div className="flex justify-between items-start">
-                  <div className="h-8 w-8 bg-gray-100 animate-pulse rounded-lg"></div>
+                  <div className="h-6 w-20 bg-gray-100 animate-pulse rounded"></div>
+                  <div className="h-6 w-6 bg-gray-100 animate-pulse rounded-lg"></div>
                 </div>
-                <div>
-                  <div className="h-3 w-20 bg-gray-100 animate-pulse rounded mb-2"></div>
-                  <div className="h-8 w-32 bg-gray-200 animate-pulse rounded"></div>
-                </div>
-                <div className="h-4 w-full bg-gray-50 animate-pulse rounded mt-2"></div>
+                <div className="h-6 w-28 bg-gray-200 animate-pulse rounded"></div>
+                <div className="h-3 w-full bg-gray-50 animate-pulse rounded"></div>
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-2 h-[300px] bg-white border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col">
-              <div className="h-4 w-40 bg-gray-200 animate-pulse rounded mb-6"></div>
-              <div className="flex-1 w-full bg-gray-50 animate-pulse rounded-xl"></div>
-            </div>
-            <div className="h-[300px] bg-white border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col">
-              <div className="h-4 w-32 bg-gray-200 animate-pulse rounded mb-4"></div>
-              <div className="flex-1 space-y-4">
-                {[1, 2, 3, 4].map(i => <div key={i} className="h-10 w-full bg-gray-50 animate-pulse rounded-lg"></div>)}
-              </div>
-            </div>
-            <div className="h-[300px] bg-white border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col">
-              <div className="h-4 w-32 bg-gray-200 animate-pulse rounded mb-2"></div>
-              <div className="h-2 w-48 bg-gray-100 animate-pulse rounded mb-6"></div>
-              <div className="flex-1 w-full bg-gray-50 animate-pulse rounded-full mx-10 my-4"></div>
-              <div className="h-4 w-48 bg-gray-100 animate-pulse rounded mx-auto mt-4"></div>
-            </div>
-          </div>
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden min-h-[200px]">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <div className="h-4 w-32 bg-gray-200 animate-pulse rounded"></div>
-              <div className="h-8 w-64 bg-gray-200 animate-pulse rounded-lg"></div>
-            </div>
-            <div className="p-5 space-y-4">
-              {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="h-10 w-full bg-gray-50 animate-pulse rounded-lg"></div>
-              ))}
-            </div>
-          </div>
         </div>
       ) : (
-        <div className="space-y-6 animate-in fade-in duration-300">
-          {/* Row 1: KPI Summary Cards - rendered eagerly for LCP */}
+        <div className="space-y-3.5 animate-in fade-in duration-300">
+          {/* Row 1: KPI Summary Cards - Compact, space-efficient */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 relative">
-            <div className="dash-kpi-card green flex flex-col justify-between" style={{ contentVisibility: 'auto', containIntrinsicSize: '140px' }}>
+            <div className="dash-kpi-card green flex flex-col justify-between !p-3.5 !rounded-xl shadow-xs" style={{ contentVisibility: 'auto' }}>
               <div>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="dash-kpi-icon green"><DollarSign className="w-5 h-5" aria-hidden="true" /></div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-white/90">Total Revenue</p>
+                  <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-white"><DollarSign className="w-4 h-4" aria-hidden="true" /></div>
                 </div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-paa-gray-text mb-1">Total Revenue</p>
-                <h3 className="text-3xl font-black text-paa-navy tracking-tight">₹{(salesData?.kpis?.totalRevenue || 0).toLocaleString()}</h3>
+                <h3 className="text-2xl md:text-[26px] font-black text-white tracking-tight leading-tight">₹{(salesData?.kpis?.totalRevenue || 0).toLocaleString()}</h3>
               </div>
               {salesData?.kpis?.splits && (
-                <div className="mt-4 pt-3 border-t border-white/20 flex justify-between text-[10px] font-bold uppercase tracking-widest text-white">
+                <div className="mt-2.5 pt-2 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-wider text-white">
                   <span>Web: ₹{(salesData.kpis.splits.web?.revenue || 0).toLocaleString()}</span>
                   <span>Events: ₹{(salesData.kpis.splits.events?.revenue || 0).toLocaleString()}</span>
                   <span>Fairs: ₹{(salesData.kpis.splits.bookFairs?.revenue || 0).toLocaleString()}</span>
@@ -391,16 +427,16 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
               )}
             </div>
 
-            <div className="dash-kpi-card blue flex flex-col justify-between" style={{ contentVisibility: 'auto', containIntrinsicSize: '140px' }}>
+            <div className="dash-kpi-card blue flex flex-col justify-between !p-3.5 !rounded-xl shadow-xs" style={{ contentVisibility: 'auto' }}>
               <div>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="dash-kpi-icon blue"><BookOpen className="w-5 h-5" aria-hidden="true" /></div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-white/90">Total Books Sold</p>
+                  <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-white"><BookOpen className="w-4 h-4" aria-hidden="true" /></div>
                 </div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-paa-gray-text mb-1">Total Books Sold</p>
-                <h3 className="text-3xl font-black text-paa-navy tracking-tight">{salesData?.kpis?.totalBooksSold || 0} <span className="text-xs font-medium text-gray-400 lowercase tracking-normal">units</span></h3>
+                <h3 className="text-2xl md:text-[26px] font-black text-white tracking-tight leading-tight">{salesData?.kpis?.totalBooksSold || 0} <span className="text-xs font-medium text-white/80 lowercase tracking-normal">units</span></h3>
               </div>
               {salesData?.kpis?.splits && (
-                <div className="mt-4 pt-3 border-t border-white/20 flex justify-between text-[10px] font-bold uppercase tracking-widest text-white">
+                <div className="mt-2.5 pt-2 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-wider text-white">
                   <span>Web: {salesData.kpis.splits.web?.books || 0}</span>
                   <span>Events: {salesData.kpis.splits.events?.books || 0}</span>
                   <span>Fairs: {salesData.kpis.splits.bookFairs?.books || 0}</span>
@@ -408,16 +444,16 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
               )}
             </div>
 
-            <div className="dash-kpi-card amber flex flex-col justify-between" style={{ contentVisibility: 'auto', containIntrinsicSize: '140px' }}>
+            <div className="dash-kpi-card amber flex flex-col justify-between !p-3.5 !rounded-xl shadow-xs" style={{ contentVisibility: 'auto' }}>
               <div>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="dash-kpi-icon amber"><ShoppingCart className="w-5 h-5" aria-hidden="true" /></div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-white/90">Total Entries</p>
+                  <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-white"><ShoppingCart className="w-4 h-4" aria-hidden="true" /></div>
                 </div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-paa-gray-text mb-1">Total Entries</p>
-                <h3 className="text-3xl font-black text-paa-navy tracking-tight">{salesData?.kpis?.totalOrders || 0}</h3>
+                <h3 className="text-2xl md:text-[26px] font-black text-white tracking-tight leading-tight">{salesData?.kpis?.totalOrders || 0}</h3>
               </div>
               {salesData?.kpis?.splits && (
-                <div className="mt-4 pt-3 border-t border-white/20 flex justify-between text-[10px] font-bold uppercase tracking-widest text-white">
+                <div className="mt-2.5 pt-2 border-t border-white/20 flex justify-between text-[9px] font-bold uppercase tracking-wider text-white">
                   <span>Web: {salesData.kpis.splits.web?.orders || 0}</span>
                   <span>Events: {salesData.kpis.splits.events?.orders || 0}</span>
                   <span>Fairs: {salesData.kpis.splits.bookFairs?.orders || 0}</span>
@@ -426,16 +462,16 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
             </div>
           </div>
 
-          {/* Row 2: Visualizations - Recharts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative min-h-[300px]">
-              <div className="border border-paa-navy/5 p-5 md:p-6 rounded-2xl bg-white shadow-sm flex flex-col">
-                <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-4">Genre Insights</h4>
-                
-                <div className="flex flex-col gap-2 mb-6">
+          {/* Row 2: Visualizations - Compact Recharts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 relative">
+            <div className="border border-paa-navy/5 p-4 rounded-xl bg-white shadow-xs flex flex-col justify-between">
+              <div>
+                <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-2.5">Genre Insights</h4>
+                <div className="flex flex-col sm:flex-row gap-2 mb-3.5">
                   <select 
                     value={kpiGenreFilter} 
                     onChange={e => setKpiGenreFilter(e.target.value)} 
-                    className="px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-widest text-paa-navy border border-gray-200 outline-none focus:border-indigo-500 bg-gray-50/50 hover:bg-gray-50 transition-colors w-full"
+                    className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest text-paa-navy border border-gray-200 outline-none focus:border-indigo-500 bg-gray-50/50 hover:bg-gray-50 transition-colors w-full"
                   >
                     {uniqueGenres.map(g => (
                       <option key={g} value={g}>{g === 'All' ? 'All Genres' : g}</option>
@@ -446,7 +482,7 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
                     <select 
                       value={kpiSubGenreFilter} 
                       onChange={e => setKpiSubGenreFilter(e.target.value)} 
-                      className="px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-widest text-paa-navy border border-gray-200 outline-none focus:border-indigo-500 bg-gray-50/50 hover:bg-gray-50 transition-colors w-full"
+                      className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest text-paa-navy border border-gray-200 outline-none focus:border-indigo-500 bg-gray-50/50 hover:bg-gray-50 transition-colors w-full"
                     >
                       {kpiUniqueSubGenres.map(sg => (
                         <option key={sg} value={sg}>{sg === 'All' ? 'All Sub-genres' : sg}</option>
@@ -454,70 +490,89 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
                     </select>
                   )}
                 </div>
-
-                <div className="flex-1 flex flex-col justify-end">
-                  <div className="flex justify-between items-end mb-6">
-                    <div>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Books Sold</p>
-                      <p className="text-2xl font-black text-paa-navy leading-none">{kpiStats.books}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Revenue</p>
-                      <p className="text-2xl font-black text-indigo-600 leading-none">₹{kpiStats.revenue.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2.5 border-t border-gray-100 pt-5">
-                    <p className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-3">Revenue by Channel</p>
-                    <div className="flex justify-between items-center text-xs">
-                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" aria-hidden="true"></div><span className="text-gray-500 font-semibold uppercase tracking-wider text-[10px]">Web</span></div>
-                      <span className="text-paa-navy font-bold">₹{kpiStats.channels['Web Orders'].toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs">
-                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true"></div><span className="text-gray-500 font-semibold uppercase tracking-wider text-[10px]">Events</span></div>
-                      <span className="text-paa-navy font-bold">₹{kpiStats.channels['Events'].toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs">
-                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#ebd8c0]" aria-hidden="true"></div><span className="text-gray-500 font-semibold uppercase tracking-wider text-[10px]">Fairs</span></div>
-                      <span className="text-paa-navy font-bold">₹{kpiStats.channels['Book Fairs'].toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
               </div>
 
-              <div className="border border-paa-navy/5 p-5 md:p-6 rounded-2xl bg-white shadow-sm flex flex-col">
-                <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-2">Sales by Channel</h4>
-                <p className="text-[10px] text-gray-400 mb-6 font-medium">Includes Legacy Archive & Airport Libraries</p>
-                <div className="flex-1 w-full min-h-[220px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsPieChart>
-                      <Pie
-                        data={salesData?.channelData || []}
-                        cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={4} dataKey="value"
-                      >
-                        {(salesData?.channelData || []).map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={entry.name === 'Web Orders' ? '#3b82f6' : entry.name === 'Events' ? '#f59e0b' : '#10b981'} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                        formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Revenue']}
-                      />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
+              <div className="flex-1 flex flex-col justify-end">
+                <div className="flex justify-between items-end mb-3">
+                  <div>
+                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Books Sold</p>
+                    <p className="text-xl font-black text-paa-navy leading-none">{kpiStats.books}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Revenue</p>
+                    <p className="text-xl font-black text-indigo-600 leading-none">₹{kpiStats.revenue.toLocaleString()}</p>
+                  </div>
                 </div>
-                <div className="flex justify-center gap-6 mt-4 flex-wrap">
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-blue-500 shadow-sm" aria-hidden="true"></div><span className="text-xs text-gray-600 font-bold tracking-wide uppercase">Web</span></div>
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#ebd8c0] shadow-sm" aria-hidden="true"></div><span className="text-xs text-gray-600 font-bold tracking-wide uppercase">Fairs</span></div>
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-amber-500 shadow-sm" aria-hidden="true"></div><span className="text-xs text-gray-600 font-bold tracking-wide uppercase">Events</span></div>
+                
+                <div className="space-y-1.5 border-t border-gray-100 pt-2.5">
+                  <p className="text-[9px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">Revenue by Channel</p>
+                  <div className="flex justify-between items-center text-xs">
+                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500" aria-hidden="true"></div><span className="text-gray-500 font-semibold uppercase tracking-wider text-[9px]">Web</span></div>
+                    <span className="text-paa-navy font-bold text-xs">₹{kpiStats.channels['Web Orders'].toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true"></div><span className="text-gray-500 font-semibold uppercase tracking-wider text-[9px]">Events</span></div>
+                    <span className="text-paa-navy font-bold text-xs">₹{kpiStats.channels['Events'].toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#ebd8c0]" aria-hidden="true"></div><span className="text-gray-500 font-semibold uppercase tracking-wider text-[9px]">Fairs</span></div>
+                    <span className="text-paa-navy font-bold text-xs">₹{kpiStats.channels['Book Fairs'].toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-          {/* Row 3: Granular Data Table */}
+            <div className="border border-paa-navy/5 p-4 rounded-xl bg-white shadow-xs flex flex-col justify-between">
+              <div>
+                <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest mb-0.5">Sales by Channel</h4>
+                <p className="text-[10px] text-gray-400 mb-2 font-medium">Includes Legacy Archive & Airport Libraries</p>
+              </div>
+              <div className="w-full h-[160px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPieChart>
+                    <Pie
+                      data={salesData?.channelData || []}
+                      cx="50%" cy="50%" innerRadius={48} outerRadius={68} paddingAngle={4} dataKey="value"
+                    >
+                      {(salesData?.channelData || []).map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={entry.name === 'Web Orders' ? '#3b82f6' : entry.name === 'Events' ? '#f59e0b' : '#10b981'} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip
+                      contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px' }}
+                      formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                    />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex justify-center gap-5 mt-2 flex-wrap">
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs" aria-hidden="true"></div><span className="text-[10px] text-gray-600 font-bold tracking-wide uppercase">Web</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#ebd8c0] shadow-xs" aria-hidden="true"></div><span className="text-[10px] text-gray-600 font-bold tracking-wide uppercase">Fairs</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs" aria-hidden="true"></div><span className="text-[10px] text-gray-600 font-bold tracking-wide uppercase">Events</span></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 3: Cumulative & Granular Data Table */}
           <div className="bg-white border border-paa-navy/5 rounded-2xl shadow-sm overflow-hidden relative min-h-[200px]" style={{ contentVisibility: 'auto' }}>
             <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50">
-              <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest">Raw Sales Data</h4>
+              <div className="flex items-center gap-3">
+                <h4 className="text-xs font-bold text-paa-navy uppercase tracking-widest flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-indigo-600" /> Sales Records & Place Breakdowns
+                </h4>
+                {filteredGroupedData.length > 0 && (
+                  <button
+                    onClick={toggleAllRows}
+                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-md border border-indigo-200/60 transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    {expandedRows.size === filteredGroupedData.length ? (
+                      <><ChevronUp size={12} /> Collapse All</>
+                    ) : (
+                      <><ChevronDown size={12} /> Expand All ({filteredGroupedData.length})</>
+                    )}
+                  </button>
+                )}
+              </div>
               <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Channel Filters">
                 {(['All', 'Web Orders', 'Events', 'Book Fairs'] as const).map(ch => {
                   const tabCount = channelCounts[ch];
@@ -538,36 +593,124 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
               <table className="dash-table w-full text-left min-w-[950px]">
                 <thead className="bg-indigo-50 border-b-2 border-indigo-100">
                   <tr>
-                    <th className="w-[5%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100">S.No</th>
-                    <th className="w-[12%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100">Date</th>
-                    <th className="w-[15%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100">Order ID</th>
-                    <th className="w-[12%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100">Channel</th>
-                    <th className="w-[20%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100">Author</th>
-                    <th className="w-[25%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100">Book Title</th>
-                    <th className="w-[8%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100 text-right">Qty</th>
-                    <th className="w-[10%] px-5 py-3 !text-[14px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100 text-right">Rev (₹)</th>
+                    <th className="w-[4%] px-3 py-3.5 !text-[13px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100 text-center">#</th>
+                    <th className="w-[11%] px-4 py-3.5 !text-[13px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100">Date</th>
+                    <th className="w-[25%] px-4 py-3.5 !text-[13px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100">Place / Order ID</th>
+                    <th className="w-[10%] px-4 py-3.5 !text-[13px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100">Channel</th>
+                    <th className="w-[20%] px-4 py-3.5 !text-[13px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100">Authors & Entries</th>
+                    <th className="w-[10%] px-4 py-3.5 !text-[13px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100 text-center">Breakdown</th>
+                    <th className="w-[10%] px-4 py-3.5 !text-[13px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100 text-right">Total Books</th>
+                    <th className="w-[10%] px-4 py-3.5 !text-[13px] font-bold uppercase tracking-widest !text-indigo-800 border-b border-gray-100 text-right">Revenue (₹)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50 bg-white">
-                  {!isLoading && filteredTableData.length === 0 && (
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {!isLoading && filteredGroupedData.length === 0 && (
                     <tr><td colSpan={8} className="text-center py-10 text-sm text-gray-400 font-medium italic">No sales recorded in this period for the selected filter.</td></tr>
                   )}
-                  {filteredTableData.map((row: any, idx: number) => (
-                    <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-[#ebd8c0]'} hover:bg-slate-200/60 transition-colors`}>
-                      <td className="px-5 py-3 text-xs font-bold text-paa-gray-text">{idx + 1}</td>
-                      <td className="px-5 py-3 text-xs font-semibold text-paa-navy truncate">{row.date}</td>
-                      <td className="px-5 py-3 text-xs text-gray-500 font-mono truncate">{row.orderId}</td>
-                      <td className="px-5 py-3 text-xs">
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest ${row.channel === 'Web Orders' ? 'bg-[#ebd8c0] text-blue-800 border-transparent shadow-sm' : row.channel === 'Events' ? 'bg-amber-100 text-amber-800 border-transparent shadow-sm' : 'bg-green-100 text-green-800 border-transparent shadow-sm'}`}>
-                          {row.channel === 'Web Orders' ? 'Web' : row.channel === 'Events' ? 'Events' : 'Fairs'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-xs font-semibold text-paa-navy truncate pr-2" title={row.author}>{row.author}</td>
-                      <td className="px-5 py-3 pr-2 text-xs text-paa-navy truncate" title={row.title}>{row.title}</td>
-                      <td className="px-5 py-3 text-xs font-bold text-paa-navy text-right">{row.qty}</td>
-                      <td className="px-5 py-3 text-xs font-black text-indigo-600 text-right">₹{row.revenue}</td>
-                    </tr>
-                  ))}
+                  {filteredGroupedData.map((group: any, idx: number) => {
+                    const isExpanded = expandedRows.has(group.key);
+                    return (
+                      <React.Fragment key={group.key}>
+                        <tr 
+                          onClick={() => toggleRow(group.key)}
+                          className={`cursor-pointer transition-all duration-150 select-none ${
+                            isExpanded ? 'bg-indigo-50/60 shadow-xs' : idx % 2 === 0 ? 'bg-white' : 'bg-[#ebd8c0]'
+                          } hover:bg-slate-200/70`}
+                        >
+                          <td className="px-3 py-3 text-xs font-bold text-paa-navy text-center">
+                            <span className="text-gray-400 font-mono text-[11px]">{idx + 1}</span>
+                          </td>
+                          <td className="px-4 py-3 text-xs font-semibold text-paa-navy truncate">{group.date}</td>
+                          <td className="px-4 py-3 text-xs font-bold text-paa-navy truncate">
+                            <div className="flex items-center gap-2">
+                              <button 
+                                type="button" 
+                                onClick={(e) => { e.stopPropagation(); toggleRow(group.key); }}
+                                className="w-5 h-5 rounded-md flex items-center justify-center bg-white/90 border border-gray-300 text-indigo-700 hover:bg-indigo-600 hover:text-white transition-all shadow-xs shrink-0 cursor-pointer"
+                                title={isExpanded ? "Collapse breakdown" : "Expand breakdown"}
+                              >
+                                {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                              </button>
+                              <span className="truncate font-semibold" title={group.orderId}>{group.orderId}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-xs">
+                            <span className={`px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest shadow-xs ${
+                              group.channel === 'Web Orders' ? 'bg-[#ebd8c0] text-blue-800 border border-blue-200/50' : 
+                              group.channel === 'Events' ? 'bg-amber-100 text-amber-800 border border-amber-200/50' : 
+                              'bg-green-100 text-green-800 border border-green-200/50'
+                            }`}>
+                              {group.channel === 'Web Orders' ? 'Web' : group.channel === 'Events' ? 'Events' : 'Fairs'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-700 truncate">
+                            {group.items.length === 1 ? (
+                              <span className="font-medium text-paa-navy truncate" title={group.items[0].author}>{group.items[0].author}</span>
+                            ) : (
+                              <span className="font-semibold text-indigo-900 bg-indigo-50/90 px-2 py-0.5 rounded-full text-[10px] border border-indigo-200/60">
+                                {group.uniqueAuthors.length} Author{group.uniqueAuthors.length !== 1 ? 's' : ''} ({group.items.length} entries)
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-center">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
+                              isExpanded ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-indigo-700'
+                            }`}>
+                              {isExpanded ? 'Hide' : `${group.items.length} item${group.items.length !== 1 ? 's' : ''}`}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-xs font-black text-paa-navy text-right">{group.totalQty.toLocaleString()}</td>
+                          <td className="px-4 py-3 text-xs font-black text-indigo-600 text-right">₹{group.totalRevenue.toLocaleString()}</td>
+                        </tr>
+
+                        {/* Nested Breakdown Sub-Table */}
+                        {isExpanded && (
+                          <tr className="bg-slate-50/95 border-y-2 border-indigo-200">
+                            <td colSpan={8} className="p-0">
+                              <div className="py-3.5 px-6 md:px-12 bg-gradient-to-b from-indigo-50/50 via-white to-indigo-50/30 border-l-4 border-indigo-600 animate-fade-in">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
+                                  <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-indigo-600"></span> Itemized Breakdown for {group.orderId} ({group.items.length} line item{group.items.length !== 1 ? 's' : ''})
+                                  </span>
+                                  <span className="text-[11px] text-gray-600 font-medium">
+                                    Subtotal: <strong className="text-paa-navy font-bold">{group.totalQty} units</strong> &bull; <strong className="text-indigo-700 font-black">₹{group.totalRevenue.toLocaleString()}</strong>
+                                  </span>
+                                </div>
+                                <div className="overflow-x-auto rounded-xl border border-indigo-100 shadow-xs bg-white">
+                                  <table className="w-full text-left text-xs">
+                                    <thead className="bg-indigo-50/80 border-b border-indigo-100 text-[10px] font-bold uppercase tracking-wider text-indigo-800">
+                                      <tr>
+                                        <th className="px-3 py-2 w-[4%] text-center">#</th>
+                                        <th className="px-3 py-2 w-[12%]">Date</th>
+                                        <th className="px-4 py-2 w-[22%]">Author</th>
+                                        <th className="px-4 py-2 w-[34%]">Book Title</th>
+                                        <th className="px-4 py-2 w-[14%]">Genre</th>
+                                        <th className="px-4 py-2 w-[7%] text-right">Qty</th>
+                                        <th className="px-4 py-2 w-[7%] text-right">Rev (₹)</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                      {group.items.map((item: any, subIdx: number) => (
+                                        <tr key={subIdx} className="hover:bg-indigo-50/40 transition-colors">
+                                          <td className="px-3 py-2 text-center text-gray-400 font-mono text-[11px]">{subIdx + 1}</td>
+                                          <td className="px-3 py-2 font-mono text-[11px] text-gray-500">{item.date}</td>
+                                          <td className="px-4 py-2 font-semibold text-paa-navy truncate" title={item.author}>{item.author}</td>
+                                          <td className="px-4 py-2 text-gray-700 truncate" title={item.title}>{item.title}</td>
+                                          <td className="px-4 py-2 text-[11px] text-gray-500">{item.genre || '-'}</td>
+                                          <td className="px-4 py-2 font-bold text-paa-navy text-right">{item.qty}</td>
+                                          <td className="px-4 py-2 font-bold text-indigo-600 text-right">₹{(item.revenue || 0).toLocaleString()}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
