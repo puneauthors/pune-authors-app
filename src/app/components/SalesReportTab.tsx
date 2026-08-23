@@ -643,7 +643,7 @@ export const SalesReportTab = ({ refreshTrigger }: { refreshTrigger?: number }) 
                           } hover:bg-slate-200/70`}
                         >
                           <td className="px-3 py-3 text-xs font-bold text-paa-navy text-center">
-                            <span className="text-gray-400 font-mono text-[11px]">{idx + 1}</span>
+                            <span className="text-gray-500 font-mono text-[11px] font-bold">{filteredGroupedData.length - idx}</span>
                           </td>
                           <td className="px-4 py-3 text-xs font-semibold text-paa-navy truncate">{group.date}</td>
                           <td className="px-4 py-3 text-xs font-bold text-paa-navy truncate">
