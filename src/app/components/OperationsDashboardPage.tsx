@@ -423,46 +423,110 @@ const SettingsTabComponent = ({
               <label className="block text-xs font-bold tracking-widest uppercase text-paa-navy mb-2">
                 ABOUT PAGE IMAGE
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      setSettings({ ...settings, about_page_image: reader.result as string });
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-                className="w-full border border-paa-navy/20 bg-gray-50 rounded-lg p-3 text-sm outline-none focus:border-paa-navy focus:bg-white transition-colors"
-              />
-              {settings.about_page_image && (
-                <img src={settings.about_page_image} alt="About preview" className="mt-4 max-h-32 rounded border border-gray-200" />
+              {settings.about_page_image ? (
+                <div className="mt-2">
+                  <img src={settings.about_page_image} alt="About preview" className="max-h-32 rounded border border-gray-200 mb-3 shadow-sm" />
+                  <div className="flex gap-3">
+                    <label className="cursor-pointer px-4 py-2 bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-blue-100 transition-colors shadow-sm">
+                      Change Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setSettings({ ...settings, about_page_image: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                    <button 
+                      onClick={() => setSettings({ ...settings, about_page_image: '' })}
+                      className="px-4 py-2 bg-red-50 text-red-700 text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-red-100 transition-colors shadow-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="cursor-pointer flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-paa-navy transition-colors bg-gray-50">
+                  <span className="text-sm text-gray-500 font-medium">Click to upload image</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setSettings({ ...settings, about_page_image: reader.result as string });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
               )}
             </div>
             <div>
               <label className="block text-xs font-bold tracking-widest uppercase text-paa-navy mb-2">
                 INVITE AUTHOR BANNER IMAGE
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      setSettings({ ...settings, invite_author_banner_image: reader.result as string });
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-                className="w-full border border-paa-navy/20 bg-gray-50 rounded-lg p-3 text-sm outline-none focus:border-paa-navy focus:bg-white transition-colors"
-              />
-              {settings.invite_author_banner_image && (
-                <img src={settings.invite_author_banner_image} alt="Banner preview" className="mt-4 max-h-32 rounded border border-gray-200" />
+              {settings.invite_author_banner_image ? (
+                <div className="mt-2">
+                  <img src={settings.invite_author_banner_image} alt="Banner preview" className="max-h-32 rounded border border-gray-200 mb-3 shadow-sm" />
+                  <div className="flex gap-3">
+                    <label className="cursor-pointer px-4 py-2 bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-blue-100 transition-colors shadow-sm">
+                      Change Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setSettings({ ...settings, invite_author_banner_image: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                    <button 
+                      onClick={() => setSettings({ ...settings, invite_author_banner_image: '' })}
+                      className="px-4 py-2 bg-red-50 text-red-700 text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-red-100 transition-colors shadow-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="cursor-pointer flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-paa-navy transition-colors bg-gray-50">
+                  <span className="text-sm text-gray-500 font-medium">Click to upload image</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setSettings({ ...settings, invite_author_banner_image: reader.result as string });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
               )}
             </div>
           </div>

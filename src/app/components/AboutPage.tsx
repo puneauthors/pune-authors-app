@@ -136,7 +136,7 @@ export function AboutPage() {
           display: "flex",
           alignItems: "center",
           overflow: "hidden",
-          background: aboutImage ? `linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(30,41,59,0.6) 100%), url(${aboutImage.startsWith('data:') ? aboutImage : (import.meta.env.VITE_API_URL || "http://localhost:3001") + aboutImage}) center/contain no-repeat` : "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%)",
+          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%)",
         }}
       >
         {/* Background decorative text */}
@@ -280,7 +280,7 @@ export function AboutPage() {
                   }}
                 >
                   <img
-                    src="/pune_authors_hcl_event.webp"
+                    src={aboutImage ? (aboutImage.startsWith('data:') ? aboutImage : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${aboutImage}`) : "/pune_authors_hcl_event.webp"}
                     alt="Pune Authors Association event at HCL Technologies"
                     style={{ width: "100%", height: 480, objectFit: "cover", display: "block" }}
                   />
