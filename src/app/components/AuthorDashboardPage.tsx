@@ -7069,10 +7069,10 @@ export function AuthorProfile({ data, onRefresh, buttonStates, setButtonStates }
           );
         })()}
 
-        {/* Danger Zone */}
-        <div className="mt-8 bg-white rounded-xl shadow-sm border border-red-100 p-8 overflow-hidden">
-          <h3 className="text-lg font-serif text-red-600 mb-2">Danger Zone</h3>
-          <p className="text-sm text-gray-600 mb-6">Once you delete your profile, there is no going back. This will permanently remove your books from the catalogue.</p>
+        {/* Account Management */}
+        <div className="mt-8 bg-white rounded-xl shadow-sm border border-paa-navy/5 p-8 overflow-hidden">
+          <h3 className="text-lg font-serif text-paa-navy mb-2">Account Management</h3>
+          <p className="text-sm text-gray-500 mb-6">If you wish to remove your profile from the platform, you can do so here.</p>
           <button onClick={async () => {
             if (window.confirm("Are you sure you want to delete your author profile? This action will archive your profile and your books, removing them from the catalogue. Your sales data will remain intact. This action cannot be undone.")) {
               try {
@@ -7085,7 +7085,7 @@ export function AuthorProfile({ data, onRefresh, buttonStates, setButtonStates }
                 toast.error("Failed to delete profile: " + (err.response?.data?.error || err.message));
               }
             }
-          }} className="px-6 py-2.5 bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white rounded-full text-xs font-bold uppercase tracking-widest transition-colors shadow-sm">
+          }} className="px-6 py-2.5 bg-white text-gray-400 border border-gray-200 hover:bg-red-50 hover:text-red-500 hover:border-red-100 rounded-full text-xs font-bold uppercase tracking-widest transition-colors">
             Delete Profile
           </button>
         </div>
