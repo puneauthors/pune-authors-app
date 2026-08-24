@@ -641,15 +641,16 @@ const [showArchived, setShowArchived] = useState(false);
                 'Edited': authors.filter(a => !a.isArchived && a.status === 'Edited').length,
                 'Added New Book': authors.filter(a => !a.isArchived && a.status === 'Added New Book').length,
                 'Active': authors.filter(a => !a.isArchived && a.status === 'Active').length,
+                'Deletion Requested': authors.filter(a => !a.isArchived && a.status === 'Deletion Requested').length,
                 'Rejected': authors.filter(a => !a.isArchived && a.status === 'Rejected').length,
               };
-              return ['All', 'Reapplied', 'Pending', 'Edited', 'Added New Book', 'Active', 'Rejected'].map(status => (
+              return ['All', 'Reapplied', 'Pending', 'Edited', 'Added New Book', 'Active', 'Deletion Requested', 'Rejected'].map(status => (
                 <button
                   key={status}
                   onClick={() => setAuthorStatusFilter(status)}
                   className={`px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase transition-all rounded-full whitespace-nowrap border shadow-sm shrink-0 ${authorStatusFilter === status ? 'bg-[#0b1a2e] text-white border-[#0b1a2e] shadow-md' : 'bg-white border-gray-200 text-gray-600 hover:text-[#0b1a2e] hover:bg-gray-50 hover:border-gray-300'}`}
                 >
-                  {status === 'Reapplied' ? '🔄 Reapplied' : status} ({counts[status as keyof typeof counts]})
+                  {status === 'Reapplied' ? '🔄 Reapplied' : status === 'Deletion Requested' ? '⚠️ Deletion Req' : status} ({counts[status as keyof typeof counts]})
                 </button>
               ))
             })()}

@@ -277,6 +277,28 @@ export function AuthorDashboardPage() {
     );
   }
 
+  if (status === 'Deletion Requested') {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#F8FAFC]">
+        <NavBar />
+        <main className="flex-1 flex items-center justify-center p-6 py-20 animate-fade-in-up">
+          <div className="bg-white max-w-lg w-full p-8 md:p-12 rounded-3xl-2xl shadow-premium border border-paa-navy/5 text-center relative overflow-hidden">
+            <div className="mb-6 flex justify-center">
+              <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center border border-orange-200">
+                <AlertCircle className="w-10 h-10 text-orange-500" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-serif text-paa-navy mb-4">Deletion Requested</h1>
+            <p className="text-sm text-gray-600 mb-6">Your request to delete your profile has been submitted and is pending final approval by the administration. You will lose access to your dashboard once the deletion is finalized.</p>
+            <button onClick={handleLogout} className="bg-paa-navy text-white px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-paa-gold hover:text-paa-navy transition-all duration-300">
+              Logout
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (status === 'Archived' || dashboardData?.authorProfile?.isArchived) {
     return (
       <div className="flex flex-col min-h-screen bg-[#F8FAFC]">
@@ -7074,15 +7096,15 @@ export function AuthorProfile({ data, onRefresh, buttonStates, setButtonStates }
           <h3 className="text-lg font-serif text-paa-navy mb-2">Account Management</h3>
           <p className="text-sm text-gray-500 mb-6">If you wish to remove your profile from the platform, you can do so here.</p>
           <button onClick={async () => {
-            if (window.confirm("Are you sure you want to delete your author profile? This action will archive your profile and your books, removing them from the catalogue. Your sales data will remain intact. This action cannot be undone.")) {
+            if (window.confirm("Are you sure you want to request the deletion of your author profile? This request will be sent to the administration for final review. You will lose access to your dashboard once approved.")) {
               try {
                 await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/author/account`, {
                   headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 });
-                toast.success("Profile deleted successfully.");
+                toast.success("Deletion request submitted to admin.");
                 onRefresh();
               } catch (err: any) {
-                toast.error("Failed to delete profile: " + (err.response?.data?.error || err.message));
+                toast.error("Failed to submit deletion request: " + (err.response?.data?.error || err.message));
               }
             }
           }} className="px-6 py-2.5 bg-white text-gray-400 border border-gray-200 hover:bg-red-50 hover:text-red-500 hover:border-red-100 rounded-full text-xs font-bold uppercase tracking-widest transition-colors">

@@ -726,12 +726,7 @@ router.delete('/api/author/account', verifyToken, async (req, res) => {
 
     await prisma.author.update({
       where: { id: author.id },
-      data: { isArchived: true, status: 'Archived' }
-    });
-
-    await prisma.book.updateMany({
-      where: { authorId: author.id },
-      data: { isArchived: true, status: 'Archived' }
+      data: { status: 'Deletion Requested' }
     });
 
     if (typeof deleteCatalogueCache === 'function') deleteCatalogueCache();
