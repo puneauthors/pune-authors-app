@@ -59,7 +59,9 @@ async function sendDriveAnnouncementEmailToAuthors(announcement) {
         <p>Log in to your Author Portal to register your books and participate in this donation drive.</p>
       `;
 
-      sendNotificationEmail(author.email, subject, emailWrap(heading, htmlContent));
+      await sendNotificationEmail(author.email, subject, emailWrap(heading, htmlContent));
+      // Add a small delay to avoid hitting Gmail rate limits
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
   } catch (emailErr) {
     console.error('Error broadcasting donation announcement to authors:', emailErr);
