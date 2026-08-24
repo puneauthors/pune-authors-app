@@ -378,9 +378,7 @@ export function AuthorDashboardPage() {
             <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-paa-navy/5 rounded-full blur-3xl pointer-events-none"></div>
 
             <div className="relative">
-              <div className="flex justify-end gap-6 mb-6 items-center">
-                <button onClick={handleDeleteProfile} className="flex items-center gap-1.5 text-red-400 hover:text-red-600 text-[10px] font-bold uppercase tracking-widest transition-colors"><Trash2 size={12} /> Delete Profile</button>
-                <div className="h-4 w-px bg-gray-200"></div>
+              <div className="flex justify-end mb-6">
                 <button onClick={handleLogout} className="flex items-center gap-1.5 text-gray-600 hover:text-paa-navy text-xs font-bold uppercase tracking-widest rounded-full transition-colors hover:bg-gray-100 px-4 py-2 border border-gray-200"><LogOut size={14} /> Logout</button>
               </div>
 
@@ -552,14 +550,8 @@ export function AuthorDashboardPage() {
         </nav>
 
         <div className="p-4 shrink-0 flex flex-col gap-2 mt-auto">
-          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-paa-navy/5 bg-white text-xs font-bold uppercase hover:bg-gray-50 text-gray-700 transition-colors rounded-full">
+          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-paa-navy/5 bg-white text-xs font-bold uppercase hover:bg-gray-50 text-gray-700 transition-colors rounded-full shadow-sm">
             <LogOut size={14} /> Logout
-          </button>
-          
-          <div className="h-px bg-gray-200 my-2"></div>
-          
-          <button onClick={handleDeleteProfile} className="w-full flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase text-red-400 hover:text-red-600 transition-colors">
-            <Trash2 size={12} /> Delete Profile
           </button>
         </div>
       </aside>
@@ -7076,8 +7068,28 @@ export function AuthorProfile({ data, onRefresh, buttonStates, setButtonStates }
             </div>
           );
         })()}
-      </div>
 
+        {/* Danger Zone */}
+        <div className="mt-8 bg-white rounded-xl shadow-sm border border-red-100 p-8 overflow-hidden">
+          <h3 className="text-lg font-serif text-red-600 mb-2">Danger Zone</h3>
+          <p className="text-sm text-gray-600 mb-6">Once you delete your profile, there is no going back. This will permanently remove your books from the catalogue.</p>
+          <button onClick={async () => {
+            if (window.confirm("Are you sure you want to delete your author profile? This action will archive your profile and your books, removing them from the catalogue. Your sales data will remain intact. This action cannot be undone.")) {
+              try {
+                await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/author/account`, {
+                  headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+                toast.success("Profile deleted successfully.");
+                onRefresh();
+              } catch (err: any) {
+                toast.error("Failed to delete profile: " + (err.response?.data?.error || err.message));
+              }
+            }
+          }} className="px-6 py-2.5 bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white rounded-full text-xs font-bold uppercase tracking-widest transition-colors shadow-sm">
+            Delete Profile
+          </button>
+        </div>
+      </div>
     </>
   );
 }
