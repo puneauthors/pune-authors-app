@@ -363,17 +363,21 @@ export const AdminOverviewTab = React.memo(({ refreshTrigger, books, authors, or
             icon: CalendarIcon, bg: '#a855f7', tabId: 'events' // Bright Purple
           },
           {
-            label: 'Airport Libraries',
-            value: (libraries && libraries.length > 0)
-              ? libraries.filter((l: any) => (l.type === 'Airport Library' || (l.type || '').toLowerCase().includes('airport') || (l.name || '').toLowerCase().includes('airport')) && !l.isArchived).length
-              : (stats?.totalAirportLibraries !== undefined && stats?.totalAirportLibraries > 0) ? stats.totalAirportLibraries : null,
+            label: 'Airport Flybrary',
+            value: (stats?.totalAirportLibraries !== undefined) 
+              ? stats.totalAirportLibraries 
+              : ((libraries && libraries.length > 0)
+                  ? libraries.filter((l: any) => (l.type === 'Airport Library' || (l.type || '').toLowerCase().includes('airport') || (l.name || '').toLowerCase().includes('airport')) && !l.isArchived && (l.announcements ? l.announcements.some((a: any) => !a.isArchived && a.visibility !== 'Draft') : true)).length
+                  : 0),
             icon: Plane, bg: '#06b6d4', tabId: 'library_donations', subTab: 'Airport' // Bright Cyan
           },
           {
             label: 'Other Libraries',
-            value: (libraries && libraries.length > 0)
-              ? libraries.filter((l: any) => !(l.type === 'Airport Library' || (l.type || '').toLowerCase().includes('airport') || (l.name || '').toLowerCase().includes('airport')) && !l.isArchived).length
-              : (stats?.totalOtherLibraries !== undefined && stats?.totalOtherLibraries > 0) ? stats.totalOtherLibraries : null,
+            value: (stats?.totalOtherLibraries !== undefined)
+              ? stats.totalOtherLibraries
+              : ((libraries && libraries.length > 0)
+                  ? libraries.filter((l: any) => !(l.type === 'Airport Library' || (l.type || '').toLowerCase().includes('airport') || (l.name || '').toLowerCase().includes('airport')) && !l.isArchived && (l.announcements ? l.announcements.some((a: any) => !a.isArchived && a.visibility !== 'Draft') : true)).length
+                  : 0),
             icon: Library, bg: '#14b8a6', tabId: 'library_donations', subTab: 'Other' // Bright Teal
           },
           {

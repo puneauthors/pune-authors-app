@@ -1886,7 +1886,7 @@ export function LibraryDonationsTab() {
           onClick={() => { setActiveMainTab('Airport'); localStorage.setItem('paa_lib_donations_subtab', 'Airport'); }}
           className={`pb-2.5 px-2 border-b-2 font-bold text-sm transition-all flex items-center gap-2 ${activeMainTab === 'Airport' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
         >
-          <Plane className="w-4 h-4" /> Airport Libraries
+          <Plane className="w-4 h-4" /> Airport Flybrary
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${activeMainTab === 'Airport' ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-700'}`}>
             {drives.filter(d => !d.isArchived && (d.library?.type === 'Airport Library' || (d.library?.name || '').toLowerCase().includes('airport') || (d.title || '').toLowerCase().includes('airport'))).length}
           </span>
@@ -1912,21 +1912,22 @@ export function LibraryDonationsTab() {
         <>
 
       {/* Summary Heading & Edit Stats Button */}
-      <div className="mb-3 flex justify-between items-center mt-6">
-        <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">
-          Summary {activeMainTab === 'Airport' ? '— Airport Libraries' : activeMainTab === 'Other' ? '— Other Partner Libraries' : '— All Libraries'}
+      <div className="mb-2.5 flex justify-between items-center mt-3">
+        <span className="text-xs text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
+          {activeMainTab === 'Airport' ? <Plane className="w-3.5 h-3.5 text-blue-600" /> : <Building2 className="w-3.5 h-3.5 text-emerald-600" />}
+          Summary {activeMainTab === 'Airport' ? '— Airport Flybrary' : activeMainTab === 'Other' ? '— Other Partner Libraries' : '— All Libraries'}
         </span>
         {isEditingStats ? (
           <div className="flex gap-2">
             <button
               onClick={() => setIsEditingStats(false)}
-              className="text-xs font-bold text-gray-500 border border-gray-300 bg-white hover:bg-gray-50 px-4 py-1.5 rounded-full transition-colors"
+              className="text-xs font-bold text-gray-500 border border-gray-300 bg-white hover:bg-gray-50 px-3 py-1 rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSaveStatsOverrides}
-              className="text-xs font-bold bg-paa-navy text-white px-4 py-1.5 rounded-full hover:bg-paa-navy/90 transition-colors active:scale-95"
+              className="text-xs font-bold bg-paa-navy text-white px-3 py-1 rounded-lg hover:bg-paa-navy/90 transition-colors active:scale-95 shadow-xs"
             >
               Save Stats
             </button>
@@ -1940,53 +1941,70 @@ export function LibraryDonationsTab() {
               setOverrideLibraries(statsOverrides.librariesOverride !== null ? statsOverrides.librariesOverride : activeLibrariesCount);
               setIsEditingStats(true);
             }}
-            className="text-xs font-bold text-paa-navy border border-paa-navy/20 bg-gray-50 hover:bg-paa-navy/5 px-4 py-1.5 rounded-full transition-colors"
+            className="text-xs font-bold text-paa-navy border border-paa-navy/20 bg-gray-50 hover:bg-paa-navy/5 px-3 py-1 rounded-lg transition-colors shadow-2xs"
           >
             Edit Stats
           </button>
         )}
       </div>
 
-      {/* Dashboard Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className={`bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-xl p-4 shadow-sm ${isEditingStats ? "ring-2 ring-indigo-300 ring-offset-1" : "border-none"}`}>
-          <div className="text-[10px] font-bold text-indigo-100 uppercase tracking-wider mb-1">Total Drives Organized</div>
-          {isEditingStats ? (
-            <input
-              type="text"
-              autoFocus
-              className="text-xl font-bold text-white bg-transparent border-0 border-b-2 border-white/30 focus:border-white outline-none w-full p-0 placeholder-white/50"
-              value={overrideDrives}
-              placeholder="NA"
-              onChange={e => setOverrideDrives(e.target.value)}
-            />
-          ) : (
-            <div className="text-xl font-bold">
-              {nonDraftDrivesCount}
-            </div>
-          )}
-        </div>
-        <div className="bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-xl p-4 shadow-sm border-none">
-          <div className="text-[10px] font-bold text-rose-100 uppercase tracking-wider mb-1">Total Books Donated</div>
-          <div className="text-xl font-bold">
-            {calculatedBooks}
+      {/* Compact Dashboard Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div className={`bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-xl px-4 py-3 shadow-xs flex items-center justify-between ${isEditingStats ? "ring-2 ring-indigo-300 ring-offset-1" : "border-none"}`}>
+          <div>
+            <div className="text-[10px] font-bold text-indigo-100 uppercase tracking-wider">Total Drives Organized</div>
+            {isEditingStats ? (
+              <input
+                type="text"
+                autoFocus
+                className="text-xl font-bold text-white bg-transparent border-0 border-b-2 border-white/30 focus:border-white outline-none w-full p-0 placeholder-white/50"
+                value={overrideDrives}
+                placeholder="NA"
+                onChange={e => setOverrideDrives(e.target.value)}
+              />
+            ) : (
+              <div className="text-xl font-bold mt-0.5">
+                {nonDraftDrivesCount}
+              </div>
+            )}
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-white shrink-0">
+            <Calendar className="w-4 h-4" />
           </div>
         </div>
-        <div className={`bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-xl p-4 shadow-sm ${isEditingStats ? "ring-2 ring-emerald-300 ring-offset-1" : "border-none"}`}>
-          <div className="text-[10px] font-bold text-emerald-100 uppercase tracking-wider mb-1">Active Libraries</div>
-          {isEditingStats ? (
-            <input
-              type="text"
-              className="text-xl font-bold text-white bg-transparent border-0 border-b-2 border-white/30 focus:border-white outline-none w-full p-0 placeholder-white/50"
-              value={overrideLibraries}
-              placeholder="NA"
-              onChange={e => setOverrideLibraries(e.target.value)}
-            />
-          ) : (
-            <div className="text-xl font-bold">
-              {activeLibrariesCount}
+
+        <div className="bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-xl px-4 py-3 shadow-xs border-none flex items-center justify-between">
+          <div>
+            <div className="text-[10px] font-bold text-rose-100 uppercase tracking-wider">Total Books Donated</div>
+            <div className="text-xl font-bold mt-0.5">
+              {calculatedBooks}
             </div>
-          )}
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-white shrink-0">
+            <BookOpen className="w-4 h-4" />
+          </div>
+        </div>
+
+        <div className={`bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-xl px-4 py-3 shadow-xs flex items-center justify-between ${isEditingStats ? "ring-2 ring-emerald-300 ring-offset-1" : "border-none"}`}>
+          <div>
+            <div className="text-[10px] font-bold text-emerald-100 uppercase tracking-wider">Active Libraries</div>
+            {isEditingStats ? (
+              <input
+                type="text"
+                className="text-xl font-bold text-white bg-transparent border-0 border-b-2 border-white/30 focus:border-white outline-none w-full p-0 placeholder-white/50"
+                value={overrideLibraries}
+                placeholder="NA"
+                onChange={e => setOverrideLibraries(e.target.value)}
+              />
+            ) : (
+              <div className="text-xl font-bold mt-0.5">
+                {activeLibrariesCount}
+              </div>
+            )}
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-white shrink-0">
+            <Building2 className="w-4 h-4" />
+          </div>
         </div>
       </div>
 
@@ -2052,24 +2070,29 @@ export function LibraryDonationsTab() {
             ? Number(driveOverride.authorsOverride)
             : totalAuthors;
 
+          const fullName = drive.library?.name || drive.title || 'Library';
+          const shortName = fullName.length > 20 ? fullName.substring(0, 18) + '...' : fullName;
+
           return {
-            name: drive.title,
+            id: drive.id,
+            fullName,
+            name: shortName,
             booksDonated: books,
             authorsCount: authors
           };
         });
 
         return (
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm mb-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
               <div>
                 <h4 className="font-bold text-paa-navy font-serif">Donations Performance Overview <span className="text-gray-500 font-normal ml-2 text-sm tracking-wide">({dateRangeString})</span></h4>
-                <p className="text-xs text-gray-500 font-medium mt-1">Comparing total books donated and author participation across campaigns.</p>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">Comparing total books donated and author participation across campaigns.</p>
               </div>
               
-              <div className="flex flex-wrap items-center gap-4 text-xs font-bold">
+              <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
                 <select
-                  className="border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-paa-navy text-gray-700 bg-gray-50"
+                  className="border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-paa-navy text-gray-700 bg-gray-50 shadow-2xs text-xs"
                   value={donationTimeFilter}
                   onChange={(e) => setDonationTimeFilter(e.target.value)}
                 >
@@ -2082,64 +2105,53 @@ export function LibraryDonationsTab() {
                 </select>
                 {/* Legends */}
                 <div className="flex items-center gap-1.5">
-                  <div className={`w-3.5 h-2 rounded-xs ${activeMainTab === 'Other' ? 'bg-emerald-500' : 'bg-paa-navy'}`}></div> Books Donated
+                  <div className={`w-3.5 h-2 rounded-xs ${activeMainTab === 'Other' ? 'bg-emerald-500' : 'bg-blue-600'}`}></div> Books Donated
                 </div>
               </div>
             </div>
 
-            <div className="h-64 w-full animate-in fade-in duration-500">
-              <ResponsiveContainer width="100%" height="100%">
-                {activeMainTab === 'Other' ? (
-                  <BarChart data={chartData} margin={{ top: 20, right: 15, left: -15, bottom: 20 }}>
+            <div className="w-full overflow-x-auto pb-1">
+              <div className="h-64 min-w-[500px] w-full animate-in fade-in duration-500">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 20, right: 15, left: -15, bottom: 25 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                     <XAxis 
                       dataKey="name" 
                       axisLine={{ stroke: '#E5E7EB' }} 
                       tickLine={false} 
-                      tick={{ fontSize: 11, fill: '#374151', fontWeight: 600 }} 
-                      dy={10} 
-                      tickFormatter={(v) => v.length > 20 ? v.substring(0, 20) + '...' : v} 
+                      tick={{ fontSize: 10.5, fill: '#374151', fontWeight: 600 }} 
+                      dy={8} 
+                      interval={0}
+                      angle={-22}
+                      textAnchor="end"
+                      height={42}
                     />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B7280' }} />
                     <RechartsTooltip
-                      cursor={{ fill: 'rgba(16, 185, 129, 0.08)' }}
+                      cursor={{ fill: activeMainTab === 'Other' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(59, 130, 246, 0.08)' }}
                       contentStyle={{ borderRadius: '10px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontSize: '12px', fontWeight: 600 }}
                       formatter={(val: number) => [`${val} Books Donated`, 'Total Donated']}
+                      labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
                     />
-                    <Bar dataKey="booksDonated" name="Books Donated" fill="#10b981" radius={[6, 6, 0, 0]} maxBarSize={60}>
-                      <LabelList dataKey="booksDonated" position="top" offset={8} style={{ fill: '#065f46', fontSize: 11, fontWeight: 'bold' }} />
-                    </Bar>
-                  </BarChart>
-                ) : (
-                  <LineChart data={chartData} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B7280' }} dy={10} tickFormatter={(v) => v.length > 15 ? v.substring(0, 15) + '...' : v} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B7280' }} />
-                    <RechartsTooltip
-                      cursor={{ stroke: '#E5E7EB', strokeWidth: 1 }}
-                      contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontSize: '12px' }}
-                    />
-                    <Line 
-                      type="linear" 
+                    <Bar 
                       dataKey="booksDonated" 
                       name="Books Donated" 
-                      stroke="var(--color-paa-navy, #1e3a8a)" 
-                      strokeWidth={3} 
-                      activeDot={{ r: 6 }} 
-                      dot={(props: any) => { const { cx, cy, index } = props; const total = chartData.length; if (total <= 30 || index % Math.ceil(total / 15) === 0 || index === total - 1) { return <circle cx={cx} cy={cy} r={3} fill="#fff" stroke="var(--color-paa-navy, #1e3a8a)" strokeWidth={2} key={`dot-books-${index}`} />; } return null; }}
+                      fill={activeMainTab === 'Other' ? '#10b981' : '#3b82f6'} 
+                      radius={[6, 6, 0, 0]} 
+                      maxBarSize={55}
                     >
-                      <LabelList dataKey="booksDonated" position="top" offset={10} style={{ fill: '#4b5563', fontSize: 10, fontWeight: 'bold' }} />
-                    </Line>
-                  </LineChart>
-                )}
-              </ResponsiveContainer>
+                      <LabelList dataKey="booksDonated" position="top" offset={6} style={{ fill: activeMainTab === 'Other' ? '#065f46' : '#1e3a8a', fontSize: 11, fontWeight: 'bold' }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         );
       })()}
 
       {/* Master Drives Filters & Search */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4 mt-8 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-3 mt-4 bg-white p-3.5 rounded-2xl border border-gray-200 shadow-sm">
         <div>
           <h3 className="text-xl font-bold text-paa-navy font-serif">Donation Drives</h3>
           <p className="text-xs text-gray-500 mt-0.5">Categorized by Airport Flybraries and Other Partner Libraries</p>

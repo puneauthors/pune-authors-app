@@ -1796,19 +1796,39 @@ router.get('/api/admin/dashboard-stats', verifyToken, isAdmin, async (req, res) 
       eventParticipations,
       pendingEventRegistrations,
       allDbEvents,
-      totalLibraries,
-      totalAirportLibraries,
-      totalOtherLibraries
+      activeAnnouncements
     ] = await Promise.all([
       prisma.author.count(),
       prisma.book.count(),
       prisma.eventAuthor.count({ where: { optInStatus: 'Registered' } }),
       prisma.eventAuthor.count({ where: { optInStatus: 'Pending Approval' } }),
       prisma.event.findMany({ where: { isArchived: false }, select: { id: true, name: true, eventType: true } }),
-      prisma.library.count({ where: { isArchived: false } }),
-      prisma.library.count({ where: { isArchived: false, type: { in: ['Airport Library', 'airport', 'Airport'] } } }),
-      prisma.library.count({ where: { isArchived: false, type: { notIn: ['Airport Library', 'airport', 'Airport'] } } })
+      prisma.donationAnnouncement.findMany({
+        where: { isArchived: false, visibility: { not: 'Draft' } },
+        include: { library: true }
+      })
     ]);
+
+    const initiatedAirportLibIds = new Set();
+    const initiatedOtherLibIds = new Set();
+
+    activeAnnouncements.forEach(a => {
+      const lib = a.library;
+      if (!lib || lib.isArchived) return;
+      const isAirport = lib.type === 'Airport Library' || 
+                        (lib.type || '').toLowerCase().includes('airport') || 
+                        (lib.name || '').toLowerCase().includes('airport') || 
+                        (a.title || '').toLowerCase().includes('airport');
+      if (isAirport) {
+        initiatedAirportLibIds.add(lib.id);
+      } else {
+        initiatedOtherLibIds.add(lib.id);
+      }
+    });
+
+    const totalAirportLibraries = initiatedAirportLibIds.size;
+    const totalOtherLibraries = initiatedOtherLibIds.size;
+    const totalLibraries = totalAirportLibraries + totalOtherLibraries;
 
     const totalEvents = allDbEvents.length;
     let totalBookFairs = 0;

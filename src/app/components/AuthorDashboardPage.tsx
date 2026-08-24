@@ -971,6 +971,25 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
   const totalBooksDonated = donationRegistrations.reduce((acc: number, curr: any) => 
     acc + (curr.books || []).reduce((bAcc: number, book: any) => bAcc + book.quantityDonated, 0), 0);
 
+  const isAirportDonation = (dr: any) => {
+    const lib = dr.announcement?.library;
+    return lib?.type === 'Airport Library' || 
+           (lib?.type || '').toLowerCase().includes('airport') || 
+           (lib?.name || '').toLowerCase().includes('airport') || 
+           (dr.announcement?.title || '').toLowerCase().includes('airport');
+  };
+
+  const flybraryRegistrations = donationRegistrations.filter(isAirportDonation);
+  const otherLibraryRegistrations = donationRegistrations.filter((dr: any) => !isAirportDonation(dr));
+
+  const flybraryBooksDonated = flybraryRegistrations.reduce((acc: number, curr: any) => 
+    acc + (curr.books || []).reduce((bAcc: number, book: any) => bAcc + book.quantityDonated, 0), 0);
+  const otherLibraryBooksDonated = otherLibraryRegistrations.reduce((acc: number, curr: any) => 
+    acc + (curr.books || []).reduce((bAcc: number, book: any) => bAcc + book.quantityDonated, 0), 0);
+
+  const flybraryCount = new Set(flybraryRegistrations.filter((dr: any) => dr.announcement?.libraryId).map((dr: any) => dr.announcement.libraryId)).size;
+  const otherLibrariesCount = new Set(otherLibraryRegistrations.filter((dr: any) => dr.announcement?.libraryId).map((dr: any) => dr.announcement.libraryId)).size;
+
   const totalEventFees = (data.eventInvites || []).filter((inv: any) => inv.optInStatus === 'Registered').reduce((acc: number, inv: any) => {
     const evt = inv.event;
     if (!evt) return acc;
@@ -1616,14 +1635,16 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
           <p className="text-[9px] font-bold tracking-widest uppercase text-white/80 mb-1">Pending Reg.</p>
           <h3 className="text-lg font-black text-white leading-none">{pendingRegistrations}</h3>
         </div>
-        <div className="dash-kpi-card cyan px-3 py-4 text-center items-center flex flex-col justify-center">
-          <p className="text-[9px] font-bold tracking-widest uppercase text-white/80 mb-1">Libraries Donated</p>
-          <h3 className="text-lg font-black text-white leading-none">{uniqueLibraries}</h3>
-        </div>
-        <div className="dash-kpi-card teal px-3 py-4 text-center items-center flex flex-col justify-center">
-          <p className="text-[9px] font-bold tracking-widest uppercase text-white/80 mb-1">Books Donated</p>
-          <h3 className="text-lg font-black text-white leading-none">{totalBooksDonated}</h3>
-        </div>
+        <button onClick={() => navigate('/dashboard/library-donations')} className="dash-kpi-card cyan px-3 py-4 text-center items-center flex flex-col justify-center cursor-pointer hover:-translate-y-1 transition-transform border-none">
+          <p className="text-[9px] font-bold tracking-widest uppercase text-white/80 mb-1">Flybrary Donated</p>
+          <h3 className="text-lg font-black text-white leading-none">{flybraryBooksDonated}</h3>
+          <span className="text-[9px] font-semibold text-white/85 mt-1">{flybraryCount} {flybraryCount === 1 ? 'Flybrary' : 'Flybraries'}</span>
+        </button>
+        <button onClick={() => navigate('/dashboard/library-donations')} className="dash-kpi-card teal px-3 py-4 text-center items-center flex flex-col justify-center cursor-pointer hover:-translate-y-1 transition-transform border-none">
+          <p className="text-[9px] font-bold tracking-widest uppercase text-white/80 mb-1">Other Lib. Donated</p>
+          <h3 className="text-lg font-black text-white leading-none">{otherLibraryBooksDonated}</h3>
+          <span className="text-[9px] font-semibold text-white/85 mt-1">{otherLibrariesCount} {otherLibrariesCount === 1 ? 'Library' : 'Libraries'}</span>
+        </button>
       </div>
 
 
