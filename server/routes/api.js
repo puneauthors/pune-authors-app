@@ -4936,6 +4936,21 @@ router.post('/api/admin/events/registration', verifyToken, isAdmin, async (req, 
       });
     }
 
+    const newStatus = optInStatus || (existingAuthor ? existingAuthor.optInStatus : "Registered");
+    const oldStatus = existingAuthor ? existingAuthor.optInStatus : null;
+
+    if (newStatus === 'Approved' && oldStatus !== 'Approved') {
+      const author = await prisma.author.findUnique({ where: { id: authorId } });
+      const event = await prisma.event.findUnique({ where: { id: eventId } });
+      if (author && event) {
+        const isExempt = Boolean((existingAuthor?.isFeeExempt) || (event?.exemptAuthorIds && Array.isArray(event.exemptAuthorIds) && event.exemptAuthorIds.includes(authorId)));
+        const emailBody = isExempt
+          ? `<p>Great news! Your registration for the event <strong>${event.name}</strong> has been approved by the administrators.</p><p><strong>Fee Exemption:</strong> Your event registration fee has been waived (₹0 fee). Your slot is confirmed!</p>`
+          : `<p>Great news! Your registration for the event <strong>${event.name}</strong> has been approved by the administrators.</p><p><strong>Next Step:</strong> Please log in to your Author Dashboard and navigate to the Events section to complete your payment and secure your slot.</p><p>Your slot is not confirmed until the payment has been processed.</p>`;
+        sendNotificationEmail(author.email, `Action Required: Event Registration Approved - ${event.name}`, emailWrap(`Your Registration is Approved`, emailBody)).catch(e => console.error('Failed to send approve email:', e));
+      }
+    }
+
     if (books && Array.isArray(books)) {
       for (const b of books) {
         const targetBookId = parseInt(b.bookId || (b.book ? b.book.id : null) || b.id);
@@ -6197,6 +6212,19 @@ router.post('/api/admin/events/:eventId/author/:authorId/publish', async (req, r
       await tx.eventAuthor.create({
         data: { eventId, authorId, optInStatus: statusValue, manualTotalSold: manualSold, manualTotalRevenue: manualRevenue, paymentStatus: paymentStatus || null, amountPaid: amountPaid ? parseFloat(amountPaid) : null, manualDailySales: manualDailySales || null }
       });
+    }
+
+    const oldStatus = existingAuthor ? existingAuthor.optInStatus : null;
+    if (statusValue === 'Approved' && oldStatus !== 'Approved') {
+      const author = await tx.author.findUnique({ where: { id: authorId } });
+      const event = await tx.event.findUnique({ where: { id: eventId } });
+      if (author && event) {
+        const isExempt = Boolean((existingAuthor?.isFeeExempt) || (event?.exemptAuthorIds && Array.isArray(event.exemptAuthorIds) && event.exemptAuthorIds.includes(authorId)));
+        const emailBody = isExempt
+          ? `<p>Great news! Your registration for the event <strong>${event.name}</strong> has been approved by the administrators.</p><p><strong>Fee Exemption:</strong> Your event registration fee has been waived (₹0 fee). Your slot is confirmed!</p>`
+          : `<p>Great news! Your registration for the event <strong>${event.name}</strong> has been approved by the administrators.</p><p><strong>Next Step:</strong> Please log in to your Author Dashboard and navigate to the Events section to complete your payment and secure your slot.</p><p>Your slot is not confirmed until the payment has been processed.</p>`;
+        sendNotificationEmail(author.email, `Action Required: Event Registration Approved - ${event.name}`, emailWrap(`Your Registration is Approved`, emailBody)).catch(e => console.error('Failed to send approve email:', e));
+      }
     }
 
     if (true) {
