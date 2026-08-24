@@ -378,9 +378,10 @@ export function AuthorDashboardPage() {
             <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-paa-navy/5 rounded-full blur-3xl pointer-events-none"></div>
 
             <div className="relative">
-              <div className="flex justify-end gap-2 mb-6">
-                <button onClick={handleDeleteProfile} className="flex items-center gap-1.5 text-red-600 hover:text-red-700 text-xs font-bold uppercase tracking-widest rounded-full transition-colors hover:bg-red-50 px-3 py-1.5"><Trash2 size={14} /> Delete Profile</button>
-                <button onClick={handleLogout} className="flex items-center gap-1.5 text-gray-500 hover:text-gray-700 text-xs font-bold uppercase tracking-widest rounded-full transition-colors hover:bg-gray-100 px-3 py-1.5"><LogOut size={14} /> Logout</button>
+              <div className="flex justify-end gap-6 mb-6 items-center">
+                <button onClick={handleDeleteProfile} className="flex items-center gap-1.5 text-red-400 hover:text-red-600 text-[10px] font-bold uppercase tracking-widest transition-colors"><Trash2 size={12} /> Delete Profile</button>
+                <div className="h-4 w-px bg-gray-200"></div>
+                <button onClick={handleLogout} className="flex items-center gap-1.5 text-gray-600 hover:text-paa-navy text-xs font-bold uppercase tracking-widest rounded-full transition-colors hover:bg-gray-100 px-4 py-2 border border-gray-200"><LogOut size={14} /> Logout</button>
               </div>
 
               <div className="mb-6 flex justify-center">
@@ -550,12 +551,15 @@ export function AuthorDashboardPage() {
           <Link onClick={() => setIsMobileMenuOpen(false)} to="/dashboard/profile" className={`author-profile-nav-btn flex items-center gap-3 ${location.pathname.includes('/profile') ? 'active' : ''}`}><User className="w-4 h-4 shrink-0" /> <span className="flex-1 truncate">Profile Settings</span></Link>
         </nav>
 
-        <div className="p-4 shrink-0 space-y-2">
+        <div className="p-4 shrink-0 flex flex-col gap-2 mt-auto">
           <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-paa-navy/5 bg-white text-xs font-bold uppercase hover:bg-gray-50 text-gray-700 transition-colors rounded-full">
             <LogOut size={14} /> Logout
           </button>
-          <button onClick={handleDeleteProfile} className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-red-100 bg-red-50 text-xs font-bold uppercase hover:bg-red-100 text-red-600 transition-colors rounded-full">
-            <Trash2 size={14} /> Delete Profile
+          
+          <div className="h-px bg-gray-200 my-2"></div>
+          
+          <button onClick={handleDeleteProfile} className="w-full flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase text-red-400 hover:text-red-600 transition-colors">
+            <Trash2 size={12} /> Delete Profile
           </button>
         </div>
       </aside>
