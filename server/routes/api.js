@@ -6108,39 +6108,46 @@ router.post('/api/admin/events', verifyToken, isAdmin, upload.single('banner'), 
       }
 
       // Async email sending loop so we don't block the response
-      for (const author of activeAuthors) {
-        const isAuthorExempt = exemptSet.has(author.id);
-        const feeText = isAuthorExempt
-          ? '<p style="margin: 8px 0; font-size: 15px;"><strong>💰 Registration:</strong> <span style="color: #16a34a; font-weight: bold;">Free (Fee Waived by Admin)</span></p>'
-          : (event.registrationFee > 0
-            ? `<p style="margin: 8px 0; font-size: 15px;"><strong>💰 Registration Fee:</strong> ₹${event.registrationFee} ${event.feeType === 'Per Title' ? 'per title' : ''}</p>`
-            : '<p style="margin: 8px 0; font-size: 15px;"><strong>💰 Registration:</strong> Free</p>');
+      (async () => {
+        for (const author of activeAuthors) {
+          const isAuthorExempt = exemptSet.has(author.id);
+          const feeText = isAuthorExempt
+            ? '<p style="margin: 8px 0; font-size: 15px;"><strong>💰 Registration:</strong> <span style="color: #16a34a; font-weight: bold;">Free (Fee Waived by Admin)</span></p>'
+            : (event.registrationFee > 0
+              ? `<p style="margin: 8px 0; font-size: 15px;"><strong>💰 Registration Fee:</strong> ₹${event.registrationFee} ${event.feeType === 'Per Title' ? 'per title' : ''}</p>`
+              : '<p style="margin: 8px 0; font-size: 15px;"><strong>💰 Registration:</strong> Free</p>');
 
-        const content = `
-          ${bannerHtml}
-          <h2 style="color: #1e3a8a; margin-bottom: 15px;">${event.name}</h2>
-          
-          <div style="background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 15px 20px; border-radius: 4px; margin-bottom: 25px; color: #4b5563; font-size: 15px; font-style: italic; line-height: 1.5;">
-            ${event.description ? event.description.replace(/\\n/g, '<br>') : 'Join us for our upcoming event! Click the link below to view more details and register.'}
-          </div>
-          
-          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
-            <h3 style="margin-top: 0; color: #1f2937; font-size: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 15px;">Event Quick Facts</h3>
-            <p style="margin: 8px 0; font-size: 15px;"><strong>📅 Date:</strong> ${new Date(event.date || event.startDate).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            <p style="margin: 8px 0; font-size: 15px;"><strong>📍 Location:</strong> ${event.location || event.venue || 'TBA'}</p>
-            ${feeText}
-          </div>
-          
-          <div style="text-align: center; margin-top: 35px; margin-bottom: 15px;">
-            <a href="https://puneauthorsassociation.com/dashboard/events" style="background-color: #dc2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);">Register Now</a>
-          </div>
-          <p style="text-align: center; font-size: 13px; color: #6b7280; margin-top: 15px;">
-            You can also access the registration page from the "Events Ecosystem" tab in your Author Portal.
-          </p>
-        `;
+          const content = `
+            ${bannerHtml}
+            <h2 style="color: #1e3a8a; margin-bottom: 15px;">${event.name}</h2>
+            
+            <div style="background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 15px 20px; border-radius: 4px; margin-bottom: 25px; color: #4b5563; font-size: 15px; font-style: italic; line-height: 1.5;">
+              ${event.description ? event.description.replace(/\\n/g, '<br>') : 'Join us for our upcoming event! Click the link below to view more details and register.'}
+            </div>
+            
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+              <h3 style="margin-top: 0; color: #1f2937; font-size: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 15px;">Event Quick Facts</h3>
+              <p style="margin: 8px 0; font-size: 15px;"><strong>📅 Date:</strong> ${new Date(event.date || event.startDate).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              <p style="margin: 8px 0; font-size: 15px;"><strong>📍 Location:</strong> ${event.location || event.venue || 'TBA'}</p>
+              ${feeText}
+            </div>
+            
+            <div style="text-align: center; margin-top: 35px; margin-bottom: 15px;">
+              <a href="https://puneauthorsassociation.com/dashboard/events" style="background-color: #dc2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);">Register Now</a>
+            </div>
+            <p style="text-align: center; font-size: 13px; color: #6b7280; margin-top: 15px;">
+              You can also access the registration page from the "Events Ecosystem" tab in your Author Portal.
+            </p>
+          `;
 
-        sendNotificationEmail(author.email, subject, emailWrap(subject, content)).catch(e => console.error('Failed to notify author:', author.email, e));
-      }
+          try {
+            await sendNotificationEmail(author.email, subject, emailWrap(subject, content));
+            await new Promise(resolve => setTimeout(resolve, 200)); // Rate limit: ~5 emails per sec
+          } catch (e) {
+            console.error('Failed to notify author:', author.email, e);
+          }
+        }
+      })();
     }
 
     res.status(201).json(event);
