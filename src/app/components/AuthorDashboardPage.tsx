@@ -76,9 +76,12 @@ export function AuthorDashboardPage() {
   const prevQueryAnsCountRef = useRef(0);
   const navigate = useNavigate();
 
-  const unreadEventInvites = dashboardData?.eventInvites?.filter((inv: any) => inv.optInStatus === 'Pending') || [];
+  const unreadEventInvites = dashboardData?.eventInvites?.filter((inv: any) => inv.optInStatus === 'Pending' && inv.event && inv.event.status !== 'Past' && inv.event.status !== 'Legacy Archive') || [];
   const notifications = dashboardData?.notifications || [];
   const visibleNotifications = notifications.filter((n: any) => n.target !== 'SILENT_ALL');
+  const maxToastBroadcastId = visibleNotifications.length > 0 ? Math.max(...visibleNotifications.map((n: any) => n.id)) : 0;
+  const maxToastInviteId = unreadEventInvites.length > 0 ? Math.max(...unreadEventInvites.map((inv: any) => inv.id)) : 0;
+  const currentToastId = `toast_b${maxToastBroadcastId}_e${maxToastInviteId}`;
   const hasUnread = unreadEventInvites.length > 0 || visibleNotifications.length > 0;
 
 
@@ -615,17 +618,17 @@ export function AuthorDashboardPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 relative shrink-0">
-            <button onClick={() => { setShowNotifications(!showNotifications); }} className={`relative w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-black/8 text-paa-navy hover:bg-black/4 transition-colors ${hasUnread && dismissedToastId !== String(visibleNotifications[0]?.id || unreadEventInvites[0]?.id || 'toast') ? 'animate-pulse' : ''}`}>
+            <button onClick={() => { setShowNotifications(!showNotifications); }} className={`relative w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-black/8 text-paa-navy hover:bg-black/4 transition-colors ${hasUnread && dismissedToastId !== currentToastId ? 'animate-pulse' : ''}`}>
               <Bell size={16} />
               {hasUnread && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>}
             </button>
-            {hasUnread && !showNotifications && dismissedToastId !== String(visibleNotifications[0]?.id || unreadEventInvites[0]?.id || 'toast') && (
+            {hasUnread && !showNotifications && dismissedToastId !== currentToastId && (
               <div className="hidden sm:flex" style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', right: '100%', marginRight: 12, width: 280, background: '#1a1a2e', borderRadius: 12, padding: '10px 14px', color: '#fff', zIndex: 9999, gap: 10, alignItems: 'center', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
-                <div style={{ flex: 1, cursor: 'pointer', minWidth: 0 }} onClick={() => { setShowNotifications(true); const latestId = String(visibleNotifications[0]?.id || unreadEventInvites[0]?.id || 'toast'); setDismissedToastId(latestId); localStorage.setItem('paa_dismissed_toast', latestId); }}>
+                <div style={{ flex: 1, cursor: 'pointer', minWidth: 0 }} onClick={() => { setShowNotifications(true); setDismissedToastId(currentToastId); localStorage.setItem('paa_dismissed_toast', currentToastId); }}>
                   <p style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#3b82f6', marginBottom: 2 }}>New Message</p>
                   <p style={{ fontSize: 12, color: '#f3f4f6', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{visibleNotifications[0]?.message?.replace(/\[LOW_STOCK:\d+\]\s*/g, '') || (unreadEventInvites.length > 0 ? `New Event: ${unreadEventInvites[0].event.name}` : 'You have unread notifications.')}</p>
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); const latestId = String(visibleNotifications[0]?.id || unreadEventInvites[0]?.id || 'toast'); setDismissedToastId(latestId); localStorage.setItem('paa_dismissed_toast', latestId); }} style={{ color: '#9ca3af', background: 'transparent', border: 'none', cursor: 'pointer', padding: 2, flexShrink: 0 }}><X size={14} /></button>
+                <button onClick={(e) => { e.stopPropagation(); setDismissedToastId(currentToastId); localStorage.setItem('paa_dismissed_toast', currentToastId); }} style={{ color: '#9ca3af', background: 'transparent', border: 'none', cursor: 'pointer', padding: 2, flexShrink: 0 }}><X size={14} /></button>
                 <div style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', right: -6, width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '6px solid #1a1a2e' }}></div>
               </div>
             )}
@@ -1044,7 +1047,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
     actionItems.push({ id: `act-orders-${maxOrderId}`, text: `Approve and fulfill ${unapprovedOrders} new web order${unapprovedOrders > 1 ? 's' : ''}`, icon: ShoppingCart, color: 'text-blue-600', bg: 'bg-[#eef2f6]', link: '/dashboard/orders' });
   }
 
-  const unreadEventInvites = data.eventInvites?.filter((inv: any) => inv.optInStatus === 'Pending') || [];
+  const unreadEventInvites = data.eventInvites?.filter((inv: any) => inv.optInStatus === 'Pending' && inv.event && inv.event.status !== 'Past' && inv.event.status !== 'Legacy Archive') || [];
   const maxInviteId = unreadEventInvites.length > 0 ? Math.max(...unreadEventInvites.map((inv: any) => inv.id)) : 0;
   if (unreadEventInvites.length > 0 && !dismissedActions.includes(`act-events-${maxInviteId}`)) {
     actionItems.push({ id: `act-events-${maxInviteId}`, text: `You have been invited to ${unreadEventInvites.length} new event${unreadEventInvites.length > 1 ? 's' : ''}. Register now!`, icon: CalendarIcon, color: 'text-purple-600', bg: 'bg-purple-100', link: '/dashboard/events' });
@@ -2118,27 +2121,27 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
         </div>
         <div className="overflow-x-auto">
           <table className="dash-table border-collapse">
-            <thead className="border-b-2 border-yellow-500 shadow-sm"><tr>
-              <th className="!text-[11px] font-bold uppercase tracking-wider !text-black !bg-[#facc15]">#</th>
-              <th className="!text-[11px] font-bold uppercase tracking-wider !text-black !bg-[#facc15]">Cover</th>
-              <th className="!text-[11px] font-bold uppercase tracking-wider !text-black !bg-[#facc15]">Title</th>
-              <th className="!text-[11px] font-bold uppercase tracking-wider !text-black !bg-[#facc15]">Status</th>
-              <th className="!text-[11px] font-bold uppercase tracking-wider !text-black !bg-[#facc15]">Genre</th>
-              <th className="!text-[11px] font-bold uppercase tracking-wider !text-black !bg-[#facc15]">MRP</th>
-              <th className="!text-[11px] font-bold uppercase tracking-wider !text-black !bg-[#facc15]">Current Stock</th>
-              <th className="!text-[11px] font-bold uppercase tracking-wider !text-black !bg-[#facc15]">Sold Details</th>
-              <th className="!text-[11px] font-bold uppercase tracking-wider !text-black !bg-[#facc15]">Listing Date</th>
-              <th className="text-center !text-[11px] font-bold uppercase tracking-wider !text-black !bg-[#facc15]">Actions</th>
+            <thead className="border-b-2 border-yellow-500 shadow-sm bg-[#facc15]"><tr>
+              <th className="text-black">#</th>
+              <th className="text-black">Cover</th>
+              <th className="text-black">Title</th>
+              <th className="text-black">Status</th>
+              <th className="text-black">Genre</th>
+              <th className="text-black">MRP</th>
+              <th className="text-black">Current Stock</th>
+              <th className="text-black">Sold Details</th>
+              <th className="text-black">Listing Date</th>
+              <th className="text-black text-center">Actions</th>
             </tr></thead>
             <tbody>
               {filteredTitles.length === 0 ? (
                 <tr><td colSpan={10} className="text-center py-10 text-paa-gray-text italic text-sm">No titles for this filter.</td></tr>
               ) : filteredTitles.map((row: any, idx: number) => (
                 <tr key={row.id} className="transition-colors hover:brightness-95 border-b border-gray-200">
-                  <td className="text-paa-gray-text text-xs text-center bg-green-100/60">{idx + 1}</td>
+                  <td className="text-paa-gray-text font-bold text-center bg-green-100/60">{idx + 1}</td>
                   <td className="bg-blue-100/60">{authorBooks.find((b: any) => b.id === row.id)?.coverUrl
-                    ? <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${authorBooks.find((b: any) => b.id === row.id)?.coverUrl}${authorBooks.find((b: any) => b.id === row.id)?.updatedAt ? `?t=${new Date(authorBooks.find((b: any) => b.id === row.id).updatedAt).getTime()}` : ''}`} alt="cover" className="w-9 h-12 object-cover rounded-lg shadow-sm" />
-                    : <div className="w-9 h-12 bg-white/50 rounded-lg border flex items-center justify-center text-[9px] text-gray-500">No cover</div>}
+                    ? <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${authorBooks.find((b: any) => b.id === row.id)?.coverUrl}${authorBooks.find((b: any) => b.id === row.id)?.updatedAt ? `?t=${new Date(authorBooks.find((b: any) => b.id === row.id).updatedAt).getTime()}` : ''}`} alt="cover" className="w-10 h-14 object-cover rounded-lg shadow-sm" />
+                    : <div className="w-10 h-14 bg-white/50 rounded-lg border flex items-center justify-center text-[10px] font-medium text-gray-500">No cover</div>}
                   </td>
                   <td className="font-semibold text-paa-navy bg-amber-100/60">
                     {row.title}
@@ -2166,18 +2169,18 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
                     })()}
                   </td>
                   <td className="bg-red-100/60"><span className={`dash-badge ${row.status === 'Approved' ? 'approved' : row.status === 'Rejected' ? 'rejected' : 'pending'}`}>{row.status}</span>
-                    {row.status === 'Rejected' && row.rejectionReason && <div className="mt-1 text-[10px] text-red-600">{row.rejectionReason}</div>}
+                    {row.status === 'Rejected' && row.rejectionReason && <div className="mt-1 text-[11px] font-medium text-red-600">{row.rejectionReason}</div>}
                   </td>
-                  <td className="text-paa-gray-text text-xs bg-purple-100/60">{row.genre}</td>
-                  <td className="font-semibold bg-cyan-100/60">{row.mrp}</td>
-                  <td className="bg-teal-100/60"><span className={`font-bold ${row.stock < 10 ? 'text-red-500' : 'text-paa-navy'}`}>{row.stock}</span>{row.stock < 10 && <div className="text-[9px] text-red-400 font-bold">LOW</div>}</td>
+                  <td className="text-paa-gray-text font-medium bg-purple-100/60">{row.genre}</td>
+                  <td className="font-bold text-gray-800 bg-cyan-100/60">{row.mrp}</td>
+                  <td className="bg-teal-100/60 text-center"><span className={`font-bold ${row.stock < 10 ? 'text-red-600 text-lg' : 'text-paa-navy text-base'}`}>{row.stock}</span>{row.stock < 10 && <div className="text-[10px] text-red-500 font-bold uppercase mt-0.5 tracking-widest">LOW</div>}</td>
                   <td className="bg-emerald-100/60">
                     <div className="flex flex-col">
-                      <span className="font-semibold text-emerald-800 text-sm">{row.sold.total} Total</span>
-                      <span className="text-[10px] text-emerald-700/70 font-bold uppercase tracking-widest">{row.sold.events} Events | {row.sold.web} Web</span>
+                      <span className="font-bold text-emerald-900 text-sm mb-0.5">{row.sold.total} Total</span>
+                      <span className="text-[10px] text-emerald-800 font-bold uppercase tracking-widest">{row.sold.events} Events | {row.sold.web} Web</span>
                     </div>
                   </td>
-                  <td className="text-paa-gray-text text-xs whitespace-nowrap bg-rose-100/60">{row.date}</td>
+                  <td className="text-paa-gray-text font-medium whitespace-nowrap bg-rose-100/60">{row.date}</td>
                   <td className="bg-indigo-100/60">
                     <div className="flex items-center justify-center">
                       <button onClick={() => navigate('/dashboard/profile', { state: { action: 'edit_book', bookId: row.id } })} className="p-2 text-indigo-900 hover:text-indigo-700 bg-white/70 hover:bg-white rounded-lg transition-colors border border-indigo-200" title="Edit Details">
@@ -2192,8 +2195,8 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
         </div>
       </div>
       {/* ── Charts Grid (4 Pie Charts Inline Layout) ── */}
-      <div className="bg-white border border-paa-navy/5 rounded-2xl shadow-sm overflow-hidden mb-8 animate-fade-in-up p-6">
-        <h3 className="text-[12px] font-bold text-paa-navy uppercase tracking-widest mb-6 text-center">Book Performance Breakdown</h3>
+      <div className="bg-white border border-paa-navy/5 rounded-2xl shadow-sm overflow-hidden mb-8 animate-fade-in-up p-6 mt-8">
+        <h3 className="text-sm font-bold text-paa-navy uppercase tracking-widest mb-6 text-center">Book Performance Breakdown</h3>
         
         {/* Shared Unified Legend */}
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 mb-8 px-4 py-4 bg-gray-50/50 rounded-xl">
@@ -2208,7 +2211,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {/* Chart 1: Web Orders */}
           <div className="flex flex-col items-center">
-            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Web Orders</h4>
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Web Orders</h4>
             <div className="h-[200px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 {comprehensiveBookData.filter((d: any) => d['Web Orders'] > 0).length > 0 ? (
@@ -2225,7 +2228,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
 
           {/* Chart 2: Event Books Sold */}
           <div className="flex flex-col items-center">
-            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Event Books Sold</h4>
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Event Books Sold</h4>
             <div className="h-[200px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 {comprehensiveBookData.filter((d: any) => d['Event Books Sold'] > 0).length > 0 ? (
@@ -2242,7 +2245,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
 
           {/* Chart 3: Library Donation */}
           <div className="flex flex-col items-center">
-            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Library Donation</h4>
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Library Donation</h4>
             <div className="h-[200px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 {comprehensiveBookData.filter((d: any) => d['Library Donation'] > 0).length > 0 ? (
@@ -2259,7 +2262,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
 
           {/* Chart 4: Flybraries */}
           <div className="flex flex-col items-center">
-            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Flybraries</h4>
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Flybraries</h4>
             <div className="h-[200px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 {comprehensiveBookData.filter((d: any) => d['Flybraries'] > 0).length > 0 ? (
@@ -4645,7 +4648,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
         rejectionReason: inv.rejectionReason || null,
         manualTotalSold: inv.manualTotalSold,
         manualTotalRevenue: inv.manualTotalRevenue,
-        isPast: inv.event?.status === 'Past' || inv.event?.status === 'Legacy Archive' || (inv.event?.date && new Date(inv.event.date) < new Date()),
+        isPast: inv.event?.status === 'Past' || inv.event?.status === 'Legacy Archive',
         isInvite: true,
         isDataUpdated: inv.manualTotalSold !== null || hasGranular || inv.event?.broadcastStatus === 'Published',
         aggSold: inv.event?.aggSold || 0,
@@ -4663,7 +4666,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
         isFeeExempt: isAvailExempt,
         registration: 'Pending',
         paymentStatus: isAvailExempt ? 'Paid' : '-',
-        isPast: evt.status === 'Past' || (evt.date && new Date(evt.date) < new Date()),
+        isPast: evt.status === 'Past' || evt.status === 'Legacy Archive',
         isInvite: true
       };
     }),
@@ -5613,7 +5616,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                     </div>
                                 ) : (
                                 <div className="flex-1 min-w-[300px] flex flex-col animate-fade-in-up">
-                                   {evt.registration === 'Approved' && !evt.isFeeExempt && (evt.registrationFee > 0 || evt.charges > 0) && evt.paymentStatus !== 'Paid' && evt.paymentStatus !== 'Pending Verification' && !evt.paymentProofUrl && !evt.isPast && (
+                                   {evt.registration === 'Approved' && !evt.isFeeExempt && (evt.registrationFee > 0 || evt.charges > 0) && evt.paymentStatus !== 'Paid' && evt.paymentStatus !== 'Pending Verification' && !evt.paymentProofUrl && (
                                      <div className={`mb-4 p-4 rounded text-sm shadow-sm ${evt.paymentStatus === 'Rejected' ? 'bg-red-50 border border-red-200 text-red-800' : 'bg-yellow-50 border border-yellow-200 text-yellow-800'}`}>
                                        <h5 className="font-bold mb-2">{evt.paymentStatus === 'Rejected' ? 'Payment Rejected - Remake Payment' : 'Registration Approved - Pending Payment'}</h5>
                                        <p className="text-xs mb-3">{evt.paymentStatus === 'Rejected' ? 'Your previous payment was rejected. Please re-check the amount or transaction ID and remake the payment.' : `Please pay the fee of ₹${evt.registrationFee || evt.charges} to confirm participation.`}</p>
@@ -7107,7 +7110,7 @@ export function AuthorProfile({ data, onRefresh, buttonStates, setButtonStates }
                 toast.error("Failed to submit deletion request: " + (err.response?.data?.error || err.message));
               }
             }
-          }} className="px-6 py-2.5 bg-white text-gray-400 border border-gray-200 hover:bg-red-50 hover:text-red-500 hover:border-red-100 rounded-full text-xs font-bold uppercase tracking-widest transition-colors">
+          }} className="px-6 py-2.5 bg-red-600 text-white border border-red-600 hover:bg-red-700 hover:border-red-700 hover:shadow-md rounded-full text-xs font-bold uppercase tracking-widest transition-all">
             Delete Profile
           </button>
         </div>

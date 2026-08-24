@@ -481,8 +481,8 @@ export default function EventExcelManager({
                       </td>
                       <td className="border-[1.5px] border-black text-gray-400 p-1" colSpan={4 + dayColumns.length}></td>
                       <td className="border-[1.5px] border-black bg-white text-center p-1 font-bold">
-                        <span className={`px-2 py-0.5 text-[9px] rounded-full text-black whitespace-nowrap ${author.optInStatus === 'Pending Approval' || (author.optInStatus === 'Approved' && eventBreakdown?.registrationFee > 0) ? 'bg-yellow-300 animate-pulse' : author.optInStatus === 'Rejected' ? 'bg-red-300' : 'bg-green-300'}`}>
-                          {author.paymentScreenshot && author.optInStatus === 'Approved' ? "Verify Payment" : (!author.paymentScreenshot && author.optInStatus === 'Approved' && eventBreakdown?.registrationFee > 0 ? "Pending Payment" : author.optInStatus || "Registered")}
+                        <span className={`px-2 py-0.5 text-[9px] rounded-full text-black whitespace-nowrap ${author.optInStatus === 'Pending Approval' || (author.optInStatus === 'Approved' && author.paymentStatus !== 'Paid' && eventBreakdown?.registrationFee > 0) ? 'bg-yellow-300 animate-pulse' : author.optInStatus === 'Rejected' ? 'bg-red-300' : 'bg-green-300'}`}>
+                          {author.paymentScreenshot && author.optInStatus === 'Approved' ? "Verify Payment" : (!author.paymentScreenshot && author.optInStatus === 'Approved' && author.paymentStatus !== 'Paid' && eventBreakdown?.registrationFee > 0 ? "Pending Payment" : author.optInStatus || "Registered")}
                         </span>
                       </td>
                       <td className="border-[1.5px] border-black bg-white p-1 text-center">
@@ -646,7 +646,7 @@ export default function EventExcelManager({
                         <td rowSpan={rowSpan} className="border-[1.5px] border-black bg-white p-1 text-center font-bold">
                           {author.paymentScreenshot && author.optInStatus === 'Approved' ? (
                             <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px]">Verify Payment</span>
-                          ) : (!author.paymentScreenshot && author.optInStatus === 'Approved' && eventBreakdown?.registrationFee > 0) ? (
+                          ) : (!author.paymentScreenshot && author.optInStatus === 'Approved' && author.paymentStatus !== 'Paid' && eventBreakdown?.registrationFee > 0) ? (
                             <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px]">Pending Payment</span>
                           ) : (
                             author.optInStatus || "Pending"
