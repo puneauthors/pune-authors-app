@@ -1128,6 +1128,7 @@ export function OperationsDashboardPage() {
     name: string;
     date: string;
     location: string;
+    time?: string;
   } | null>(null);
   const [generatedPoster, setGeneratedPoster] = useState<File | null>(null);
   const [generatedPosterPreview, setGeneratedPosterPreview] = useState<
@@ -4329,9 +4330,11 @@ const totalAuthorsBase = eventRegistrations.length;
       ) as HTMLFormElement;
       if (!form) return;
       const name = (form.elements.namedItem("name") as HTMLInputElement)?.value;
-      const date = (form.elements.namedItem("date") as HTMLInputElement)?.value;
+      const date = (form.elements.namedItem("date") as HTMLInputElement)?.value || (form.elements.namedItem("tentativeDateInput") as HTMLInputElement)?.value;
       const location = (form.elements.namedItem("location") as HTMLInputElement)
         ?.value;
+      const startTime = (form.elements.namedItem("startTime") as HTMLInputElement)?.value;
+      const endTime = (form.elements.namedItem("endTime") as HTMLInputElement)?.value;
 
       if (!name || !date || !location) {
         toast.error(
@@ -4340,7 +4343,27 @@ const totalAuthorsBase = eventRegistrations.length;
         return;
       }
 
-      setPosterData({ name, date, location });
+      const formatTime12h = (t: string) => {
+        if (!t) return "";
+        const parts = t.split(":");
+        let h = parseInt(parts[0], 10);
+        if (isNaN(h)) return t;
+        const m = parts[1] || "00";
+        const ampm = h >= 12 ? "PM" : "AM";
+        h = h % 12 || 12;
+        return `${h}:${m} ${ampm}`;
+      };
+
+      let formattedTime = "";
+      if (startTime && endTime) {
+        formattedTime = `${formatTime12h(startTime)} - ${formatTime12h(endTime)}`;
+      } else if (startTime) {
+        formattedTime = `${formatTime12h(startTime)} onwards`;
+      } else if (endTime) {
+        formattedTime = `Until ${formatTime12h(endTime)}`;
+      }
+
+      setPosterData({ name, date, location, time: formattedTime });
 
       setTimeout(async () => {
         if (!posterRef.current) return;
@@ -5057,7 +5080,7 @@ const totalAuthorsBase = eventRegistrations.length;
                             className="text-3xl font-bold"
                             style={{ color: "#ffffff" }}
                           >
-                            {posterData?.date
+                            {posterData?.date && !isNaN(new Date(posterData.date).getTime())
                               ? new Date(posterData.date).toLocaleDateString(
                                   "en-US",
                                   {
@@ -5067,8 +5090,16 @@ const totalAuthorsBase = eventRegistrations.length;
                                     day: "numeric",
                                   },
                                 )
-                              : "To Be Announced"}
+                              : posterData?.date || "To Be Announced"}
                           </p>
+                          {posterData?.time && (
+                            <p
+                              className="text-2xl font-bold mt-1.5"
+                              style={{ color: "#FFE066" }}
+                            >
+                              {posterData.time}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -5111,7 +5142,7 @@ const totalAuthorsBase = eventRegistrations.length;
                       className="text-lg font-bold tracking-wider"
                       style={{ color: "#ffffff" }}
                     >
-                      WWW.PUNEAUTHORS.COM
+                      WWW.PUNEAUTHORSASSOCIATION.COM
                     </p>
                   </div>
                 </div>
