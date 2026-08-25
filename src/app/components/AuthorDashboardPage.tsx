@@ -5328,6 +5328,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                       : "bg-gray-100 text-black";
 
                   const categoryColor = evt.category === "Housing Society" ? "bg-[#F3C29E] text-black"
+                    : evt.category === "School" ? "bg-[#C7D2FE] text-black"
                     : evt.category === "Corporate Office" ? "bg-[#FFE066] text-black"
                     : evt.category === "Book Fair" ? "bg-[#6FEF59] text-black"
                     : evt.category === "College" ? "bg-[#F6C6C6] text-black"

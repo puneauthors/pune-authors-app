@@ -4635,6 +4635,7 @@ const totalAuthorsBase = eventRegistrations.length;
                           Select Category
                         </option>
                         <option value="Housing Society">Housing Society</option>
+                        <option value="School">School</option>
                         <option value="College">College</option>
                         <option value="Book Fair">Book Fair</option>
                         <option value="Corporate Office">
@@ -6239,6 +6240,7 @@ const totalAuthorsBase = eventRegistrations.length;
       // Category filters
       if (eventGraphFilter === "Housing Society")
         return e.category === "Housing Society";
+      if (eventGraphFilter === "School") return e.category === "School";
       if (eventGraphFilter === "Corporate Office")
         return e.category === "Corporate Office";
       if (eventGraphFilter === "College") return e.category === "College";
@@ -6325,6 +6327,7 @@ const totalAuthorsBase = eventRegistrations.length;
       // Category filters
       if (eventGraphFilter === "Housing Society")
         return e.category === "Housing Society";
+      if (eventGraphFilter === "School") return e.category === "School";
       if (eventGraphFilter === "Corporate Office")
         return e.category === "Corporate Office";
       if (eventGraphFilter === "College") return e.category === "College";
@@ -6830,6 +6833,7 @@ const totalAuthorsBase = eventRegistrations.length;
                     </optgroup>
                     <optgroup label="── By Category ──">
                       <option value="Housing Society">Housing Society</option>
+                      <option value="School">School</option>
                       <option value="Corporate Office">Corporate Office</option>
                       <option value="College">College</option>
                       <option value="University">University</option>
@@ -7092,6 +7096,7 @@ const totalAuthorsBase = eventRegistrations.length;
                                       : "bg-gray-100 text-black";
 
                   const categoryColor = evt.category === "Housing Society" ? "bg-[#F3C29E] text-black"
+                                      : evt.category === "School" ? "bg-[#C7D2FE] text-black"
                                       : evt.category === "Corporate Office" ? "bg-[#FFE066] text-black"
                                       : evt.category === "Book Fair" ? "bg-[#6FEF59] text-black"
                                       : evt.category === "College" ? "bg-[#F6C6C6] text-black"
@@ -10268,6 +10273,7 @@ const totalAuthorsBase = eventRegistrations.length;
                           Select Category
                         </option>
                         <option value="Housing Society">Housing Society</option>
+                        <option value="School">School</option>
                         <option value="College">College</option>
                         <option value="Book Fair">Book Fair</option>
                         <option value="Corporate Office">

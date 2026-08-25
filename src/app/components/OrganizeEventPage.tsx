@@ -362,6 +362,7 @@ export function OrganizeEventPage() {
                     >
                       <option value="">Select Category</option>
                       <option value="Housing Society">Housing Society</option>
+                      <option value="School">School</option>
                       <option value="College">College</option>
                       <option value="Book Fair">Book Fair</option>
                       <option value="Corporate Office">Corporate Office</option>
