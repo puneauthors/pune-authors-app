@@ -5609,7 +5609,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                            );
                                          })()}
                                          <div className="flex gap-2 shrink-0 mt-auto">
-                                             <button disabled={isSubmittingOptIn} onClick={() => handleOptInSubmit('reject')} className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50">Cancel</button>
+                                             <button disabled={isSubmittingOptIn} onClick={() => handleOptInSubmit('reject')} className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-bold hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-colors shadow-sm disabled:opacity-50">Decline</button>
                                              <button disabled={isSubmittingOptIn} onClick={() => handleOptInSubmit('approve')} className="flex-1 px-4 py-2 bg-paa-navy text-paa-cream rounded-lg text-sm font-bold hover:bg-paa-gold hover:text-paa-navy transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-wait">
                                                {isSubmittingOptIn ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Submitting...</> : 'Submit Opt-In'}
                                              </button>
