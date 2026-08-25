@@ -4993,11 +4993,12 @@ const totalAuthorsBase = eventRegistrations.length;
               >
                 <div
                   ref={posterRef}
-                  className="w-[800px] h-[1200px] p-12 flex flex-col items-center justify-between relative overflow-hidden font-serif"
+                  className="w-[800px] h-[1200px] p-12 flex flex-col items-center justify-between relative overflow-hidden font-sans"
                   style={{
                     background:
                       "linear-gradient(to bottom right, #0B1A2E, #312e81, #000000)",
                     color: "#ffffff",
+                    fontFamily: "'Montserrat', 'Inter', system-ui, -apple-system, sans-serif",
                   }}
                 >
                   {/* Background decorative elements */}
