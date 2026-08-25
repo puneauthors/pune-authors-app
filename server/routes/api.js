@@ -1332,11 +1332,19 @@ router.put('/api/admin/authors/:id/full-update-and-approve', verifyToken, isAdmi
 
     const finalQualificationString = JSON.stringify(qualificationsArray);
 
+    const newCleanEmail = email && email.trim() ? email.trim().toLowerCase() : null;
+    if (newCleanEmail && author.email && author.email.toLowerCase() !== newCleanEmail) {
+      await prisma.user.updateMany({
+        where: { email: author.email },
+        data: { email: newCleanEmail }
+      });
+    }
+
     await prisma.author.update({
       where: { id },
       data: {
         name, phone, bio, penName, city, state, instagram, facebook,
-        ...(email && email.trim() && { email: email.trim().toLowerCase() }),
+        ...(newCleanEmail && { email: newCleanEmail }),
         photoUrl, qrCodeUrl, transactionId, paymentScreenshot: paymentScreenshotUrl,
         qualification: finalQualificationString,
         age: dob, experience, skills, hobbies, whyJoining, aadharNumber, address, district, pincode, dob, skillsJson: (() => { try { return JSON.parse(skills) } catch (e) { return [] } })(), hobbiesJson: (() => { try { return JSON.parse(hobbies) } catch (e) { return [] } })(), qualificationsJson: qualificationsArray,
@@ -1605,14 +1613,19 @@ router.put('/api/admin/authors/:id', verifyToken, isAdmin, async (req, res) => {
     if (typeof currentExtraData === 'string') {
       try { currentExtraData = JSON.parse(currentExtraData); } catch (e) { currentExtraData = {}; }
     }
-    currentExtraData.hasPendingEdits = false;
-    currentExtraData.editedProfileFields = [];
+    const newCleanEmail = email !== undefined && email.trim() ? email.trim().toLowerCase() : null;
+    if (newCleanEmail && existingAuthor.email && existingAuthor.email.toLowerCase() !== newCleanEmail) {
+      await prisma.user.updateMany({
+        where: { email: existingAuthor.email },
+        data: { email: newCleanEmail }
+      });
+    }
 
     const author = await prisma.author.update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),
-        ...(email !== undefined && email.trim() && { email: email.trim().toLowerCase() }),
+        ...(newCleanEmail && { email: newCleanEmail }),
         ...(bio !== undefined && { bio }),
         ...(phone !== undefined && { phone }),
         // whatsapp field removed
