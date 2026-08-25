@@ -353,7 +353,16 @@ export default function EventExcelManager({
 
   let totalSold = 0;
   let totalRevenue = 0;
+  let totalAmountPaid = 0;
   authors.forEach(author => {
+    const expectedFee = eventBreakdown?.registrationFee ? (eventBreakdown.feeType === 'Per Title' ? eventBreakdown.registrationFee * (author.books?.length || 0) : eventBreakdown.registrationFee) : null;
+    const authorPaid = author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== ""
+      ? parseFloat(author.amountPaid)
+      : (expectedFee || 0);
+    if (!isNaN(authorPaid)) {
+      totalAmountPaid += authorPaid;
+    }
+
     if (author.books) {
       author.books.forEach((book: any) => {
         const mrp = parseFloat(book.overrideMrp) || parseFloat(book.mrp) || parseFloat(book.book?.mrp) || 0;
@@ -721,9 +730,13 @@ export default function EventExcelManager({
             {/* Grand Total Footer */}
             {authors.length > 0 && (
               <tr className="bg-[#FFE600] font-bold text-black border-t-2 border-black">
-                <td colSpan={7 + (dayColumns.length > 0 ? dayColumns.length : 0)} className="border-[1.5px] border-black text-right p-2 uppercase tracking-widest text-[11px]">
+                <td colSpan={2} className="border-[1.5px] border-black text-right p-2 uppercase tracking-widest text-[11px]">
                   GRAND TOTAL
                 </td>
+                <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white">
+                  ₹{totalAmountPaid}
+                </td>
+                <td colSpan={4 + (dayColumns.length > 0 ? dayColumns.length : 0)} className="border-[1.5px] border-black"></td>
                 <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white">
                   {totalSold}
                 </td>
