@@ -37,6 +37,7 @@ router.post('/api/author-event-request', async (req, res) => {
     const { name, email, phone, format, category, audience, proposedDate, proposedTime, location, description, organisationName, proposerName, designation, activities } = req.body;
 
     const eventActivitiesStr = activities || format || "N/A";
+    const displayName = proposerName || name || "Valued Organizer";
 
     // Save to existing ContactInquiry table to avoid requiring AWS database migrations
     const formattedMessage = `[EVENT REQUEST]
@@ -45,36 +46,78 @@ Proposer: ${proposerName || "N/A"}
 Designation: ${designation || "N/A"}
 Event Activities: ${eventActivitiesStr}
 Format: ${eventActivitiesStr}
-Category: ${category}
+Category: ${category || "N/A"}
 Audience: ${audience || "N/A"}
-Date: ${proposedDate}
+Date: ${proposedDate || "N/A"}
 Time: ${proposedTime || "N/A"}
 Location: ${location || "N/A"}
-Phone: ${phone}
+Phone: ${phone || "N/A"}
 
 Description:
-${description}`;
+${description || ""}`;
 
     await prisma.contactInquiry.create({
       data: {
-        name,
+        name: proposerName || name || "Event Proposer",
         email,
         message: formattedMessage
       }
     });
 
     if (typeof sendNotificationEmail === 'function' && typeof emailWrap === 'function') {
+      // 1. Email to Request Maker (Confirmation of receipt)
+      if (email) {
+        const userContent = `
+          <p>Dear ${displayName},</p>
+          <p>Thank you for submitting your literary event proposal to the <strong>Pune Authors' Association</strong>. We have received your request and our events committee is reviewing it.</p>
+          
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+            ${organisationName ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px; width: 35%;">Organisation</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${organisationName}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposer Name</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${displayName}</td></tr>
+            ${designation ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Designation</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${designation}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Event Activity</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${eventActivitiesStr}</td></tr>
+            ${category ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Category</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${category}</td></tr>` : ''}
+            ${audience ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Target Audience</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${audience}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Date</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${proposedDate || "N/A"}</td></tr>
+            ${proposedTime ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Time</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${proposedTime}</td></tr>` : ''}
+            ${location ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Location / Venue</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${location}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Contact Phone</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${phone || "N/A"}</td></tr>
+            ${description ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Description</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${description}</td></tr>` : ''}
+          </table>
+
+          <p><strong>What happens next?</strong></p>
+          <p>Our team will review your proposal and get in touch with you shortly. You will also receive an email notification when your event request status is updated.</p>
+          <p>Warm regards,<br><strong>Pune Authors' Association</strong></p>
+        `;
+        sendNotificationEmail(
+          email,
+          `Event Request Received: ${organisationName || displayName} - Pune Authors' Association`,
+          emailWrap("Event Request Received", userContent)
+        );
+      }
+
+      // 2. Email to Admin
       const { getAdminEmails } = require('../utils/email');
       if (typeof getAdminEmails === 'function') {
         const adminContent = `
-          <p>A new Event Request has been submitted.</p>
-          <p><strong>Proposer:</strong> ${proposerName || name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Organisation:</strong> ${organisationName || "N/A"}</p>
-          <p><strong>Date/Location:</strong> ${proposedDate} / ${location || "N/A"}</p>
-          <p>Please log in to the admin dashboard to review this request.</p>
+          <p>A new Event Request has been submitted on the platform.</p>
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+            ${organisationName ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px; width: 35%;">Organisation</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${organisationName}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposer Name</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${displayName}</td></tr>
+            ${designation ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Designation</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${designation}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Email</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${email}</td></tr>
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Phone</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${phone || "N/A"}</td></tr>
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Event Activity</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${eventActivitiesStr}</td></tr>
+            ${category ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Category</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${category}</td></tr>` : ''}
+            ${audience ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Target Audience</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${audience}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Date</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${proposedDate || "N/A"}</td></tr>
+            ${proposedTime ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Time</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${proposedTime}</td></tr>` : ''}
+            ${location ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Location</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${location}</td></tr>` : ''}
+            ${description ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Description</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${description}</td></tr>` : ''}
+          </table>
+          <p style="margin-top: 16px;">Please log in to the Operations / Admin Dashboard under <strong>Organize Event</strong> to review, accept, or reject this request.</p>
         `;
-        sendNotificationEmail(getAdminEmails(), `New Event Request: ${organisationName || name}`, emailWrap("New Event Request", adminContent));
+        sendNotificationEmail(getAdminEmails(), `New Event Request: ${organisationName || displayName}`, emailWrap("New Event Request", adminContent));
       }
     }
 
@@ -1391,11 +1434,19 @@ router.put('/api/admin/authors/:id/full-update-and-approve', verifyToken, isAdmi
 
     const finalQualificationString = JSON.stringify(qualificationsArray);
 
+    const newCleanEmail = email && email.trim() ? email.trim().toLowerCase() : null;
+    if (newCleanEmail && author.email && author.email.toLowerCase() !== newCleanEmail) {
+      await prisma.user.updateMany({
+        where: { email: author.email },
+        data: { email: newCleanEmail }
+      });
+    }
+
     await prisma.author.update({
       where: { id },
       data: {
         name, phone, bio, penName, city, state, instagram, facebook,
-        ...(email && email.trim() && { email: email.trim().toLowerCase() }),
+        ...(newCleanEmail && { email: newCleanEmail }),
         photoUrl, qrCodeUrl, transactionId, paymentScreenshot: paymentScreenshotUrl,
         qualification: finalQualificationString,
         age: dob, experience, skills, hobbies, whyJoining, aadharNumber, address, district, pincode, dob, skillsJson: (() => { try { return JSON.parse(skills) } catch (e) { return [] } })(), hobbiesJson: (() => { try { return JSON.parse(hobbies) } catch (e) { return [] } })(), qualificationsJson: qualificationsArray,
@@ -1664,14 +1715,19 @@ router.put('/api/admin/authors/:id', verifyToken, isAdmin, async (req, res) => {
     if (typeof currentExtraData === 'string') {
       try { currentExtraData = JSON.parse(currentExtraData); } catch (e) { currentExtraData = {}; }
     }
-    currentExtraData.hasPendingEdits = false;
-    currentExtraData.editedProfileFields = [];
+    const newCleanEmail = email !== undefined && email.trim() ? email.trim().toLowerCase() : null;
+    if (newCleanEmail && existingAuthor.email && existingAuthor.email.toLowerCase() !== newCleanEmail) {
+      await prisma.user.updateMany({
+        where: { email: existingAuthor.email },
+        data: { email: newCleanEmail }
+      });
+    }
 
     const author = await prisma.author.update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),
-        ...(email !== undefined && email.trim() && { email: email.trim().toLowerCase() }),
+        ...(newCleanEmail && { email: newCleanEmail }),
         ...(bio !== undefined && { bio }),
         ...(phone !== undefined && { phone }),
         // whatsapp field removed
@@ -6469,6 +6525,7 @@ router.get('/api/admin/events', verifyToken, isAdmin, async (req, res) => {
 router.put('/api/admin/events/:id', verifyToken, isAdmin, upload.single('banner'), async (req, res) => {
   try {
     const eventId = parseInt(req.params.id);
+    const existingEvent = await prisma.event.findUnique({ where: { id: eventId } });
     const { name, location, date, dateType, tentativeDate, duration, startTime, endTime, status, eventType, category, registrationFee, feeType, description, livePosEnabled, aggAuthors, aggTitles, aggSent, aggSold, aggRevenue, aggEligibleAuthors } = req.body;
 
     let updateData = { name, location, date, duration, status };
@@ -6525,6 +6582,11 @@ router.put('/api/admin/events/:id', verifyToken, isAdmin, upload.single('banner'
       where: { id: eventId },
       data: updateData
     });
+
+    if (existingEvent && status && status !== existingEvent.status) {
+      await notifyAuthorOfEventProposalDecision(existingEvent, status);
+    }
+
     res.json(event);
   } catch (error) {
     console.error(error);
@@ -8745,6 +8807,65 @@ router.get('/api/admin/sales-analytics', verifyToken, isAdmin, async (req, res) 
   }
 });
 
+// Helper to notify author when their proposed event is approved or rejected
+const notifyAuthorOfEventProposalDecision = async (existingEvent, newStatus) => {
+  if (!existingEvent || existingEvent.status !== 'Pending Approval' || !existingEvent.description) return;
+  if (!['Upcoming', 'Rejected', 'Live'].includes(newStatus)) return;
+
+  const emailMatch = existingEvent.description.match(/\[Author Email:\s*(.*?)\]/i);
+  const proposerMatch = existingEvent.description.match(/\[Proposed by Author:\s*(.*?)\]/i);
+  
+  const proposerName = proposerMatch ? proposerMatch[1].trim() : 'Author';
+  let authorEmail = emailMatch ? emailMatch[1].trim() : null;
+
+  if (!authorEmail) {
+    const author = await prisma.author.findFirst({
+      where: {
+        OR: [
+          { name: proposerName },
+          { email: proposerName }
+        ]
+      }
+    });
+    if (author) authorEmail = author.email;
+  }
+
+  const isApproved = newStatus === 'Upcoming' || newStatus === 'Live';
+  const statusLabel = isApproved ? 'Approved ✅' : 'Declined ❌';
+  const notifMessage = `Your event proposal "${existingEvent.name}" has been ${isApproved ? 'approved' : 'rejected'} by the admin. ${isApproved ? 'It is now listed as an Upcoming event.' : 'Please contact the admin team for further details.'}`;
+
+  try {
+    // In-app notification to the author
+    await prisma.notification.create({
+      data: { message: notifMessage, target: proposerName }
+    });
+  } catch (e) {
+    console.error('In-app notification creation failed:', e);
+  }
+
+  if (authorEmail && typeof sendNotificationEmail === 'function' && typeof emailWrap === 'function') {
+    const emailContent = emailWrap(
+      `Event Proposal ${statusLabel}`,
+      `<p>Dear <strong>${proposerName}</strong>,</p>
+       <p>Your event proposal <strong>"${existingEvent.name}"</strong> has been reviewed by the Pune Authors' Association admin team.</p>
+       <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
+         <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px; width: 35%;">Event Name</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;"><strong>${existingEvent.name}</strong></td></tr>
+         <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Date</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${existingEvent.date || 'TBA'}</td></tr>
+         <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Location / Venue</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${existingEvent.location || 'TBA'}</td></tr>
+         <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Decision</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;"><span style="display: inline-block; background: ${isApproved ? '#16a34a' : '#ef4444'}; color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px;">${isApproved ? 'Approved / Upcoming' : 'Declined'}</span></td></tr>
+       </table>
+       ${isApproved
+        ? `<p style="color:#16a34a;font-weight:bold;">Congratulations! Your event has been approved and is now listed on the platform. You will be notified when registrations open.</p>`
+        : `<p>Thank you for submitting your proposal. Unfortunately, this proposal could not be accommodated on our calendar at this time. Please reach out to the admin team if you have any questions or would like to propose alternative dates.</p>`
+      }
+      <p>Warm regards,<br><strong>Pune Authors' Association</strong></p>`
+    );
+    await sendNotificationEmail(authorEmail, `Event Proposal ${statusLabel}: "${existingEvent.name}" - Pune Authors' Association`, emailContent).catch(err => {
+      console.error('[Event proposal status email] Failed:', err.message);
+    });
+  }
+};
+
 // Author Event Proposal
 router.post('/api/author/propose-event', verifyToken, upload.single('banner'), async (req, res) => {
   try {
@@ -8752,9 +8873,20 @@ router.post('/api/author/propose-event', verifyToken, upload.single('banner'), a
 
     // Fetch author info
     const author = await prisma.author.findFirst({ where: { userId: req.user.id } });
-    const authorName = author ? author.name : req.user.email;
+    let authorName = author ? author.name : null;
+    let authorEmail = author ? author.email : null;
 
-    const eventDesc = `[Proposed by Author: ${authorName}]
+    if (!authorEmail) {
+      const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+      if (user) {
+        authorEmail = user.email;
+        if (!authorName) authorName = user.name;
+      }
+    }
+    if (!authorName) authorName = req.user.email || 'Author';
+    if (!authorEmail) authorEmail = req.user.email;
+
+    const eventDesc = `[Proposed by Author: ${authorName}] [Author Email: ${authorEmail}]
 ${description || ''}`;
 
     let bannerUrl = null;
@@ -8781,8 +8913,6 @@ ${description || ''}`;
       }
     });
 
-    const authorEmail = author ? author.email : req.user.email;
-
     // Send email notifications to Admin and Author
     if (typeof sendNotificationEmail === 'function' && typeof emailWrap === 'function') {
       try {
@@ -8790,15 +8920,15 @@ ${description || ''}`;
 
         const adminContent = `
           <p>A new event proposal has been submitted by an author on the platform.</p>
-          <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
-            <tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc; width: 140px;">Event Name:</td><td style="padding: 8px 12px;"><strong>${event.name}</strong></td></tr>
-            <tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Proposed By:</td><td style="padding: 8px 12px;">${authorName} (${authorEmail || 'N/A'})</td></tr>
-            <tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Event Type:</td><td style="padding: 8px 12px;">${eventType || 'Other'}</td></tr>
-            <tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Proposed Date:</td><td style="padding: 8px 12px;">${date || 'TBA'}</td></tr>
-            <tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Location / Venue:</td><td style="padding: 8px 12px;">${location || 'TBA'}</td></tr>
-            ${duration ? `<tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Duration:</td><td style="padding: 8px 12px;">${duration}</td></tr>` : ''}
-            ${registrationFee ? `<tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Registration Fee:</td><td style="padding: 8px 12px;">₹${registrationFee} (${feeType || 'Per Author'})</td></tr>` : ''}
-            ${description ? `<tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Description:</td><td style="padding: 8px 12px;">${description}</td></tr>` : ''}
+          <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px; width: 35%;">Event Name</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;"><strong>${event.name}</strong></td></tr>
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed By</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${authorName} (${authorEmail || 'N/A'})</td></tr>
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Event Type</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${eventType || 'Other'}</td></tr>
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Date</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${date || 'TBA'}</td></tr>
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Location / Venue</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${location || 'TBA'}</td></tr>
+            ${duration ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Duration</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${duration}</td></tr>` : ''}
+            ${registrationFee ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Registration Fee</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">₹${registrationFee} (${feeType || 'Per Author'})</td></tr>` : ''}
+            ${description ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Description</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${description}</td></tr>` : ''}
           </table>
           <p>Please log in to the admin portal to review and manage this proposed event.</p>
         `;
@@ -8809,18 +8939,20 @@ ${description || ''}`;
             <p>Dear ${authorName},</p>
             <p>Thank you for submitting a proposal for the event <strong>"${event.name}"</strong> to the Pune Authors' Association.</p>
             <p>Here are the details of your proposal:</p>
-            <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
-              <tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc; width: 140px;">Event Name:</td><td style="padding: 8px 12px;"><strong>${event.name}</strong></td></tr>
-              <tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Event Type:</td><td style="padding: 8px 12px;">${eventType || 'Other'}</td></tr>
-              <tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Proposed Date:</td><td style="padding: 8px 12px;">${date || 'TBA'}</td></tr>
-              <tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Location / Venue:</td><td style="padding: 8px 12px;">${location || 'TBA'}</td></tr>
-              ${duration ? `<tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Duration:</td><td style="padding: 8px 12px;">${duration}</td></tr>` : ''}
-              ${registrationFee ? `<tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Registration Fee:</td><td style="padding: 8px 12px;">₹${registrationFee} (${feeType || 'Per Author'})</td></tr>` : ''}
-              ${description ? `<tr><td style="font-weight: bold; padding: 8px 12px; background: #f8fafc;">Description:</td><td style="padding: 8px 12px;">${description}</td></tr>` : ''}
+            <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
+              <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px; width: 35%;">Event Name</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;"><strong>${event.name}</strong></td></tr>
+              <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Event Type</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${eventType || 'Other'}</td></tr>
+              <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Date</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${date || 'TBA'}</td></tr>
+              <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Location / Venue</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${location || 'TBA'}</td></tr>
+              ${duration ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Duration</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${duration}</td></tr>` : ''}
+              ${registrationFee ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Registration Fee</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">₹${registrationFee} (${feeType || 'Per Author'})</td></tr>` : ''}
+              ${description ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Description</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${description}</td></tr>` : ''}
+              <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Status</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;"><span style="display: inline-block; background: #f59e0b; color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px;">Pending Admin Review</span></td></tr>
             </table>
-            <p>Your proposal is currently <strong>Pending Admin Review</strong>. We will review it shortly and keep you updated.</p>
+            <p>Your proposal is currently <strong>Pending Admin Review</strong>. We will review it shortly and notify you once a decision is made.</p>
+            <p>Warm regards,<br><strong>Pune Authors' Association</strong></p>
           `;
-          sendNotificationEmail(authorEmail, `Event Proposal Confirmation: ${event.name}`, emailWrap("Event Proposal Submitted", authorContent));
+          sendNotificationEmail(authorEmail, `Event Proposal Confirmation: ${event.name} - Pune Authors' Association`, emailWrap("Event Proposal Submitted", authorContent));
         }
       } catch (mailErr) {
         console.error("Error sending propose-event emails:", mailErr);
@@ -8840,7 +8972,7 @@ router.put('/api/admin/events/:id/status', verifyToken, isAdmin, async (req, res
     const eventId = parseInt(req.params.id);
     const { status } = req.body;
 
-    if (!['Upcoming', 'Rejected', 'Past', 'Legacy Archive'].includes(status)) {
+    if (!['Upcoming', 'Rejected', 'Past', 'Legacy Archive', 'Live'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
 
@@ -8852,43 +8984,8 @@ router.put('/api/admin/events/:id/status', verifyToken, isAdmin, async (req, res
       data: { status }
     });
 
-    // If the event was a proposal (description contains "[Proposed by Author:"), notify the proposing author
-    if (existingEvent && existingEvent.status === 'Pending Approval' && existingEvent.description) {
-      const proposerMatch = existingEvent.description.match(/\[Proposed by Author: (.*?)\]/);
-      if (proposerMatch) {
-        const proposerName = proposerMatch[1];
-        const isApproved = status === 'Upcoming';
-        const statusLabel = isApproved ? 'Approved ✅' : 'Rejected ❌';
-        const notifMessage = `Your event proposal "${existingEvent.name}" has been ${isApproved ? 'approved' : 'rejected'} by the admin. ${isApproved ? 'It is now listed as an Upcoming event.' : 'Please contact the admin team for further details.'}`;
-
-        // In-app notification to the author
-        await prisma.notification.create({
-          data: { message: notifMessage, target: proposerName }
-        });
-
-        // Find the author's email
-        const author = await prisma.author.findFirst({ where: { name: proposerName } });
-        if (author && author.email) {
-          const emailContent = emailWrap(
-            `Event Proposal ${statusLabel}`,
-            `<p>Hi <strong>${proposerName}</strong>,</p>
-             <p>Your event proposal <strong>"${existingEvent.name}"</strong> has been reviewed by the PAA admin team.</p>
-             <table style="margin:16px 0;border-collapse:collapse;">
-               <tr><td style="padding:6px 12px;font-weight:bold;background:#f0f4f8;">Event</td><td style="padding:6px 12px;">${existingEvent.name}</td></tr>
-               <tr><td style="padding:6px 12px;font-weight:bold;background:#f0f4f8;">Date</td><td style="padding:6px 12px;">${existingEvent.date}</td></tr>
-               <tr><td style="padding:6px 12px;font-weight:bold;background:#f0f4f8;">Location</td><td style="padding:6px 12px;">${existingEvent.location || 'TBA'}</td></tr>
-               <tr><td style="padding:6px 12px;font-weight:bold;background:#f0f4f8;">Decision</td><td style="padding:6px 12px;font-weight:bold;color:${isApproved ? '#16a34a' : '#dc2626'};">${statusLabel}</td></tr>
-             </table>
-             ${isApproved
-              ? `<p style="color:#16a34a;font-weight:bold;">Congratulations! Your event has been approved and is now listed. You will be notified when registration opens.</p>`
-              : `<p style="color:#dc2626;">Unfortunately, this proposal was not approved at this time. Please reach out to the admin team if you have any questions.</p>`
-            }`
-          );
-          await sendNotificationEmail(author.email, `Event Proposal ${statusLabel}: "${existingEvent.name}"`, emailContent).catch(err => {
-            console.error('[Event status email] Failed:', err.message);
-          });
-        }
-      }
+    if (existingEvent && status !== existingEvent.status) {
+      await notifyAuthorOfEventProposalDecision(existingEvent, status);
     }
 
     res.json(updatedEvent);

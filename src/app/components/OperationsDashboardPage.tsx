@@ -1128,6 +1128,7 @@ export function OperationsDashboardPage() {
     name: string;
     date: string;
     location: string;
+    time?: string;
   } | null>(null);
   const [generatedPoster, setGeneratedPoster] = useState<File | null>(null);
   const [generatedPosterPreview, setGeneratedPosterPreview] = useState<
@@ -4365,9 +4366,11 @@ const totalAuthorsBase = eventRegistrations.length;
       ) as HTMLFormElement;
       if (!form) return;
       const name = (form.elements.namedItem("name") as HTMLInputElement)?.value;
-      const date = (form.elements.namedItem("date") as HTMLInputElement)?.value;
+      const date = (form.elements.namedItem("date") as HTMLInputElement)?.value || (form.elements.namedItem("tentativeDateInput") as HTMLInputElement)?.value;
       const location = (form.elements.namedItem("location") as HTMLInputElement)
         ?.value;
+      const startTime = (form.elements.namedItem("startTime") as HTMLInputElement)?.value;
+      const endTime = (form.elements.namedItem("endTime") as HTMLInputElement)?.value;
 
       if (!name || !date || !location) {
         toast.error(
@@ -4376,7 +4379,27 @@ const totalAuthorsBase = eventRegistrations.length;
         return;
       }
 
-      setPosterData({ name, date, location });
+      const formatTime12h = (t: string) => {
+        if (!t) return "";
+        const parts = t.split(":");
+        let h = parseInt(parts[0], 10);
+        if (isNaN(h)) return t;
+        const m = parts[1] || "00";
+        const ampm = h >= 12 ? "PM" : "AM";
+        h = h % 12 || 12;
+        return `${h}:${m} ${ampm}`;
+      };
+
+      let formattedTime = "";
+      if (startTime && endTime) {
+        formattedTime = `${formatTime12h(startTime)} - ${formatTime12h(endTime)}`;
+      } else if (startTime) {
+        formattedTime = `${formatTime12h(startTime)} onwards`;
+      } else if (endTime) {
+        formattedTime = `Until ${formatTime12h(endTime)}`;
+      }
+
+      setPosterData({ name, date, location, time: formattedTime });
 
       setTimeout(async () => {
         if (!posterRef.current) return;
@@ -4671,6 +4694,7 @@ const totalAuthorsBase = eventRegistrations.length;
                           Select Category
                         </option>
                         <option value="Housing Society">Housing Society</option>
+                        <option value="School">School</option>
                         <option value="College">College</option>
                         <option value="Book Fair">Book Fair</option>
                         <option value="Corporate Office">
@@ -5005,11 +5029,12 @@ const totalAuthorsBase = eventRegistrations.length;
               >
                 <div
                   ref={posterRef}
-                  className="w-[800px] h-[1200px] p-12 flex flex-col items-center justify-between relative overflow-hidden font-serif"
+                  className="w-[800px] h-[1200px] p-12 flex flex-col items-center justify-between relative overflow-hidden font-sans"
                   style={{
                     background:
                       "linear-gradient(to bottom right, #0B1A2E, #312e81, #000000)",
                     color: "#ffffff",
+                    fontFamily: "'Montserrat', 'Inter', system-ui, -apple-system, sans-serif",
                   }}
                 >
                   {/* Background decorative elements */}
@@ -5092,7 +5117,7 @@ const totalAuthorsBase = eventRegistrations.length;
                             className="text-3xl font-bold"
                             style={{ color: "#ffffff" }}
                           >
-                            {posterData?.date
+                            {posterData?.date && !isNaN(new Date(posterData.date).getTime())
                               ? new Date(posterData.date).toLocaleDateString(
                                   "en-US",
                                   {
@@ -5102,8 +5127,16 @@ const totalAuthorsBase = eventRegistrations.length;
                                     day: "numeric",
                                   },
                                 )
-                              : "To Be Announced"}
+                              : posterData?.date || "To Be Announced"}
                           </p>
+                          {posterData?.time && (
+                            <p
+                              className="text-2xl font-bold mt-1.5"
+                              style={{ color: "#FFE066" }}
+                            >
+                              {posterData.time}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -5146,7 +5179,7 @@ const totalAuthorsBase = eventRegistrations.length;
                       className="text-lg font-bold tracking-wider"
                       style={{ color: "#ffffff" }}
                     >
-                      WWW.PUNEAUTHORS.COM
+                      WWW.PUNEAUTHORSASSOCIATION.COM
                     </p>
                   </div>
                 </div>
@@ -6275,6 +6308,7 @@ const totalAuthorsBase = eventRegistrations.length;
       // Category filters
       if (eventGraphFilter === "Housing Society")
         return e.category === "Housing Society";
+      if (eventGraphFilter === "School") return e.category === "School";
       if (eventGraphFilter === "Corporate Office")
         return e.category === "Corporate Office";
       if (eventGraphFilter === "College") return e.category === "College";
@@ -6361,6 +6395,7 @@ const totalAuthorsBase = eventRegistrations.length;
       // Category filters
       if (eventGraphFilter === "Housing Society")
         return e.category === "Housing Society";
+      if (eventGraphFilter === "School") return e.category === "School";
       if (eventGraphFilter === "Corporate Office")
         return e.category === "Corporate Office";
       if (eventGraphFilter === "College") return e.category === "College";
@@ -6866,6 +6901,7 @@ const totalAuthorsBase = eventRegistrations.length;
                     </optgroup>
                     <optgroup label="── By Category ──">
                       <option value="Housing Society">Housing Society</option>
+                      <option value="School">School</option>
                       <option value="Corporate Office">Corporate Office</option>
                       <option value="College">College</option>
                       <option value="University">University</option>
@@ -7128,6 +7164,7 @@ const totalAuthorsBase = eventRegistrations.length;
                                       : "bg-gray-100 text-black";
 
                   const categoryColor = evt.category === "Housing Society" ? "bg-[#F3C29E] text-black"
+                                      : evt.category === "School" ? "bg-[#C7D2FE] text-black"
                                       : evt.category === "Corporate Office" ? "bg-[#FFE066] text-black"
                                       : evt.category === "Book Fair" ? "bg-[#6FEF59] text-black"
                                       : evt.category === "College" ? "bg-[#F6C6C6] text-black"
@@ -10306,6 +10343,7 @@ const totalAuthorsBase = eventRegistrations.length;
                           Select Category
                         </option>
                         <option value="Housing Society">Housing Society</option>
+                        <option value="School">School</option>
                         <option value="College">College</option>
                         <option value="Book Fair">Book Fair</option>
                         <option value="Corporate Office">
