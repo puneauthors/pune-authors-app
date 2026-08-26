@@ -112,9 +112,11 @@ export default function EventExcelManager({
   }
 
   useEffect(() => {
-    // Process registrations into a mutable state
-    const processed = registrations.map(reg => {
-      let books = reg.books && reg.books.length > 0 ? [...reg.books] : [];
+    // Process registrations into a mutable state, filtering out those who declined
+    const processed = registrations
+      .filter((reg: any) => reg.optInStatus !== "Declined" && reg.optInStatus !== "Rejected")
+      .map((reg: any) => {
+        let books = reg.books && reg.books.length > 0 ? [...reg.books] : [];
       
       // If no books are listed yet, populate from platform profile by default
       if (books.length === 0 && platformAuthors) {
