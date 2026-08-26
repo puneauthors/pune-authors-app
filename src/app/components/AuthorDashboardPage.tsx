@@ -112,7 +112,9 @@ export function AuthorDashboardPage() {
     } catch (err: any) {
       console.error(err);
       if (err.response && err.response.status === 404) {
-        toast.error('Author profile not found. Please log in with your registered account.');
+        toast.error('Session expired or profile not found. Please log in again.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
         navigate('/login');
       } else {
         toast.error('Failed to load dashboard data: ' + (err.response?.data?.error || err.message));

@@ -337,7 +337,8 @@ export function BrowseAuthorsPage() {
                               </div>
                               <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
                                 {parsedQuals.slice(0, 1).map((q: any, i) => {
-                                  const qualName = q.qualification || q.degree || "";
+                                  const rawQualName = q.qualification || q.degree || "";
+                                  const qualName = rawQualName.toLowerCase() === "other" ? "Certification" : rawQualName;
                                   const inst = q.institution || q.college || "";
                                   const subj = q.subject || "";
                                   return (
@@ -345,6 +346,9 @@ export function BrowseAuthorsPage() {
                                       <strong style={{ fontWeight: 700, color: C.text }}>{qualName}</strong>
                                       {inst ? ` — ${inst}` : ""}
                                       {subj ? ` (${subj})` : ""}
+                                      {q.mode && (
+                                        <div style={{ fontSize: 9, fontWeight: 800, color: C.muted, marginTop: "0.1rem", textTransform: "uppercase", letterSpacing: "0.03em" }}>{q.mode}</div>
+                                      )}
                                     </div>
                                   );
                                 })}

@@ -1987,6 +1987,42 @@ export function OperationsDashboardPage() {
     }
   };
 
+  const handleApproveDeletion = async (id: number) => {
+    if (window.confirm("Approve this deletion request? The author's profile will be permanently archived.")) {
+      setLoadingAction('approveDeletion_' + id);
+      try {
+        await axios.post(`${API}/api/admin/authors/${id}/approve-deletion`, {}, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        toast.success("Deletion approved and author archived");
+        fetchAuthors();
+        fetchOverview();
+        autoRegenerateCompleteCatalogue();
+      } catch (err) {
+        toast.error("Failed to approve deletion");
+      } finally {
+        setLoadingAction(null);
+      }
+    }
+  };
+
+  const handleRejectDeletion = async (id: number) => {
+    if (window.confirm("Reject this deletion request? The author's profile will remain active.")) {
+      setLoadingAction('rejectDeletion_' + id);
+      try {
+        await axios.post(`${API}/api/admin/authors/${id}/reject-deletion`, {}, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        toast.success("Deletion rejected, profile remains active");
+        fetchAuthors();
+      } catch (err) {
+        toast.error("Failed to reject deletion");
+      } finally {
+        setLoadingAction(null);
+      }
+    }
+  };
+
   const handleRestoreAuthor = async (id: number) => {
     try {
       await axios.put(`${API}/api/admin/authors/${id}/restore`);
@@ -9915,6 +9951,8 @@ const totalAuthorsBase = eventRegistrations.length;
                   handleViewEditAuthor={handleViewEditAuthor}
                   handleDeleteAuthor={handleDeleteAuthor}
                   handleRestoreAuthor={handleRestoreAuthor}
+                  handleApproveDeletion={handleApproveDeletion}
+                  handleRejectDeletion={handleRejectDeletion}
                   books={books}
                   authorsMeta={authorsMeta}
                   authorsPage={authorsPage}

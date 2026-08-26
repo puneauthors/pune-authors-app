@@ -268,7 +268,8 @@ export function AuthorPublicProfilePage() {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                   {quals.map((q: any, i: number) => {
-                    const qualName = q.qualification || q.degree || "";
+                    const rawQualName = q.qualification || q.degree || "";
+                    const qualName = rawQualName.toLowerCase() === "other" ? "Certification" : rawQualName;
                     const inst = q.institution || q.college || "";
                     const subj = q.subject || "";
                     return (
@@ -276,6 +277,9 @@ export function AuthorPublicProfilePage() {
                         <strong style={{ fontWeight: 700 }}>{qualName}</strong>
                         {inst ? ` — ${inst}` : ""}
                         {subj ? ` (${subj})` : ""}
+                        {q.mode && (
+                          <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, marginTop: "0.1rem", textTransform: "uppercase", letterSpacing: "0.03em" }}>{q.mode}</div>
+                        )}
                       </div>
                     );
                   })}

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { Download, Search, CheckSquare, Printer, MapPin, Edit2, Trash2, Bell, X, FileDown, Loader2 } from 'lucide-react';
+import { Download, Search, CheckSquare, Check, Printer, MapPin, Edit2, Trash2, Bell, X, FileDown, Loader2 } from 'lucide-react';
 import { AuthorRegistrationPage } from './AuthorRegistrationPage';
 import { AuthorFullProfileView } from './AuthorFullProfileView';
 
@@ -10,7 +10,8 @@ export const AdminAuthorsTab = React.memo(({
   authorSearchTerm: searchTerm, setAuthorSearchTerm: setSearchTerm, authorStatusFilter, setAuthorStatusFilter,
   setAuthorsPage, fetchAuthors, fetchBooks, loadingAction, handleApproveAuthor, openRejectAuthorModal,
   handleViewEditAuthor, handleDeleteAuthor, handleRestoreAuthor, books, authorsMeta, authorsPage,
-  selectedPendingAuthor, setSelectedPendingAuthor, selectedAuthor, setSelectedAuthor
+  selectedPendingAuthor, setSelectedPendingAuthor, selectedAuthor, setSelectedAuthor,
+  handleApproveDeletion, handleRejectDeletion
 }: any) => {
 const [showArchived, setShowArchived] = useState(false);
   const [archivedAuthors, setArchivedAuthors] = useState<any[]>([]);
@@ -868,12 +869,21 @@ const [showArchived, setShowArchived] = useState(false);
                         }
                         return null;
                       })()}
-                      {!author.isArchived && (
+                      {!author.isArchived && author.status !== 'Deletion Requested' && (
                         <button onClick={() => handleViewEditAuthor(author)} className="dash-btn dash-btn-success dash-btn-icon" title="View / Edit Application">
                           <Edit2 className="w-4 h-4" aria-hidden="true" />
                         </button>
                       )}
-                      {author.isArchived ? (
+                      {author.status === 'Deletion Requested' ? (
+                        <>
+                          <button disabled={loadingAction === 'approveDeletion_' + author.id} onClick={() => handleApproveDeletion && handleApproveDeletion(author.id)} className="dash-btn !bg-red-100 !text-red-700 hover:!bg-red-200 dash-btn-icon disabled:opacity-50" title="Approve Deletion">
+                            {loadingAction === 'approveDeletion_' + author.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" aria-hidden="true" />}
+                          </button>
+                          <button disabled={loadingAction === 'rejectDeletion_' + author.id} onClick={() => handleRejectDeletion && handleRejectDeletion(author.id)} className="dash-btn !bg-gray-100 !text-gray-700 hover:!bg-gray-200 dash-btn-icon disabled:opacity-50" title="Reject Deletion Request">
+                            {loadingAction === 'rejectDeletion_' + author.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" aria-hidden="true" />}
+                          </button>
+                        </>
+                      ) : author.isArchived ? (
                         <button onClick={() => handleRestoreAuthor && handleRestoreAuthor(author.id)} className="dash-btn !bg-amber-100 !text-amber-800 hover:!bg-amber-200 dash-btn-icon" title="Restore from Archive">
                           Undo Archive
                         </button>

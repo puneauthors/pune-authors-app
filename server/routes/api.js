@@ -733,20 +733,30 @@ router.delete('/api/author/account', verifyToken, async (req, res) => {
 
     // Notify admin team
     if (typeof sendNotificationEmail === 'function' && typeof emailWrap === 'function') {
-      const { getAdminEmails } = require('./utils/email');
-      if (typeof getAdminEmails === 'function') {
-        sendNotificationEmail(
-          getAdminEmails(),
-          `Author Account Deleted: ${author.name}`,
-          emailWrap('Author Self-Deleted', `<p>Author <strong>${author.name}</strong> (${author.email}) has deleted their account and profile. Their books have been archived.</p>`)
-        ).catch(e => console.error('Failed to send admin deletion email:', e));
+      try {
+        const { getAdminEmails } = require('../utils/email');
+        if (typeof getAdminEmails === 'function') {
+          sendNotificationEmail(
+            getAdminEmails(),
+            `Author Account Deletion Requested: ${author.name}`,
+            emailWrap('Deletion Requested', `<p>Author <strong>${author.name}</strong> (${author.email}) has requested deletion of their account.</p>`)
+          ).catch(e => console.error('Failed to send admin deletion email:', e));
+
+          sendNotificationEmail(
+            [author.email],
+            `Account Deletion Requested - Pune Authors`,
+            emailWrap('Deletion Requested', `<p>Hi ${author.name},</p><p>We have received your request to delete your account. It is currently pending administrative review. You will be notified once a decision has been made.</p>`)
+          ).catch(e => console.error('Failed to send author deletion email:', e));
+        }
+      } catch (err) {
+        console.error('Email notification failed for deletion:', err);
       }
     }
 
     res.json({ success: true });
   } catch (err) {
     console.error('Failed to delete account:', err);
-    res.status(500).json({ error: 'Failed to delete account' });
+    res.status(500).json({ error: 'Failed to delete account', details: err?.message || String(err) });
   }
 });
 
@@ -1186,6 +1196,55 @@ router.get('/api/admin/authors', verifyToken, isAdmin, async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed' });
+  }
+});
+
+// Approve Author Deletion Request
+router.post('/api/admin/authors/:id/approve-deletion', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const authorId = parseInt(req.params.id);
+    const author = await prisma.author.findUnique({ where: { id: authorId } });
+    if (!author) return res.status(404).json({ error: 'Author not found' });
+
+    await prisma.author.update({ where: { id: authorId }, data: { isArchived: true, status: 'Archived' } });
+    await prisma.book.updateMany({ where: { authorId }, data: { isArchived: true, status: 'Archived' } });
+
+    if (typeof sendNotificationEmail === 'function' && typeof emailWrap === 'function') {
+      sendNotificationEmail(
+        [author.email],
+        'Account Deletion Approved - Pune Authors',
+        emailWrap('Account Deleted', `<p>Hi ${author.name},</p><p>Your request to delete your account has been approved and processed. Your profile and books have been permanently archived.</p>`)
+      ).catch(e => console.error(e));
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to approve deletion' });
+  }
+});
+
+// Reject Author Deletion Request
+router.post('/api/admin/authors/:id/reject-deletion', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const authorId = parseInt(req.params.id);
+    const author = await prisma.author.findUnique({ where: { id: authorId } });
+    if (!author) return res.status(404).json({ error: 'Author not found' });
+
+    await prisma.author.update({ where: { id: authorId }, data: { status: 'Active' } });
+
+    if (typeof sendNotificationEmail === 'function' && typeof emailWrap === 'function') {
+      sendNotificationEmail(
+        [author.email],
+        'Account Deletion Rejected - Pune Authors',
+        emailWrap('Deletion Request Rejected', `<p>Hi ${author.name},</p><p>Your request to delete your account was reviewed and has been rejected by the administration. Your account remains active.</p>`)
+      ).catch(e => console.error(e));
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to reject deletion' });
   }
 });
 
@@ -5844,6 +5903,22 @@ router.post('/api/author/events/:eventId/opt-in', verifyToken, upload.single('pa
       );
 
       sendNotificationEmail(author.email, `Registration Received: ${event.name}`, emailHtml).catch(e => console.error('Failed to send opt-in email:', e));
+
+      const adminHtml = emailWrap(
+        `New Event Registration Pending`,
+        `<p>Author <strong>${author.name}</strong> (${author.email}) has requested to register for the event <strong>${event.name}</strong>.</p>
+         <p>Below is the list of books and quantities they have requested to list:</p>
+         ${booksListHtml}
+         <p>Please review this registration in the admin dashboard.</p>`
+      );
+      try {
+        const { getAdminEmails } = require('../utils/email');
+        if (typeof getAdminEmails === 'function') {
+          sendNotificationEmail(getAdminEmails(), `New Registration Pending: ${event.name} - ${author.name}`, adminHtml).catch(e => console.error('Failed to send admin opt-in email:', e));
+        }
+      } catch (err) {
+        console.error('Failed to load admin emails:', err);
+      }
     } catch (emailErr) {
       console.error('Error sending opt-in email:', emailErr);
     }

@@ -53,7 +53,7 @@ router.post('/login', async (req, res) => {
       }
     }
 
-    const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ token, role: user.role, name: user.name, hasCompletedRegistration });
   } catch (err) {
     console.error(err);
@@ -126,7 +126,7 @@ router.post('/verify-otp', async (req, res) => {
     // Clear OTP
     await prisma.otpVerification.delete({ where: { email } });
     
-    const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ token, role: user.role, name: user.name, message: 'Verified successfully' });
   } catch (err) {
     console.error(err);
