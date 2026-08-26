@@ -2405,7 +2405,7 @@ router.get('/api/admin/authors/:id/dashboard-data', verifyToken, isAdmin, async 
     const authorProfile = await prisma.author.findUnique({
       where: { id: parseInt(req.params.id) },
       include: {
-        books: { include: { reviews: true } },
+        books: { where: { isArchived: false }, include: { reviews: true } },
         eventRegistrations: {
           include: { activity: true }
         }
@@ -2500,7 +2500,7 @@ router.get('/api/author/dashboard-data', verifyToken, async (req, res) => {
     const authorProfile = await prisma.author.findUnique({
       where: { email: req.user.email },
       include: {
-        books: { include: { reviews: true } },
+        books: { where: { isArchived: false }, include: { reviews: true } },
         eventRegistrations: {
           include: { activity: true }
         }
@@ -2516,14 +2516,10 @@ router.get('/api/author/dashboard-data', verifyToken, async (req, res) => {
         try { ed = JSON.parse(ed); } catch (e) { ed = {}; }
       }
       if (ed.hasPendingEdits && ed.originalProfileData) {
-        const { books: originalBooks, ...originalFields } = ed.originalProfileData;
+        const { books: _originalBooks, ...originalFields } = ed.originalProfileData;
         Object.assign(authorProfile, originalFields);
-        if (originalBooks && Array.isArray(originalBooks)) {
-          authorProfile.books = originalBooks.map(ob => {
-            const currentBook = authorProfile.books.find(b => b.id === ob.id);
-            return { ...ob, reviews: currentBook ? currentBook.reviews : [] };
-          });
-        }
+        // Keep using the current live (non-archived) books from DB — do NOT restore the stale snapshot
+        // authorProfile.books already has the correct filtered list from the query above
       }
     }
 
