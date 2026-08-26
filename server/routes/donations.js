@@ -444,7 +444,7 @@ router.delete('/api/author/donation-registrations/:id', verifyToken, async (req,
   try {
     const registration = await prisma.donationRegistration.findUnique({
       where: { id: parseInt(req.params.id) },
-      include: { books: true }
+      include: { books: { where: { isArchived: false } } }
     });
 
     if (!registration) return res.status(404).json({ error: 'Registration not found' });

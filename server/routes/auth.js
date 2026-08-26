@@ -219,7 +219,7 @@ router.get('/me', verifyToken, async (req, res) => {
     if (user.role === 'AUTHOR') {
       authorProfile = await prisma.author.findUnique({
         where: { email: user.email },
-        include: { books: true }
+        include: { books: { where: { isArchived: false } } }
       });
 
       if (authorProfile && authorProfile.books.length > 0) {

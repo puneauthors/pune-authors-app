@@ -544,7 +544,7 @@ router.post('/api/authors/register', upload.any(), async (req, res) => {
             }))
           }
         },
-        include: { books: true }
+        include: { books: { where: { isArchived: false } } }
       });
     } catch (dbError) {
       // Rollback user if author fails AND user was just created
@@ -591,7 +591,7 @@ router.post('/api/authors/register', upload.any(), async (req, res) => {
 // Author: Edit Profile (Full)
 router.put('/api/author/edit-profile-full', verifyToken, upload.any(), async (req, res) => {
   try {
-    const author = await prisma.author.findUnique({ where: { email: req.user.email }, include: { books: true } });
+    const author = await prisma.author.findUnique({ where: { email: req.user.email }, include: { books: { where: { isArchived: false } } } });
     if (!author) return res.status(404).json({ error: 'Author not found' });
 
     let currentExtraData = author.extraData || {};
@@ -841,7 +841,7 @@ router.post('/api/author/rejoin', verifyToken, async (req, res) => {
 
 router.put('/api/author/reapply-full', verifyToken, upload.any(), async (req, res) => {
   try {
-    const author = await prisma.author.findUnique({ where: { email: req.user.email }, include: { books: true } });
+    const author = await prisma.author.findUnique({ where: { email: req.user.email }, include: { books: { where: { isArchived: false } } } });
     if (!author) return res.status(404).json({ error: 'Author not found' });
 
     const {
@@ -1007,7 +1007,7 @@ router.put('/api/author/reapply-full', verifyToken, upload.any(), async (req, re
 router.get('/api/authors/:email', async (req, res) => {
   const author = await prisma.author.findUnique({
     where: { email: req.params.email },
-    include: { books: true }
+    include: { books: { where: { isArchived: false } } }
   });
   if (!author) return res.status(404).json({ error: 'Author not found' });
   res.json(author);
@@ -1369,7 +1369,7 @@ router.put('/api/admin/authors/:id/restore', verifyToken, isAdmin, async (req, r
 router.put('/api/admin/authors/:id/full-update-and-approve', verifyToken, isAdmin, upload.any(), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const author = await prisma.author.findUnique({ where: { id }, include: { books: true } });
+    const author = await prisma.author.findUnique({ where: { id }, include: { books: { where: { isArchived: false } } } });
     if (!author) return res.status(404).json({ error: 'Author not found' });
 
     const {
@@ -1631,7 +1631,7 @@ router.post('/api/admin/authors/:id/reject', verifyToken, isAdmin, async (req, r
 router.post('/api/admin/authors/:id/reject-edits', verifyToken, isAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const existingAuthor = await prisma.author.findUnique({ where: { id }, include: { books: true } });
+    const existingAuthor = await prisma.author.findUnique({ where: { id }, include: { books: { where: { isArchived: false } } } });
     if (!existingAuthor) return res.status(404).json({ error: 'Not found' });
 
     let currentExtraData = existingAuthor.extraData || {};
@@ -3901,7 +3901,7 @@ router.get('/api/admin/sales-report', verifyToken, isAdmin, async (req, res) => 
       include: {
         eventAuthors: {
           where: { manualTotalSold: { gt: 0 } },
-          include: { author: { include: { books: true } } }
+          include: { author: { include: { books: { where: { isArchived: false } } } } }
         },
         eventBooks: {
           where: { soldStock: { gt: 0 } },
@@ -5112,7 +5112,7 @@ router.get('/api/admin/events/:id/registrations', verifyToken, isAdmin, async (r
       where: { eventId, optInStatus: { not: 'Pending' } },
       include: {
         author: {
-          include: { books: true }
+          include: { books: { where: { isArchived: false } } }
         }
       }
     });
