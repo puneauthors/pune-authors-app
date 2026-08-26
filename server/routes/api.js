@@ -1073,6 +1073,7 @@ router.get('/api/admin/authors', verifyToken, isAdmin, async (req, res) => {
           qrCodeUrl: true,
           isArchived: true,
           books: {
+            where: { isArchived: false },
             select: {
               id: true,
               title: true,
