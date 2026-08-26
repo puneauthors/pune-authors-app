@@ -47,7 +47,15 @@ const sendNotificationEmail = async (to, subject, htmlBody) => {
     console.error('Email failed:', err.response?.data || err.message);
   }
 };
-const emailWrap = (heading, content) => `
+const emailWrap = (heading, content, options = {}) => {
+  const showDashboard = options.showDashboard === true;
+  const ctaButton = showDashboard
+    ? `<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #f0f0f4; text-align: center;">
+        <a href="https://puneauthorsassociation.com/dashboard" style="display: inline-block; background-color: #1a1a2e; color: #ffffff; text-decoration: none; padding: 14px 28px; font-weight: 700; border-radius: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(26,26,46,0.15);">Access Your Author Dashboard</a>
+      </div>`
+    : '';
+
+  return `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><style>
@@ -71,13 +79,12 @@ const emailWrap = (heading, content) => `
     <div class="body">
       <h2>${heading}</h2>
       ${content}
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #f0f0f4; text-align: center;">
-        <a href="https://puneauthorsassociation.com/dashboard" style="display: inline-block; background-color: #1a1a2e; color: #ffffff; text-decoration: none; padding: 14px 28px; font-weight: 700; border-radius: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(26,26,46,0.15);">Access Your Author Dashboard</a>
-      </div>
+      ${ctaButton}
     </div>
     <div class="footer">This is an automated message from the PAA platform. Please do not reply directly to this email.</div>
   </div>
 </body></html>`;
+};
 const getAdminEmails = () => {
   return '"ADMIN" <info@puneauthorsassociation.com>';
 };

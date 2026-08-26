@@ -37,6 +37,7 @@ router.post('/api/author-event-request', async (req, res) => {
     const { name, email, phone, format, category, audience, proposedDate, proposedTime, location, description, organisationName, proposerName, designation, activities } = req.body;
 
     const eventActivitiesStr = activities || format || "N/A";
+    const displayName = proposerName || name || "Valued Organizer";
 
     // Save to existing ContactInquiry table to avoid requiring AWS database migrations
     const formattedMessage = `[EVENT REQUEST]
@@ -45,36 +46,78 @@ Proposer: ${proposerName || "N/A"}
 Designation: ${designation || "N/A"}
 Event Activities: ${eventActivitiesStr}
 Format: ${eventActivitiesStr}
-Category: ${category}
+Category: ${category || "N/A"}
 Audience: ${audience || "N/A"}
-Date: ${proposedDate}
+Date: ${proposedDate || "N/A"}
 Time: ${proposedTime || "N/A"}
 Location: ${location || "N/A"}
-Phone: ${phone}
+Phone: ${phone || "N/A"}
 
 Description:
-${description}`;
+${description || ""}`;
 
     await prisma.contactInquiry.create({
       data: {
-        name,
+        name: proposerName || name || "Event Proposer",
         email,
         message: formattedMessage
       }
     });
 
     if (typeof sendNotificationEmail === 'function' && typeof emailWrap === 'function') {
+      // 1. Email to Request Maker (Confirmation of receipt)
+      if (email) {
+        const userContent = `
+          <p>Dear ${displayName},</p>
+          <p>Thank you for submitting your literary event proposal to the <strong>Pune Authors' Association</strong>. We have received your request and our events committee is reviewing it.</p>
+          
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+            ${organisationName ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px; width: 35%;">Organisation</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${organisationName}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposer Name</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${displayName}</td></tr>
+            ${designation ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Designation</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${designation}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Event Activity</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${eventActivitiesStr}</td></tr>
+            ${category ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Category</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${category}</td></tr>` : ''}
+            ${audience ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Target Audience</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${audience}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Date</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${proposedDate || "N/A"}</td></tr>
+            ${proposedTime ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Time</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${proposedTime}</td></tr>` : ''}
+            ${location ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Location / Venue</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${location}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Contact Phone</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${phone || "N/A"}</td></tr>
+            ${description ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Description</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${description}</td></tr>` : ''}
+          </table>
+
+          <p><strong>What happens next?</strong></p>
+          <p>Our team will review your proposal and get in touch with you shortly. You will also receive an email notification when your event request status is updated.</p>
+          <p>Warm regards,<br><strong>Pune Authors' Association</strong></p>
+        `;
+        sendNotificationEmail(
+          email,
+          `Event Request Received: ${organisationName || displayName} - Pune Authors' Association`,
+          emailWrap("Event Request Received", userContent)
+        );
+      }
+
+      // 2. Email to Admin
       const { getAdminEmails } = require('../utils/email');
       if (typeof getAdminEmails === 'function') {
         const adminContent = `
-          <p>A new Event Request has been submitted.</p>
-          <p><strong>Proposer:</strong> ${proposerName || name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Organisation:</strong> ${organisationName || "N/A"}</p>
-          <p><strong>Date/Location:</strong> ${proposedDate} / ${location || "N/A"}</p>
-          <p>Please log in to the admin dashboard to review this request.</p>
+          <p>A new Event Request has been submitted on the platform.</p>
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+            ${organisationName ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px; width: 35%;">Organisation</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${organisationName}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposer Name</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${displayName}</td></tr>
+            ${designation ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Designation</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${designation}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Email</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${email}</td></tr>
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Phone</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${phone || "N/A"}</td></tr>
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Event Activity</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${eventActivitiesStr}</td></tr>
+            ${category ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Category</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${category}</td></tr>` : ''}
+            ${audience ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Target Audience</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${audience}</td></tr>` : ''}
+            <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Date</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${proposedDate || "N/A"}</td></tr>
+            ${proposedTime ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Time</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${proposedTime}</td></tr>` : ''}
+            ${location ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Location</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${location}</td></tr>` : ''}
+            ${description ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Description</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${description}</td></tr>` : ''}
+          </table>
+          <p style="margin-top: 16px;">Please log in to the Operations / Admin Dashboard under <strong>Organize Event</strong> to review, accept, or reject this request.</p>
         `;
-        sendNotificationEmail(getAdminEmails(), `New Event Request: ${organisationName || name}`, emailWrap("New Event Request", adminContent));
+        sendNotificationEmail(getAdminEmails(), `New Event Request: ${organisationName || displayName}`, emailWrap("New Event Request", adminContent));
       }
     }
 

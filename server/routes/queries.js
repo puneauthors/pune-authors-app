@@ -4,6 +4,7 @@ const prisma = require('../config/db');
 const { getCache, setCache, invalidateCache } = require('../utils/cache');
 const { isAdmin, verifyToken } = require('../middleware/auth');
 const { sendNotificationEmail, emailWrap } = require('../utils/email');
+const { parseEventRequestMessage } = require('../utils/helpers');
 const { upload } = require('../config/upload');
 
 const countWords = (str) => {
@@ -313,6 +314,44 @@ router.put('/api/admin/event-requests/:id/accept', verifyToken, isAdmin, async (
       where: { id: inquiryId },
       data: { message: newMsg }
     });
+
+    // Send confirmation email to the request maker
+    if (inq.email && typeof sendNotificationEmail === 'function' && typeof emailWrap === 'function') {
+      const parsed = parseEventRequestMessage(inq.message);
+      const recipientName = parsed.proposer || inq.name || "Organizer";
+      const orgName = parsed.organisation;
+      const eventActivity = parsed.activities || parsed.category || "Literary Event";
+      const eventDate = parsed.date;
+      const eventLocation = parsed.location;
+
+      const userContent = `
+        <p>Dear ${recipientName},</p>
+        <p>We are delighted to inform you that your event request has been <strong style="color: #16a34a;">CONFIRMED &amp; ACCEPTED</strong> by the Pune Authors' Association!</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+          ${orgName ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px; width: 35%;">Organisation</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${orgName}</td></tr>` : ''}
+          <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposer Name</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${recipientName}</td></tr>
+          ${parsed.designation ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Designation</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${parsed.designation}</td></tr>` : ''}
+          <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Event Activity</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${eventActivity}</td></tr>
+          ${parsed.category ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Category</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${parsed.category}</td></tr>` : ''}
+          ${eventDate ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Date</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${eventDate}</td></tr>` : ''}
+          ${parsed.time ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Time</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${parsed.time}</td></tr>` : ''}
+          ${eventLocation ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Location / Venue</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${eventLocation}</td></tr>` : ''}
+          <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Status</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;"><span style="display: inline-block; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px;">Confirmed / Accepted</span></td></tr>
+        </table>
+
+        <p><strong>Next Steps:</strong></p>
+        <p>Our operations team will be in touch with you shortly to coordinate author line-ups, schedules, setup requirements, and event logistics.</p>
+        <p>Thank you for collaborating with Pune Authors' Association to celebrate literature and culture!</p>
+        <p>Warm regards,<br><strong>Pune Authors' Association</strong></p>
+      `;
+
+      sendNotificationEmail(
+        inq.email,
+        `Event Request Confirmed: ${orgName || recipientName} - Pune Authors' Association`,
+        emailWrap("Event Request Confirmed", userContent)
+      );
+    }
     
     res.json(updated);
   } catch (err) {
@@ -348,6 +387,38 @@ router.put('/api/admin/event-requests/:id/reject', verifyToken, isAdmin, async (
       where: { id: inquiryId },
       data: { message: newMsg }
     });
+
+    // Send rejection/update email to the request maker
+    if (inq.email && typeof sendNotificationEmail === 'function' && typeof emailWrap === 'function') {
+      const parsed = parseEventRequestMessage(inq.message);
+      const recipientName = parsed.proposer || inq.name || "Organizer";
+      const orgName = parsed.organisation;
+      const eventActivity = parsed.activities || parsed.category || "Literary Event";
+      const eventDate = parsed.date;
+
+      const userContent = `
+        <p>Dear ${recipientName},</p>
+        <p>Thank you for submitting your event proposal for <strong>${orgName || recipientName}</strong> to the Pune Authors' Association.</p>
+        <p>After reviewing our current schedule and logistical availability, we regret to inform you that we are unable to accept this event request at this time.</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
+          ${orgName ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px; width: 35%;">Organisation</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${orgName}</td></tr>` : ''}
+          <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposer Name</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${recipientName}</td></tr>
+          ${eventActivity ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Event Activity</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${eventActivity}</td></tr>` : ''}
+          ${eventDate ? `<tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Proposed Date</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;">${eventDate}</td></tr>` : ''}
+          <tr><th style="background: #f0f4ff; color: #1a1a2e; text-align: left; padding: 10px 14px;">Status</th><td style="padding: 10px 14px; border-bottom: 1px solid #f0f0f4;"><span style="display: inline-block; background: #ef4444; color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px;">Declined</span></td></tr>
+        </table>
+
+        <p>We sincerely appreciate your interest in collaborating with Pune Authors' Association. Please feel free to reach out to us again for future events or alternate schedules.</p>
+        <p>Warm regards,<br><strong>Pune Authors' Association</strong></p>
+      `;
+
+      sendNotificationEmail(
+        inq.email,
+        `Event Request Update: ${orgName || recipientName} - Pune Authors' Association`,
+        emailWrap("Event Request Update", userContent)
+      );
+    }
     
     res.json(updated);
   } catch (err) {
