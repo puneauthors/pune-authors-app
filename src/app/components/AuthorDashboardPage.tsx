@@ -200,6 +200,23 @@ export function AuthorDashboardPage() {
     }
   }, [dashboardData]);
 
+  useEffect(() => {
+    if (dashboardData) {
+      const newlyRegisteredEvents = dashboardData.eventInvites?.filter((inv: any) => inv.optInStatus === 'Registered' && inv.event?.status !== 'Past' && inv.event?.status !== 'Legacy Archive') || [];
+      const newlyRegisteredActivities = dashboardData.authorProfile?.eventRegistrations?.filter((reg: any) => reg.status === 'Registered' && reg.activity?.status !== 'Past' && reg.activity?.status !== 'Legacy Archive') || [];
+      const totalNewlyRegistered = newlyRegisteredEvents.length + newlyRegisteredActivities.length;
+      
+      if (totalNewlyRegistered > 0) {
+        const maxRegId = Math.max(...newlyRegisteredEvents.map((inv: any) => inv.id), ...newlyRegisteredActivities.map((reg: any) => reg.id), 0);
+        const storageKey = 'paa_shown_toast_registered_' + maxRegId;
+        if (!localStorage.getItem(storageKey)) {
+          toast.success(`Success! You are fully registered for ${totalNewlyRegistered} event(s).`);
+          localStorage.setItem(storageKey, 'true');
+        }
+      }
+    }
+  }, [dashboardData]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
@@ -1095,15 +1112,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
     }
   }
 
-  const newlyRegisteredEvents = data.eventInvites?.filter((inv: any) => inv.optInStatus === 'Registered' && inv.event?.status !== 'Past' && inv.event?.status !== 'Legacy Archive') || [];
-  const newlyRegisteredActivities = data.authorProfile?.eventRegistrations?.filter((reg: any) => reg.status === 'Registered' && reg.activity?.status !== 'Past' && reg.activity?.status !== 'Legacy Archive') || [];
-  const totalNewlyRegistered = newlyRegisteredEvents.length + newlyRegisteredActivities.length;
-  if (totalNewlyRegistered > 0) {
-    const maxRegId = Math.max(...newlyRegisteredEvents.map((inv: any) => inv.id), ...newlyRegisteredActivities.map((reg: any) => reg.id), 0);
-    if (!dismissedActions.includes(`act-registered-${maxRegId}`)) {
-      actionItems.push({ id: `act-registered-${maxRegId}`, text: `Success! You are fully registered for ${totalNewlyRegistered} event(s).`, icon: CheckCircle2, color: 'text-emerald-700', bg: 'bg-emerald-100', link: '/dashboard/events' });
-    }
-  }
+
 
   const lowStockAlerts = authorProfile.extraData?.lowStockAlerts || [];
   const activeAlerts = lowStockAlerts.filter((a: any) => !a.read && (Date.now() - a.timestamp < 24 * 60 * 60 * 1000));

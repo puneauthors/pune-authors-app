@@ -5368,7 +5368,7 @@ const totalAuthorsBase = eventRegistrations.length;
         return;
       }
 
-      const totalParticipants = eventRegistrations.length;
+      const totalParticipants = selectedEventBreakdown.aggAuthors ? Number(selectedEventBreakdown.aggAuthors) : eventRegistrations.length;
       const totalBooksListed = eventRegistrations.reduce(
         (acc: number, a: any) =>
           acc +
@@ -5380,7 +5380,7 @@ const totalAuthorsBase = eventRegistrations.length;
             0),
         0,
       );
-      const totalBooksSold = eventRegistrations.reduce(
+      const totalBooksSold = selectedEventBreakdown.aggSold ? Number(selectedEventBreakdown.aggSold) : eventRegistrations.reduce(
         (acc: number, a: any) =>
           acc +
           (a.books && a.books.length > 0
@@ -5388,7 +5388,7 @@ const totalAuthorsBase = eventRegistrations.length;
             : a.manualTotalSold || 0),
         0,
       );
-      const totalSalesRevenue = eventRegistrations.reduce(
+      const totalSalesRevenue = selectedEventBreakdown.aggRevenue ? Number(selectedEventBreakdown.aggRevenue) : eventRegistrations.reduce(
         (acc: number, a: any) =>
           acc +
           (a.books && a.books.length > 0
