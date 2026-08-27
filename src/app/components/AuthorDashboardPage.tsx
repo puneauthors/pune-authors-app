@@ -5433,10 +5433,10 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                               
                               if (evt.registration === 'Approved' && !evt.isFeeExempt && evt.paymentStatus === 'Rejected' && !evt.paymentProofUrl && !evt.isPast) {
                                   statusText = 'REMAKE PAYMENT';
-                                  statusColors = 'bg-red-500 text-white border-red-600 shadow-sm animate-pulse';
-                              } else if (evt.registration === 'Approved' && !evt.isFeeExempt && (evt.registrationFee > 0 || evt.charges > 0) && evt.paymentStatus !== 'Paid' && evt.paymentStatus !== 'Pending Verification' && !evt.paymentProofUrl && !evt.isPast) {
+                                  statusColors = 'bg-red-500 text-white border-red-600 shadow-sm animate-pulse cursor-pointer';
+                              } else if (evt.registration === 'Approved' && !evt.isFeeExempt && (evt.registrationFee > 0 || evt.charges > 0 || evt.amountPaid > 0) && evt.paymentStatus !== 'Paid' && evt.paymentStatus !== 'Pending Verification' && !evt.paymentProofUrl && !evt.isPast) {
                                   statusText = 'MAKE PAYMENT';
-                                  statusColors = 'bg-yellow-400 text-yellow-900 border-yellow-500 shadow-sm animate-pulse';
+                                  statusColors = 'bg-yellow-400 text-yellow-900 border-yellow-500 shadow-sm animate-pulse cursor-pointer';
                               } else if (evt.registration === 'Approved' && (evt.paymentProofUrl || evt.paymentStatus === 'Pending Verification')) {
                                   statusText = 'VERIFYING PAYMENT';
                                   statusColors = 'bg-blue-500 text-white border-blue-600 shadow-sm';
@@ -5477,9 +5477,21 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                               
                               return (
                                 <div className="flex flex-col items-center justify-center gap-2">
-                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${statusColors} whitespace-nowrap`}>
-                                    {statusText}
-                                  </span>
+                                  {statusText === 'MAKE PAYMENT' || statusText === 'REMAKE PAYMENT' ? (
+                                    <button 
+                                      onClick={(e) => {
+                                         e.stopPropagation();
+                                         setExpandedEventId(evt.id === expandedEventId ? null : evt.id);
+                                      }}
+                                      className={`px-3 py-1.5 rounded text-[10px] font-black uppercase tracking-widest ${statusColors} whitespace-nowrap flex items-center gap-1 shadow-md hover:scale-105 transition-transform`}
+                                    >
+                                      {statusText} <ChevronDown className="w-3 h-3" />
+                                    </button>
+                                  ) : (
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${statusColors} whitespace-nowrap`}>
+                                      {statusText}
+                                    </span>
+                                  )}
                                   {((evt.livePosEnabled && evt.status === 'Live') || dashboardData?.authorProfile?.email === 'arvindpuri1492@gmail.com') && (evt.registration === 'Registered' || evt.registration === 'Approved') && (
                                     <button onClick={(e) => { e.stopPropagation(); window.open('/dashboard/pos/' + evt.id, '_blank'); }} className="mt-1 w-full max-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap" title="Launch Point of Sale System">
                                       <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span> LAUNCH POS
@@ -5619,10 +5631,10 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                     </div>
                                 ) : (
                                 <div className="flex-1 min-w-[300px] flex flex-col animate-fade-in-up">
-                                   {evt.registration === 'Approved' && !evt.isFeeExempt && (evt.registrationFee > 0 || evt.charges > 0) && evt.paymentStatus !== 'Paid' && evt.paymentStatus !== 'Pending Verification' && !evt.paymentProofUrl && (
+                                   {evt.registration === 'Approved' && !evt.isFeeExempt && (evt.registrationFee > 0 || evt.charges > 0 || evt.amountPaid > 0) && evt.paymentStatus !== 'Paid' && evt.paymentStatus !== 'Pending Verification' && !evt.paymentProofUrl && (
                                      <div className={`mb-4 p-4 rounded text-sm shadow-sm ${evt.paymentStatus === 'Rejected' ? 'bg-red-50 border border-red-200 text-red-800' : 'bg-yellow-50 border border-yellow-200 text-yellow-800'}`}>
                                        <h5 className="font-bold mb-2">{evt.paymentStatus === 'Rejected' ? 'Payment Rejected - Remake Payment' : 'Registration Approved - Pending Payment'}</h5>
-                                       <p className="text-xs mb-3">{evt.paymentStatus === 'Rejected' ? 'Your previous payment was rejected. Please re-check the amount or transaction ID and remake the payment.' : `Please pay the fee of ₹${evt.registrationFee || evt.charges} to confirm participation.`}</p>
+                                       <p className="text-xs mb-3">{evt.paymentStatus === 'Rejected' ? 'Your previous payment was rejected. Please re-check the amount or transaction ID and remake the payment.' : `Please pay the fee of ₹${evt.amountPaid > 0 ? evt.amountPaid : (evt.registrationFee || evt.charges)} to confirm participation.`}</p>
                                        <div className="flex flex-col sm:flex-row gap-4 border-t border-yellow-200 pt-3">
                                           <div>
                                              <div className="text-[10px] font-bold mb-2 uppercase tracking-widest text-yellow-900">Scan to Pay</div>
