@@ -997,6 +997,12 @@ export function OperationsDashboardPage() {
     })(),
   );
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isPosOpen, setIsPosOpen] = useState(false);
+  const [posSearchQuery, setPosSearchQuery] = useState("");
+  const [posCart, setPosCart] = useState<{ book: any; quantity: number }[]>([]);
+  const [selectedPosEventId, setSelectedPosEventId] = useState<number | "">("");
+  const [isCheckingOutPos, setIsCheckingOutPos] = useState(false);
+  const [posPaymentMethod, setPosPaymentMethod] = useState("UPI");
 
   useEffect(() => {
     if (sidebarOpen) {
@@ -9169,7 +9175,18 @@ const totalAuthorsBase = eventRegistrations.length;
           </div>
         </nav>
 
-        <div className="p-4 shrink-0 flex gap-2">
+        <div className="p-4 shrink-0 flex gap-2 flex-col">
+          <button
+            onClick={() => { 
+              console.log("POS Button Clicked!"); 
+              setIsPosOpen(true); 
+              if (!events || events.length === 0) fetchEvents(true);
+              if (!books || books.length === 0) fetchBooks(true);
+            }}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-paa-gold bg-[#d4a017] text-white text-[10px] font-bold tracking-widest uppercase hover:bg-[#b08510] transition-colors rounded-full active:scale-95 shadow-md hover:-translate-y-0.5 transition-all duration-300 ease-out"
+          >
+            <ShoppingCart size={14} /> Launch POS
+          </button>
           <button
             onClick={handleLogout}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-paa-navy/5 bg-white text-xs font-bold uppercase hover:bg-red-50 text-red-600 transition-colors rounded-full active:scale-95 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 ease-out"
@@ -10027,6 +10044,182 @@ const totalAuthorsBase = eventRegistrations.length;
           </Suspense>
         </div>
       </main>
+
+      {/* GLOBAL ADMIN POS MODAL */}
+      {isPosOpen && (
+        <div 
+          className="fixed z-[99999] bg-[#f5f5f3] flex flex-col overflow-hidden shadow-2xl"
+          style={{ top: 0, left: 0, right: 0, bottom: 0, width: "100vw", height: "100vh", position: "fixed", display: "flex" }}
+        >
+          {console.log("RENDERING POS MODAL JSX IN BROWSER")}
+          {/* Header */}
+          <div className="bg-paa-navy text-paa-cream px-6 py-4 flex items-center justify-between shrink-0 shadow-md relative z-10">
+            <div className="flex items-center gap-4">
+              <button onClick={() => setIsPosOpen(false)} className="text-paa-cream/70 hover:text-white transition-colors">
+                <ArrowLeft size={24} />
+              </button>
+              <div>
+                <h2 className="text-xl font-bold tracking-widest uppercase">Global Admin POS</h2>
+                <p className="text-xs text-paa-cream/60 tracking-wider">Sell any book on the platform</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+               <select
+                 value={selectedPosEventId}
+                 onChange={(e) => setSelectedPosEventId(e.target.value ? parseInt(e.target.value) : "")}
+                 className="bg-white/10 text-white border border-white/20 rounded px-3 py-1.5 outline-none focus:border-paa-gold"
+               >
+                 <option value="" className="text-black">-- Select Event Context --</option>
+                 {(events || []).filter(e => e?.status !== "Past").map(e => (
+                   <option key={e?.id} value={e?.id} className="text-black">{e?.name}</option>
+                 ))}
+               </select>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="flex flex-1 min-h-0">
+            {/* Catalog (Left) */}
+            <div className="flex-1 flex flex-col bg-white border-r border-gray-200">
+              <div className="p-4 border-b border-gray-100 shrink-0">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Search by Title, Author, or ISBN..."
+                    value={posSearchQuery}
+                    onChange={(e) => setPosSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-paa-gold outline-none transition-colors text-sm"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                {(books || [])
+                  .filter(b => b?.status === "Approved")
+                  .filter(b => {
+                    if (!posSearchQuery) return true;
+                    const q = posSearchQuery.toLowerCase();
+                    return (
+                      b?.title?.toLowerCase()?.includes(q) ||
+                      b?.author?.name?.toLowerCase()?.includes(q) ||
+                      b?.isbn?.toLowerCase()?.includes(q)
+                    );
+                  })
+                  .slice(0, 100)
+                  .map(b => (
+                    <div key={b?.id} onClick={() => {
+                      setPosCart(prev => {
+                        const ex = (prev || []).find(i => i?.book?.id === b?.id);
+                        if (ex) return prev.map(i => i?.book?.id === b?.id ? { ...i, quantity: i.quantity + 1 } : i);
+                        return [...(prev || []), { book: b, quantity: 1 }];
+                      });
+                    }} className="bg-white border border-gray-100 p-3 rounded-xl shadow-sm hover:shadow-md cursor-pointer hover:border-paa-gold/30 transition-all flex flex-col gap-2 group">
+                      <div className="aspect-[3/4] bg-gray-50 rounded-lg overflow-hidden relative border border-gray-100">
+                        {b?.coverUrl ? (
+                          <img src={b.coverUrl} alt={b?.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-300">No Cover</div>
+                        )}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 bg-white text-paa-navy font-bold text-xs px-3 py-1.5 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                            Add to Cart
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-sm text-gray-900 line-clamp-1">{b?.title || 'Unknown Title'}</h4>
+                        <p className="text-xs text-gray-500 line-clamp-1">{b?.author?.name || 'Unknown Author'}</p>
+                        <p className="text-sm font-bold text-paa-gold mt-1">₹{b?.mrp || 0}</p>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Cart (Right) */}
+            <div className="w-96 bg-gray-50 flex flex-col shrink-0">
+              <div className="p-4 border-b border-gray-200 bg-white shrink-0">
+                <h3 className="font-bold uppercase tracking-widest text-paa-navy flex items-center gap-2">
+                  <ShoppingCart size={18} className="text-paa-gold" />
+                  Cart ({(posCart || []).reduce((s, i) => s + (i?.quantity || 0), 0)} items)
+                </h3>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {!(posCart?.length) ? (
+                  <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                    <Package size={32} className="opacity-50" />
+                    <p className="text-sm font-medium">Cart is empty</p>
+                  </div>
+                ) : (
+                  posCart.map(item => (
+                    <div key={item?.book?.id} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm flex gap-3 relative group">
+                      <button onClick={() => setPosCart(prev => prev.filter(i => i?.book?.id !== item?.book?.id))} className="absolute -top-2 -right-2 w-6 h-6 bg-red-50 text-red-500 rounded-full flex items-center justify-center shadow-sm hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100">
+                        <X size={12} />
+                      </button>
+                      <div className="w-12 h-16 bg-gray-50 rounded shrink-0 overflow-hidden">
+                         {item?.book?.coverUrl ? <img src={item.book.coverUrl} className="w-full h-full object-cover" /> : null}
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                        <div>
+                          <p className="text-xs font-bold text-gray-900 line-clamp-1">{item?.book?.title || 'Unknown Title'}</p>
+                          <p className="text-[10px] text-gray-500 truncate">{item?.book?.author?.name || 'Unknown Author'}</p>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-xs font-bold text-paa-navy">₹{(item?.book?.mrp || 0) * (item?.quantity || 0)}</p>
+                          <div className="flex items-center bg-gray-50 rounded-full border border-gray-200 overflow-hidden">
+                            <button onClick={() => setPosCart(p => p.map(i => i?.book?.id === item?.book?.id ? { ...i, quantity: Math.max(1, i.quantity - 1) } : i))} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-100">-</button>
+                            <span className="w-6 text-center text-xs font-bold">{item?.quantity || 0}</span>
+                            <button onClick={() => setPosCart(p => p.map(i => i?.book?.id === item?.book?.id ? { ...i, quantity: (i.quantity || 0) + 1 } : i))} className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-100">+</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="p-4 bg-white border-t border-gray-200 shrink-0 space-y-4">
+                <div className="flex justify-between items-end">
+                  <span className="text-sm text-gray-500 font-medium">Total Amount</span>
+                  <span className="text-2xl font-bold text-paa-navy">₹{(posCart || []).reduce((s, i) => s + ((i?.book?.mrp || 0) * (i?.quantity || 0)), 0)}</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  {['UPI', 'Cash', 'Card'].map(m => (
+                    <button key={m} onClick={() => setPosPaymentMethod(m)} className={`py-2 text-xs font-bold tracking-widest uppercase rounded-lg border transition-colors ${posPaymentMethod === m ? 'bg-paa-navy text-white border-paa-navy' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'}`}>
+                      {m}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  disabled={!(posCart?.length) || isCheckingOutPos || !selectedPosEventId}
+                  onClick={async () => {
+                    try {
+                      setIsCheckingOutPos(true);
+                      await axios.post(`${API}/api/admin/pos/checkout`, {
+                        cart: posCart.map(i => ({ bookId: i?.book?.id, quantity: i?.quantity })),
+                        paymentMethod: posPaymentMethod,
+                        eventId: selectedPosEventId
+                      }, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
+                      
+                      toast.success("Checkout successful!");
+                      setPosCart([]);
+                      setIsPosOpen(false);
+                    } catch (e: any) {
+                      toast.error(e.response?.data?.error || "Checkout failed");
+                    } finally {
+                      setIsCheckingOutPos(false);
+                    }
+                  }}
+                  className="w-full py-3.5 bg-[#d4a017] hover:bg-[#b08510] text-white text-sm font-bold tracking-widest uppercase rounded-xl shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isCheckingOutPos ? "Processing..." : !selectedPosEventId ? "Select Event Context" : "Complete Checkout"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Modal
         isOpen={!!selectedBookDetails}

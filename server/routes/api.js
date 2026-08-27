@@ -9347,6 +9347,81 @@ router.put('/api/author/invitations/:id/respond', verifyToken, async (req, res) 
   }
 });
 
+// Admin: Global POS Checkout
+router.post('/api/admin/pos/checkout', verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'Admin') return res.status(403).json({ error: 'Forbidden' });
+    
+    const { cart, paymentMethod, eventId } = req.body;
+    if (!cart || cart.length === 0) return res.status(400).json({ error: 'No items in cart' });
+    if (!eventId) return res.status(400).json({ error: 'Event ID is required' });
+    
+    const targetEventId = parseInt(eventId);
+
+    const bookIds = cart.map(i => i.bookId);
+    const books = await prisma.book.findMany({ where: { id: { in: bookIds } } });
+    const bookMap = {};
+    books.forEach(b => bookMap[b.id] = b);
+
+    const authorCarts = {};
+    for (const item of cart) {
+      const b = bookMap[item.bookId];
+      if (!b) continue;
+      if (!authorCarts[b.authorId]) authorCarts[b.authorId] = [];
+      authorCarts[b.authorId].push({
+        bookId: b.id,
+        quantity: parseInt(item.quantity),
+        price: b.mrp
+      });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      for (const [authorIdStr, items] of Object.entries(authorCarts)) {
+        const authorId = parseInt(authorIdStr);
+
+        const ea = await tx.eventAuthor.findFirst({ where: { eventId: targetEventId, authorId } });
+        if (!ea) {
+          await tx.eventAuthor.create({ data: { eventId: targetEventId, authorId, optInStatus: 'Approved' } });
+        }
+
+        for (const item of items) {
+          const eb = await tx.eventBook.findFirst({ where: { eventId: targetEventId, authorId, bookId: item.bookId } });
+          if (!eb) {
+            await tx.eventBook.create({
+              data: { eventId: targetEventId, authorId, bookId: item.bookId, listedStock: item.quantity, soldStock: item.quantity }
+            });
+          } else {
+            await tx.eventBook.update({
+              where: { id: eb.id },
+              data: { soldStock: { increment: item.quantity }, listedStock: { increment: item.quantity } }
+            });
+          }
+        }
+
+        const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+        await tx.posOrder.create({
+          data: {
+            authorId,
+            eventId: targetEventId,
+            totalAmount,
+            paymentMethod: paymentMethod || 'UPI',
+            paymentStatus: 'CONFIRMED',
+            saleSource: 'ADMIN_POS',
+            items: {
+              create: items.map(i => ({ bookId: i.bookId, quantity: i.quantity, price: i.price }))
+            }
+          }
+        });
+      }
+    });
+
+    res.json({ success: true, message: 'Global checkout successful' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Global checkout failed' });
+  }
+});
+
 module.exports = router;
 
 
