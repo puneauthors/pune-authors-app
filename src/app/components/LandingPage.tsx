@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router";
 import axios from "axios";
-import { ArrowLeft, ArrowRight, Book, BookOpen, Megaphone, Store, Mic, Sparkles, Users, Plane, Library, PenTool, Palette, Printer, FileText, Mail, Phone, MapPin, Download, ExternalLink, Heart, Search, Landmark, Rocket, Feather, ChevronLeft, ChevronRight, Calendar, User, Linkedin, Globe, Code2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Book, BookOpen, Megaphone, Store, Mic, Sparkles, Users, Plane, Library, PenTool, Palette, Printer, FileText, Mail, Phone, MapPin, Download, ExternalLink, Heart, Search, Landmark, Rocket, Feather, ChevronLeft, ChevronRight, Calendar, User, Linkedin, Globe, Code2, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import FocusTrap from 'focus-trap-react';
 
@@ -778,16 +778,26 @@ export function LandingPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="shrink-0 w-full sm:w-auto flex justify-center">
+                  <div className="shrink-0 w-full sm:w-auto flex items-center justify-center gap-2">
                     <a
                       href="https://www.linkedin.com/in/commander-shiv-mathur-8696ba291/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-[#0077b5] hover:bg-[#005582] text-white text-xs sm:text-sm font-bold transition-all duration-200 hover:scale-105 shadow-md cursor-pointer w-full sm:w-auto"
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0077b5] hover:bg-[#005582] text-white text-xs font-bold transition-all duration-200 hover:scale-105 shadow-md cursor-pointer"
                       title="Cdr. Shiv Mathur's LinkedIn"
                     >
-                      <Linkedin className="w-4 h-4" />
-                      <span>LinkedIn Profile</span>
+                      <Linkedin className="w-3.5 h-3.5" />
+                      <span>LinkedIn</span>
+                    </a>
+                    <a
+                      href="https://www.youtube.com/@ShivMathur"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-bold transition-all duration-200 hover:scale-105 shadow-md cursor-pointer"
+                      title="Cdr. Shiv Mathur's YouTube Channel"
+                    >
+                      <Youtube className="w-3.5 h-3.5" />
+                      <span>YouTube</span>
                     </a>
                   </div>
                 </div>
