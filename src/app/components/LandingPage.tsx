@@ -631,10 +631,10 @@ export function LandingPage() {
       ════════════════════════════════════════════ */}
       <section className="bg-dots-dark" style={{ padding: "6rem 2rem", fontFamily: "'Google Sans', sans-serif" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
 
-            {/* ── LEFT COLUMN: GET IN TOUCH (5 cols) ── */}
-            <div className="lg:col-span-5">
+            {/* ── LEFT COLUMN: GET IN TOUCH (6 cols / 50%) ── */}
+            <div className="lg:col-span-6">
               <FadeIn>
                 <div style={{ marginBottom: "2.5rem" }}>
                   <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#FFCC00", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "1.2rem" }}>
@@ -741,19 +741,62 @@ export function LandingPage() {
               </FadeIn>
             </div>
 
-            {/* ── RIGHT COLUMN: MEET THE DEVELOPERS (7 cols) ── */}
-            <div className="lg:col-span-7">
+            {/* ── RIGHT COLUMN: MEET THE DEVELOPERS (6 cols / 50%) ── */}
+            <div className="lg:col-span-6">
               <FadeIn delay={100}>
-                <div style={{ marginBottom: "2.5rem" }}>
+                <div style={{ marginBottom: "1.8rem" }}>
                   <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#FFCC00", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "1.2rem" }}>
                     <Code2 size={22} color="#111" />
                   </div>
-                  <h2 className="contact-heading" style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 3.5vw, 2.75rem)", fontWeight: 800, color: "#fff", marginBottom: "0.8rem" }}>Meet the Developers</h2>
+                  <h2 className="contact-heading" style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 3.5vw, 2.75rem)", fontWeight: 800, color: "#fff", marginBottom: "0.6rem" }}>Meet the Developers</h2>
+                  <p className="text-white/75 text-sm sm:text-base font-medium leading-relaxed">
+                    This website was developed by the students of <strong className="text-[#FFCC00] font-bold">NIT Jalandhar</strong> under the guidance of <strong className="text-[#FFCC00] font-bold">Cdr. Shiv Mathur</strong>.
+                  </p>
                 </div>
               </FadeIn>
 
+              {/* ── CDR. SHIV MATHUR FEATURED CARD ── */}
+              <FadeIn delay={150}>
+                <div className="mb-5 bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-amber-500/10 border border-[#FFCC00]/30 hover:border-[#FFCC00]/60 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-4 sm:gap-5 shadow-xl transition-all duration-300">
+                  <div className="relative shrink-0">
+                    <img
+                      src="/team/shiv.jpeg"
+                      alt="Cdr (Retd) Shiv Mathur"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/founder_shiv.webp';
+                      }}
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#FFCC00] shadow-lg shadow-amber-500/20"
+                    />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <div className="inline-block px-2.5 py-0.5 rounded-full bg-[#FFCC00]/20 text-[#FFCC00] text-[10px] sm:text-[11px] font-bold tracking-wider uppercase mb-1">
+                      Project Mentor & Founder
+                    </div>
+                    <h3 className="text-white font-bold text-lg sm:text-xl leading-tight">
+                      Cdr (Retd) Shiv Mathur
+                    </h3>
+                    <p className="text-white/70 text-xs sm:text-sm mt-1 leading-relaxed">
+                      Visionary behind the Pune Authors Association initiative
+                    </p>
+                  </div>
+                  <div className="shrink-0 w-full sm:w-auto flex justify-center">
+                    <a
+                      href="https://www.linkedin.com/in/commander-shiv-mathur-8696ba291/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0077b5] hover:bg-[#005582] text-white text-xs font-bold transition-all duration-200 hover:scale-105 shadow-md cursor-pointer w-full sm:w-auto"
+                      title="Cdr. Shiv Mathur's LinkedIn"
+                    >
+                      <Linkedin className="w-4 h-4" />
+                      <span>LinkedIn Profile</span>
+                    </a>
+                  </div>
+                </div>
+              </FadeIn>
+
+              {/* ── 6 STUDENT DEVELOPERS GRID ── */}
               <FadeIn delay={200}>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5">
                   {[
                     {
                       name: "Anoop Saini",
@@ -794,10 +837,10 @@ export function LandingPage() {
                   ].map((dev, idx) => (
                     <div
                       key={idx}
-                      className="bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-[#FFCC00]/50 transition-all duration-300 rounded-2xl p-4 sm:p-5 text-center group flex flex-col items-center shadow-lg hover:-translate-y-1"
+                      className="bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-[#FFCC00]/50 transition-all duration-300 rounded-2xl p-3 sm:p-4 text-center group flex flex-col items-center shadow-lg hover:-translate-y-1"
                     >
                       {/* Avatar Image with fallback initials */}
-                      <div className="relative mb-3">
+                      <div className="relative mb-2.5">
                         <img
                           src={dev.image}
                           alt={dev.name}
@@ -806,31 +849,31 @@ export function LandingPage() {
                             const fallback = (e.target as HTMLElement).nextElementSibling;
                             if (fallback) (fallback as HTMLElement).style.display = 'flex';
                           }}
-                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-[#FFCC00]/40 group-hover:border-[#FFCC00] shadow-md transition-all duration-300"
+                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-[#FFCC00]/40 group-hover:border-[#FFCC00] shadow-md transition-all duration-300"
                         />
                         <div
                           style={{ display: 'none' }}
-                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-500/20 to-yellow-400/30 border-2 border-[#FFCC00]/40 items-center justify-center text-[#FFCC00] font-black text-lg shadow-md"
+                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-amber-500/20 to-yellow-400/30 border-2 border-[#FFCC00]/40 items-center justify-center text-[#FFCC00] font-black text-base shadow-md"
                         >
                           {dev.name.split(' ').map(n => n[0]).join('')}
                         </div>
                       </div>
 
                       {/* Name */}
-                      <h4 className="text-white font-bold text-sm sm:text-base group-hover:text-[#FFCC00] transition-colors leading-tight mb-3">
+                      <h4 className="text-white font-bold text-xs sm:text-sm group-hover:text-[#FFCC00] transition-colors leading-tight mb-2.5">
                         {dev.name}
                       </h4>
 
                       {/* Social Actions: Large Responsive LinkedIn & Portfolio Icons */}
-                      <div className="flex items-center justify-center gap-2.5 sm:gap-3 mt-auto pt-1 w-full">
+                      <div className="flex items-center justify-center gap-2 sm:gap-2.5 mt-auto pt-1 w-full">
                         <a
                           href={dev.linkedin}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0077b5]/20 hover:bg-[#0077b5] text-[#0077b5] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-sm border border-[#0077b5]/30 hover:border-transparent cursor-pointer"
+                          className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#0077b5]/20 hover:bg-[#0077b5] text-[#0077b5] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-sm border border-[#0077b5]/30 hover:border-transparent cursor-pointer"
                           title={`${dev.name}'s LinkedIn`}
                         >
-                          <Linkedin className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <Linkedin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </a>
                         <a
                           href={dev.portfolio}
