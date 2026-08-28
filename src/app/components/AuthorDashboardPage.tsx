@@ -5125,7 +5125,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
             <div className="bg-cyan-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-gray-900">
               <div className="text-[10px] font-bold text-gray-900 uppercase tracking-widest mb-1.5 flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-gray-800" /> Total Events</div>
               <div className="text-3xl font-black text-gray-900 tracking-tight">{dashboardData?.authorProfile?.aggEligibleEvents || 0}</div>
-              <div className="text-[10px] text-gray-800 mt-1 font-medium opacity-90">Fairs: {dashboardData?.authorProfile?.aggEligibleFairs || 0} • Events: {dashboardData?.authorProfile?.aggEligibleEventsMeet || 0}</div>
+              <div className="text-[10px] text-gray-800 mt-1 font-medium opacity-90">Fairs: {dashboardData?.authorProfile?.aggEligibleFairs || 0} • Events: {dashboardData?.authorProfile?.aggEligibleEventsMeet || 0} • Organised: {dashboardData?.authorProfile?.eventsOrganisedCount || 0}</div>
             </div>
             
             <div className="bg-pink-500/85 p-3 rounded-xl border-none shadow-sm flex flex-col justify-center text-gray-900">

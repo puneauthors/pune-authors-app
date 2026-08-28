@@ -196,7 +196,7 @@ export function FlybrariesPage() {
           </div>
         ) : (
           <div className="events-grid">
-            {displayedLibraries.map((lib, index) => {
+            {displayedLibraries.map((lib: any, index: number) => {
               const bgColors = [C.white, C.white];
               const cardBg = bgColors[index % bgColors.length];
               const imgSrc = lib.bannerUrl || lib.defaultImage;

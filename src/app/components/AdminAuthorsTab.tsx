@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { Download, Search, CheckSquare, Check, Printer, MapPin, Edit2, Trash2, Bell, X, FileDown, Loader2 } from 'lucide-react';
+import { Download, Search, CheckSquare, Check, Printer, MapPin, Edit2, Trash2, Bell, X, FileDown, Loader2, Plus, Minus, Calendar, Save } from 'lucide-react';
 import { AuthorRegistrationPage } from './AuthorRegistrationPage';
 import { AuthorFullProfileView } from './AuthorFullProfileView';
 
@@ -13,11 +13,74 @@ export const AdminAuthorsTab = React.memo(({
   selectedPendingAuthor, setSelectedPendingAuthor, selectedAuthor, setSelectedAuthor,
   handleApproveDeletion, handleRejectDeletion
 }: any) => {
-const [showArchived, setShowArchived] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const [archivedAuthors, setArchivedAuthors] = useState<any[]>([]);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportScope, setExportScope] = useState<'all' | 'selected'>('all');
   const [isExporting, setIsExporting] = useState(false);
+
+  // Events Organised Management States
+  const [showEventsOrganisedModal, setShowEventsOrganisedModal] = useState(false);
+  const [eventsOrganisedMap, setEventsOrganisedMap] = useState<{ [authorId: number]: number }>({});
+  const [modalSearchTerm, setModalSearchTerm] = useState('');
+  const [isSavingEventsOrganised, setIsSavingEventsOrganised] = useState(false);
+  const [savingAuthorId, setSavingAuthorId] = useState<number | null>(null);
+
+  const openEventsOrganisedModal = (targetAuthorId?: number) => {
+    const map: { [authorId: number]: number } = {};
+    authors.forEach((a: any) => {
+      map[a.id] = a.eventsOrganisedCount ?? 0;
+    });
+    setEventsOrganisedMap(map);
+    setModalSearchTerm(targetAuthorId ? (authors.find((a: any) => a.id === targetAuthorId)?.name || '') : '');
+    setShowEventsOrganisedModal(true);
+  };
+
+  const handleSaveSingleAuthorEventsOrganised = async (authorId: number) => {
+    const count = Number(eventsOrganisedMap[authorId] ?? 0);
+    try {
+      setSavingAuthorId(authorId);
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API}/api/admin/authors/${authorId}/events-organised`,
+        { eventsOrganisedCount: count },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Events organised count updated!');
+      if (typeof fetchAuthors === 'function') fetchAuthors();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to update events organised count');
+    } finally {
+      setSavingAuthorId(null);
+    }
+  };
+
+  const handleSaveAllEventsOrganised = async () => {
+    try {
+      setIsSavingEventsOrganised(true);
+      const token = localStorage.getItem('token');
+      const updates = Object.entries(eventsOrganisedMap).map(([authorId, count]) => ({
+        authorId: Number(authorId),
+        eventsOrganisedCount: Number(count)
+      }));
+
+      await axios.put(
+        `${API}/api/admin/authors/batch-events-organised`,
+        { updates },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success('Successfully updated events organised counts!');
+      setShowEventsOrganisedModal(false);
+      if (typeof fetchAuthors === 'function') fetchAuthors();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to batch update counts');
+    } finally {
+      setIsSavingEventsOrganised(false);
+    }
+  };
 
   // Field definitions grouped by category (Strictly requested custom fields)
   const FIELD_CATEGORIES = [
@@ -718,7 +781,19 @@ const [showArchived, setShowArchived] = useState(false);
                 <th className="p-1 text-[13px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle">Events</th>
                 <th className="p-1 text-[13px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle">Fairs</th>
                 <th className="p-1 text-[13px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle">Library Donations</th>
-                <th className="p-1 text-[13px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle">Events Organised</th>
+                <th className="p-1 text-[13px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle select-none">
+                  <div className="flex items-center justify-center gap-1">
+                    <span>Events Organised</span>
+                    <button
+                      type="button"
+                      onClick={() => openEventsOrganisedModal()}
+                      className="p-1 hover:bg-black/20 active:scale-95 rounded text-black transition-all cursor-pointer shadow-sm border border-black/25 flex items-center justify-center bg-black/10"
+                      title="Edit Events Organised Count for Authors"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </th>
                 <th className="p-1 text-[13px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle">Books</th>
                 <th className="p-1 text-[13px] font-bold text-black bg-[#FFE600] border-[1.5px] border-black capitalize text-center align-middle">Actions</th>
               </tr>
@@ -839,8 +914,18 @@ const [showArchived, setShowArchived] = useState(false);
                     <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Libraries</div>
                   </td>
                   {/* Events Organised */}
-                  <td className="p-1 border-[1.5px] border-black text-center align-middle">
-                    <div className="font-bold text-orange-700 text-sm">{author.eventsOrganisedCount ?? 0}</div>
+                  <td className="p-1 border-[1.5px] border-black text-center align-middle group/org relative">
+                    <div className="flex items-center justify-center gap-1">
+                      <div className="font-bold text-orange-700 text-sm">{author.eventsOrganisedCount ?? 0}</div>
+                      <button
+                        type="button"
+                        onClick={() => openEventsOrganisedModal(author.id)}
+                        className="opacity-0 group-hover/org:opacity-100 p-0.5 hover:bg-orange-100 rounded text-orange-600 transition-all cursor-pointer"
+                        title={`Edit count for ${author.name}`}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </button>
+                    </div>
                     <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Organised</div>
                   </td>
                   <td className="p-1 border-[1.5px] border-black text-center font-bold text-paa-navy align-middle">
@@ -1064,6 +1149,194 @@ const [showArchived, setShowArchived] = useState(false);
                     </>
                   )}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Manage Events Organised Modal */}
+        {showEventsOrganisedModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh] animate-scaleUp">
+              {/* Header */}
+              <div className="p-5 bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-white border-b border-gray-200 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFE600] border border-black/10 flex items-center justify-center text-black font-black shadow-sm">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900 leading-tight">
+                      Edit Events Organised by Authors
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Update the number of literary events organised. Figures synchronize across Admin & Author portals.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowEventsOrganisedModal(false)}
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="p-3.5 border-b border-gray-100 bg-gray-50/50">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={modalSearchTerm}
+                    onChange={(e) => setModalSearchTerm(e.target.value)}
+                    placeholder="Search author by name, email, or location..."
+                    className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none transition-all"
+                  />
+                  {modalSearchTerm && (
+                    <button
+                      onClick={() => setModalSearchTerm('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Authors List */}
+              <div className="p-4 overflow-y-auto flex-1 space-y-2.5 max-h-[420px]">
+                {authors
+                  .filter((a: any) => {
+                    if (!modalSearchTerm.trim()) return true;
+                    const term = modalSearchTerm.toLowerCase();
+                    return (
+                      (a.name || '').toLowerCase().includes(term) ||
+                      (a.email || '').toLowerCase().includes(term) ||
+                      (a.city || '').toLowerCase().includes(term) ||
+                      (a.state || '').toLowerCase().includes(term)
+                    );
+                  })
+                  .map((author: any, idx: number) => {
+                    const currentVal = eventsOrganisedMap[author.id] ?? author.eventsOrganisedCount ?? 0;
+                    const isSavingThis = savingAuthorId === author.id;
+
+                    return (
+                      <div
+                        key={author.id}
+                        className="flex items-center justify-between gap-3 p-3 rounded-xl border border-gray-200 hover:border-amber-400/50 bg-white hover:bg-amber-50/20 transition-all shadow-sm"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-gray-400">#{idx + 1}</span>
+                            <h4 className="text-xs sm:text-sm font-bold text-gray-900 truncate">
+                              {author.name}
+                            </h4>
+                            {author.city && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 uppercase font-medium">
+                                {author.city}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-gray-500 truncate mt-0.5">{author.email}</p>
+                        </div>
+
+                        {/* Counter & Single Save Button */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center border border-gray-300 rounded-lg bg-gray-50 overflow-hidden shadow-inner">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEventsOrganisedMap(prev => ({
+                                  ...prev,
+                                  [author.id]: Math.max(0, currentVal - 1)
+                                }));
+                              }}
+                              className="w-7 h-7 flex items-center justify-center hover:bg-gray-200 text-gray-700 active:scale-90 transition-all cursor-pointer"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <input
+                              type="number"
+                              min="0"
+                              value={currentVal}
+                              onChange={(e) => {
+                                const v = Math.max(0, parseInt(e.target.value, 10) || 0);
+                                setEventsOrganisedMap(prev => ({
+                                  ...prev,
+                                  [author.id]: v
+                                }));
+                              }}
+                              className="w-12 text-center text-xs font-bold text-gray-900 bg-white py-1 outline-none border-x border-gray-300"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEventsOrganisedMap(prev => ({
+                                  ...prev,
+                                  [author.id]: currentVal + 1
+                                }));
+                              }}
+                              className="w-7 h-7 flex items-center justify-center hover:bg-gray-200 text-gray-700 active:scale-90 transition-all cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleSaveSingleAuthorEventsOrganised(author.id)}
+                            disabled={isSavingThis}
+                            className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-black flex items-center gap-1 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                            title="Save for this author"
+                          >
+                            {isSavingThis ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <>
+                                <Check className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Save</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between gap-3">
+                <span className="text-xs text-gray-500 font-medium">
+                  Editing counts for <strong>{authors.length}</strong> authors
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowEventsOrganisedModal(false)}
+                    className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveAllEventsOrganised}
+                    disabled={isSavingEventsOrganised}
+                    className="px-5 py-2 text-xs font-bold text-black bg-[#FFE600] hover:bg-[#ebd300] rounded-xl shadow-md flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    {isSavingEventsOrganised ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Saving All...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>Save All Changes</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

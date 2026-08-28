@@ -10051,7 +10051,6 @@ const totalAuthorsBase = eventRegistrations.length;
           className="fixed z-[99999] bg-[#f5f5f3] flex flex-col overflow-hidden shadow-2xl"
           style={{ top: 0, left: 0, right: 0, bottom: 0, width: "100vw", height: "100vh", position: "fixed", display: "flex" }}
         >
-          {console.log("RENDERING POS MODAL JSX IN BROWSER")}
           {/* Header */}
           <div className="bg-paa-navy text-paa-cream px-6 py-4 flex items-center justify-between shrink-0 shadow-md relative z-10">
             <div className="flex items-center gap-4">

@@ -1187,8 +1187,16 @@ router.get('/api/admin/authors', verifyToken, isAdmin, async (req, res) => {
       const edParsed = typeof a.extraData === 'string' ? (() => { try { return JSON.parse(a.extraData || '{}') } catch (e) { return {} } })() : (a.extraData || {});
       const aEmail = (a.email || '').toLowerCase().trim();
       const reqCount = eventReqCountMap[aEmail] || 0;
-      const extraOrgCount = edParsed.eventsOrganisedCount || edParsed.organizedEventsCount || edParsed.organizedEvents || 0;
-      const eventsOrganisedCount = Math.max(reqCount, typeof extraOrgCount === 'number' ? extraOrgCount : 0);
+      let eventsOrganisedCount = 0;
+      if (edParsed && typeof edParsed.eventsOrganisedCount === 'number') {
+        eventsOrganisedCount = edParsed.eventsOrganisedCount;
+      } else if (edParsed && typeof edParsed.organizedEventsCount === 'number') {
+        eventsOrganisedCount = edParsed.organizedEventsCount;
+      } else if (edParsed && typeof edParsed.organizedEvents === 'number') {
+        eventsOrganisedCount = edParsed.organizedEvents;
+      } else {
+        eventsOrganisedCount = reqCount;
+      }
 
       // Count distinct libraries donated to by this author
       const distinctLibraries = new Set();
@@ -1702,6 +1710,78 @@ router.post('/api/admin/authors/:id/reject-edits', verifyToken, isAdmin, async (
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to reject edits' });
+  }
+});
+
+
+// Admin: Update single author events organised count
+router.put('/api/admin/authors/:id/events-organised', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const count = parseInt(req.body.eventsOrganisedCount, 10);
+    if (isNaN(id) || isNaN(count) || count < 0) {
+      return res.status(400).json({ error: 'Valid author ID and non-negative eventsOrganisedCount are required' });
+    }
+
+    const author = await prisma.author.findUnique({ where: { id } });
+    if (!author) return res.status(404).json({ error: 'Author not found' });
+
+    let currentExtraData = typeof author.extraData === 'string' ? (() => { try { return JSON.parse(author.extraData || '{}'); } catch (e) { return {}; } })() : (author.extraData || {});
+    currentExtraData.eventsOrganisedCount = count;
+    currentExtraData.organizedEventsCount = count;
+
+    const updated = await prisma.author.update({
+      where: { id },
+      data: { extraData: currentExtraData }
+    });
+
+    if (typeof clearCacheByPattern === 'function') {
+      clearCacheByPattern('admin:authors');
+      clearCacheByPattern(`author:dashboard:${author.email}`);
+    }
+
+    res.json({ success: true, authorId: id, eventsOrganisedCount: count });
+  } catch (err) {
+    console.error('[PUT /api/admin/authors/:id/events-organised]', err);
+    res.status(500).json({ error: 'Failed to update events organised count' });
+  }
+});
+
+// Admin: Batch update authors events organised count
+router.put('/api/admin/authors/batch-events-organised', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { updates } = req.body;
+    if (!Array.isArray(updates)) {
+      return res.status(400).json({ error: 'Updates must be an array of { authorId, eventsOrganisedCount }' });
+    }
+
+    for (const item of updates) {
+      const authorId = parseInt(item.authorId, 10);
+      const count = parseInt(item.eventsOrganisedCount, 10);
+      if (isNaN(authorId) || isNaN(count) || count < 0) continue;
+
+      const author = await prisma.author.findUnique({ where: { id: authorId } });
+      if (!author) continue;
+
+      let currentExtraData = typeof author.extraData === 'string' ? (() => { try { return JSON.parse(author.extraData || '{}'); } catch (e) { return {}; } })() : (author.extraData || {});
+      currentExtraData.eventsOrganisedCount = count;
+      currentExtraData.organizedEventsCount = count;
+
+      await prisma.author.update({
+        where: { id: authorId },
+        data: { extraData: currentExtraData }
+      });
+    }
+
+    if (typeof clearCacheByPattern === 'function') {
+      clearCacheByPattern('admin:authors');
+      clearCacheByPattern('author:dashboard:');
+    }
+
+    res.json({ success: true, updatedCount: updates.length });
+  } catch (err) {
+    console.error('[PUT /api/admin/authors/batch-events-organised]', err);
+    res.status(500).json({ error: 'Failed to batch update events organised count' });
   }
 });
 
@@ -2677,6 +2757,20 @@ router.get('/api/author/dashboard-data', verifyToken, async (req, res) => {
       authorProfile.aggParticipatedEventsMeet = participatedEventsCount;
       authorProfile.aggEligibleFairs = eligibleFairsCount;
       authorProfile.aggParticipatedFairs = participatedFairsCount;
+
+      const authorEd = typeof authorProfile.extraData === 'string' ? (() => { try { return JSON.parse(authorProfile.extraData || '{}'); } catch(e) { return {}; } })() : (authorProfile.extraData || {});
+      let orgCount = 0;
+      if (typeof authorEd.eventsOrganisedCount === 'number') {
+        orgCount = authorEd.eventsOrganisedCount;
+      } else if (typeof authorEd.organizedEventsCount === 'number') {
+        orgCount = authorEd.organizedEventsCount;
+      } else if (typeof authorEd.organizedEvents === 'number') {
+        orgCount = authorEd.organizedEvents;
+      } else {
+        const reqCount = await prisma.authorEventRequest.count({ where: { email: { equals: authorProfile.email, mode: 'insensitive' } } }).catch(() => 0);
+        orgCount = reqCount;
+      }
+      authorProfile.eventsOrganisedCount = orgCount;
     } catch (e) {
       console.error('Error calculating participation:', e);
     }
