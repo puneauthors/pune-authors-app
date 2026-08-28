@@ -10116,7 +10116,11 @@ const totalAuthorsBase = eventRegistrations.length;
                     }} className="bg-white border border-gray-100 p-3 rounded-xl shadow-sm hover:shadow-md cursor-pointer hover:border-paa-gold/30 transition-all flex flex-col gap-2 group">
                       <div className="aspect-[3/4] bg-gray-50 rounded-lg overflow-hidden relative border border-gray-100">
                         {b?.coverUrl ? (
-                          <img src={b.coverUrl} alt={b?.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <img 
+                            src={b.coverUrl.match(/^(http|data:)/) ? b.coverUrl : `${API}${b.coverUrl.startsWith('/') ? '' : '/'}${b.coverUrl}`} 
+                            alt={b?.title || ''} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-300">No Cover</div>
                         )}
@@ -10157,7 +10161,13 @@ const totalAuthorsBase = eventRegistrations.length;
                         <X size={12} />
                       </button>
                       <div className="w-12 h-16 bg-gray-50 rounded shrink-0 overflow-hidden">
-                         {item?.book?.coverUrl ? <img src={item.book.coverUrl} className="w-full h-full object-cover" /> : null}
+                         {item?.book?.coverUrl ? (
+                           <img 
+                             src={item.book.coverUrl.match(/^(http|data:)/) ? item.book.coverUrl : `${API}${item.book.coverUrl.startsWith('/') ? '' : '/'}${item.book.coverUrl}`} 
+                             className="w-full h-full object-cover" 
+                             alt={item.book.title || ''}
+                           />
+                         ) : null}
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                         <div>
