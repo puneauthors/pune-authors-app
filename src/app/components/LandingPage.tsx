@@ -631,17 +631,17 @@ export function LandingPage() {
       ════════════════════════════════════════════ */}
       <section className="bg-dots-dark" style={{ padding: "6rem 2rem", fontFamily: "'Google Sans', sans-serif" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
 
             {/* ── LEFT COLUMN: GET IN TOUCH (6 cols / 50%) ── */}
-            <div className="lg:col-span-6">
+            <div className="lg:col-span-6 flex flex-col justify-between h-full">
               <FadeIn>
-                <div style={{ marginBottom: "2.5rem" }}>
-                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#FFCC00", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "1.2rem" }}>
-                    <Mail size={22} color="#111" />
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#FFCC00", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "0.9rem" }}>
+                    <Mail size={20} color="#111" />
                   </div>
-                  <h2 className="contact-heading" style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 3.5vw, 2.75rem)", fontWeight: 800, color: "#fff", marginBottom: "0.8rem" }}>Get in Touch</h2>
-                  <p className="contact-desc" style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: 500, lineHeight: 1.6 }}>For Organising a Literary Event, Bulk Buying of Books, and Authors for joining this Group</p>
+                  <h2 className="contact-heading" style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.85rem, 3vw, 2.4rem)", fontWeight: 800, color: "#fff", marginBottom: "0.4rem", lineHeight: 1.15 }}>Get in Touch</h2>
+                  <p className="contact-desc" style={{ color: "rgba(255,255,255,0.7)", fontSize: 13.5, fontWeight: 500, lineHeight: 1.5 }}>For Organising a Literary Event, Bulk Buying of Books, and Authors for joining this Group</p>
                 </div>
               </FadeIn>
 
@@ -669,10 +669,11 @@ export function LandingPage() {
                       setIsSubmitting(false);
                     }
                   }}
+                  className="space-y-4"
                 >
-                  <div style={{ display: "grid", gap: "1.8rem", marginBottom: "1.8rem" }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="contact-label" style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.6rem" }}>FIRST & LAST NAME</label>
+                      <label className="contact-label" style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.4rem" }}>FIRST & LAST NAME</label>
                       <input
                         required
                         value={contactName}
@@ -680,11 +681,11 @@ export function LandingPage() {
                         type="text"
                         placeholder="e.g. Jane Doe"
                         className="contact-input"
-                        style={{ width: "100%" }}
+                        style={{ width: "100%", padding: "0.75rem 1rem", fontSize: 13.5 }}
                       />
                     </div>
                     <div>
-                      <label className="contact-label" style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.6rem" }}>EMAIL ADDRESS</label>
+                      <label className="contact-label" style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.4rem" }}>EMAIL ADDRESS</label>
                       <input
                         required
                         value={contactEmail}
@@ -692,12 +693,12 @@ export function LandingPage() {
                         type="email"
                         placeholder="jane@example.com"
                         className="contact-input"
-                        style={{ width: "100%" }}
+                        style={{ width: "100%", padding: "0.75rem 1rem", fontSize: 13.5 }}
                       />
                     </div>
                   </div>
-                  <div className="contact-textarea-container" style={{ marginBottom: "2.5rem" }}>
-                    <label className="contact-label" style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.6rem" }}>HOW CAN WE HELP?</label>
+                  <div>
+                    <label className="contact-label" style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "#FFCC00", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.4rem" }}>HOW CAN WE HELP?</label>
                     <textarea
                       required
                       value={contactMessage}
@@ -705,11 +706,11 @@ export function LandingPage() {
                       rows={2}
                       placeholder="Tell us about your project or inquiry..."
                       className="contact-input"
-                      style={{ width: "100%", resize: "none" }}
+                      style={{ width: "100%", resize: "none", padding: "0.75rem 1rem", fontSize: 13.5 }}
                     />
                   </div>
 
-                  <div className="contact-btn-container">
+                  <div className="pt-1">
                     <button
                       className="contact-btn w-full sm:w-auto"
                       disabled={isSubmitting}
@@ -718,10 +719,10 @@ export function LandingPage() {
                         background: "#FFCC00",
                         color: "#111",
                         border: "none",
-                        padding: "0.9rem 2.2rem",
-                        fontSize: 12,
+                        padding: "0.75rem 2rem",
+                        fontSize: 11.5,
                         fontWeight: 800,
-                        letterSpacing: "0.1em",
+                        letterSpacing: "0.08em",
                         textTransform: "uppercase",
                         borderRadius: 50,
                         cursor: isSubmitting ? "not-allowed" : "pointer",
@@ -731,10 +732,10 @@ export function LandingPage() {
                         alignItems: "center",
                         justifyContent: "center",
                         gap: "0.5rem",
-                        boxShadow: "0 4px 20px rgba(255, 204, 0, 0.2)"
+                        boxShadow: "0 4px 18px rgba(255, 204, 0, 0.2)"
                       }}
                     >
-                      {isSubmitting ? "SENDING..." : "SUBMIT INQUIRY"} <ArrowRight size={14} />
+                      {isSubmitting ? "SENDING..." : "SUBMIT INQUIRY"} <ArrowRight size={13} />
                     </button>
                   </div>
                 </form>
@@ -742,61 +743,58 @@ export function LandingPage() {
             </div>
 
             {/* ── RIGHT COLUMN: MEET THE DEVELOPERS (6 cols / 50%) ── */}
-            <div className="lg:col-span-6">
+            <div className="lg:col-span-6 flex flex-col justify-between h-full">
               <FadeIn delay={100}>
-                <div style={{ marginBottom: "1.8rem" }}>
-                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#FFCC00", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "1.2rem" }}>
-                    <Code2 size={22} color="#111" />
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#FFCC00", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "0.9rem" }}>
+                    <Code2 size={20} color="#111" />
                   </div>
-                  <h2 className="contact-heading" style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 3.5vw, 2.75rem)", fontWeight: 800, color: "#fff", marginBottom: "0.6rem" }}>Meet the Developers</h2>
-                  <p className="text-white/75 text-sm sm:text-base font-medium leading-relaxed">
+                  <h2 className="contact-heading" style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(1.85rem, 3vw, 2.4rem)", fontWeight: 800, color: "#fff", marginBottom: "0.4rem", lineHeight: 1.15 }}>Meet the Developers</h2>
+                  <p className="text-white/70 text-[13.5px] font-medium leading-relaxed">
                     This website was developed by the students of <strong className="text-[#FFCC00] font-bold">NIT Jalandhar</strong> under the guidance of <strong className="text-[#FFCC00] font-bold">Cdr. Shiv Mathur</strong>.
                   </p>
                 </div>
               </FadeIn>
 
-              {/* ── CDR. SHIV MATHUR FEATURED CARD ── */}
+              {/* ── CDR. SHIV MATHUR FEATURED CARD (COMPACT & SLEEK) ── */}
               <FadeIn delay={150}>
-                <div className="mb-5 bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-amber-500/10 border border-[#FFCC00]/30 hover:border-[#FFCC00]/60 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-4 sm:gap-5 shadow-xl transition-all duration-300">
-                  <div className="relative shrink-0">
+                <div className="mb-3.5 bg-white/[0.04] hover:bg-white/[0.07] border border-white/10 hover:border-[#FFCC00]/40 rounded-xl p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-md transition-all duration-300">
+                  <div className="flex items-center gap-3 min-w-0">
                     <img
                       src="/team/shiv.jpeg"
                       alt="Cdr (Retd) Shiv Mathur"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/founder_shiv.webp';
                       }}
-                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#FFCC00] shadow-lg shadow-amber-500/20"
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-[#FFCC00] shadow-sm shrink-0"
                     />
-                  </div>
-                  <div className="flex-1 text-center sm:text-left">
-                    <div className="inline-block px-2.5 py-0.5 rounded-full bg-[#FFCC00]/20 text-[#FFCC00] text-[10px] sm:text-[11px] font-bold tracking-wider uppercase mb-1">
-                      Project Mentor & Founder
+                    <div className="min-w-0">
+                      <h3 className="text-white font-bold text-sm sm:text-base leading-tight truncate">
+                        Cdr (Retd) Shiv Mathur
+                      </h3>
+                      <p className="text-white/60 text-xs mt-0.5 truncate">
+                        Founder & Mentor, Pune Authors Association
+                      </p>
                     </div>
-                    <h3 className="text-white font-bold text-lg sm:text-xl leading-tight">
-                      Cdr (Retd) Shiv Mathur
-                    </h3>
-                    <p className="text-white/70 text-xs sm:text-sm mt-1 leading-relaxed">
-                      Visionary behind the Pune Authors Association initiative
-                    </p>
                   </div>
-                  <div className="shrink-0 w-full sm:w-auto flex justify-center">
+                  <div className="shrink-0">
                     <a
                       href="https://www.linkedin.com/in/commander-shiv-mathur-8696ba291/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0077b5] hover:bg-[#005582] text-white text-xs font-bold transition-all duration-200 hover:scale-105 shadow-md cursor-pointer w-full sm:w-auto"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0077b5] hover:bg-[#005582] text-white text-xs font-semibold transition-all duration-200 hover:scale-105 shadow-sm cursor-pointer"
                       title="Cdr. Shiv Mathur's LinkedIn"
                     >
-                      <Linkedin className="w-4 h-4" />
-                      <span>LinkedIn Profile</span>
+                      <Linkedin className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">LinkedIn</span>
                     </a>
                   </div>
                 </div>
               </FadeIn>
 
-              {/* ── 6 STUDENT DEVELOPERS GRID ── */}
+              {/* ── 6 STUDENT DEVELOPERS COMPACT GRID ── */}
               <FadeIn delay={200}>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
                   {[
                     {
                       name: "Anoop Saini",
@@ -826,7 +824,7 @@ export function LandingPage() {
                       name: "Sourav Mamhotra",
                       image: "/team/sourav.jpeg",
                       linkedin: "https://www.linkedin.com/in/sourav-mamhotra/",
-                      portfolio: "https://www.linkedin.com/in/sourav-mamhotra/",
+                      portfolio: "https://sourav-mamhotra.github.io/portfolio/",
                     },
                     {
                       name: "Tarun Thakur",
@@ -837,10 +835,10 @@ export function LandingPage() {
                   ].map((dev, idx) => (
                     <div
                       key={idx}
-                      className="bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-[#FFCC00]/50 transition-all duration-300 rounded-2xl p-3 sm:p-4 text-center group flex flex-col items-center shadow-lg hover:-translate-y-1"
+                      className="bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-[#FFCC00]/40 transition-all duration-300 rounded-xl p-2.5 sm:p-3 text-center group flex flex-col items-center shadow-sm hover:-translate-y-0.5"
                     >
                       {/* Avatar Image with fallback initials */}
-                      <div className="relative mb-2.5">
+                      <div className="relative mb-2">
                         <img
                           src={dev.image}
                           alt={dev.name}
@@ -849,40 +847,40 @@ export function LandingPage() {
                             const fallback = (e.target as HTMLElement).nextElementSibling;
                             if (fallback) (fallback as HTMLElement).style.display = 'flex';
                           }}
-                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-[#FFCC00]/40 group-hover:border-[#FFCC00] shadow-md transition-all duration-300"
+                          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border border-[#FFCC00]/40 group-hover:border-[#FFCC00] shadow-sm transition-all duration-300"
                         />
                         <div
                           style={{ display: 'none' }}
-                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-amber-500/20 to-yellow-400/30 border-2 border-[#FFCC00]/40 items-center justify-center text-[#FFCC00] font-black text-base shadow-md"
+                          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-amber-500/20 to-yellow-400/30 border border-[#FFCC00]/40 items-center justify-center text-[#FFCC00] font-black text-xs shadow-sm"
                         >
                           {dev.name.split(' ').map(n => n[0]).join('')}
                         </div>
                       </div>
 
                       {/* Name */}
-                      <h4 className="text-white font-bold text-xs sm:text-sm group-hover:text-[#FFCC00] transition-colors leading-tight mb-2.5">
+                      <h4 className="text-white font-bold text-xs sm:text-[13px] group-hover:text-[#FFCC00] transition-colors leading-tight mb-2 truncate w-full">
                         {dev.name}
                       </h4>
 
-                      {/* Social Actions: Large Responsive LinkedIn & Portfolio Icons */}
-                      <div className="flex items-center justify-center gap-2 sm:gap-2.5 mt-auto pt-1 w-full">
+                      {/* Social Actions: Compact LinkedIn & Portfolio Icons */}
+                      <div className="flex items-center justify-center gap-2 mt-auto pt-0.5 w-full">
                         <a
                           href={dev.linkedin}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#0077b5]/20 hover:bg-[#0077b5] text-[#0077b5] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-sm border border-[#0077b5]/30 hover:border-transparent cursor-pointer"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#0077b5]/20 hover:bg-[#0077b5] text-[#0077b5] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-sm border border-[#0077b5]/30 hover:border-transparent cursor-pointer"
                           title={`${dev.name}'s LinkedIn`}
                         >
-                          <Linkedin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <Linkedin className="w-3.5 h-3.5" />
                         </a>
                         <a
                           href={dev.portfolio}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#FFCC00]/20 hover:bg-[#FFCC00] text-[#FFCC00] hover:text-black flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-sm border border-[#FFCC00]/30 hover:border-transparent cursor-pointer"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#FFCC00]/20 hover:bg-[#FFCC00] text-[#FFCC00] hover:text-black flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-sm border border-[#FFCC00]/30 hover:border-transparent cursor-pointer"
                           title={`${dev.name}'s Portfolio`}
                         >
-                          <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <Globe className="w-3.5 h-3.5" />
                         </a>
                       </div>
                     </div>
