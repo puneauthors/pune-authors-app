@@ -41,6 +41,12 @@ export function BlockedScreen() {
           <p className="text-slate-400 mt-2 text-sm">
             Grab a coffee, take a breath, and refresh the page when the time is up.
           </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-5 px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            Refresh Page Now
+          </button>
         </div>
       </div>
     </div>

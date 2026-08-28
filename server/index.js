@@ -6,6 +6,9 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust Nginx reverse proxy to get real user client IPs
+app.set('trust proxy', 1);
+
 // Security Imports
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -19,11 +22,17 @@ app.use(helmet({
 // Gzip/Brotli compression for all responses (reduces payload size significantly)
 app.use(compression());
 
-// Security: Rate Limiting (Prevents DDoS and brute-force guessing)
+// Security: Rate Limiting (Prevents DDoS and brute-force guessing per individual client IP)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Increased limit
-  message: 'Too many requests from this IP, please try again later.'
+  max: 3000, // Generous limit per unique IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests from this IP, please try again later.' },
+  skip: (req) => {
+    const ip = req.ip || req.connection?.remoteAddress || '';
+    return ip === '127.0.0.1' || ip === '::1' || ip.includes('127.0.0.1');
+  }
 });
 
 // Security: Strict CORS (Only allows requests from your Website)
@@ -37,7 +46,6 @@ const corsOptions = {
     }
   }
 };
-app.set('trust proxy', 1); // Trust Nginx reverse proxy to get real user IPs
 app.use(cors(corsOptions)); // CORS MUST BE ABOVE LIMITER
 
 // Serve static images BEFORE the rate limiter so images don't count towards the limit!
