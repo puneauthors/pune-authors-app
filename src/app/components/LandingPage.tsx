@@ -681,7 +681,7 @@ export function LandingPage() {
                         type="text"
                         placeholder="e.g. Jane Doe"
                         className="contact-input"
-                        style={{ width: "100%", padding: "0.75rem 1rem", fontSize: 13.5 }}
+                        style={{ width: "100%", padding: "0.8rem 1rem", fontSize: 13.5 }}
                       />
                     </div>
                     <div>
@@ -693,7 +693,7 @@ export function LandingPage() {
                         type="email"
                         placeholder="jane@example.com"
                         className="contact-input"
-                        style={{ width: "100%", padding: "0.75rem 1rem", fontSize: 13.5 }}
+                        style={{ width: "100%", padding: "0.8rem 1rem", fontSize: 13.5 }}
                       />
                     </div>
                   </div>
@@ -703,10 +703,10 @@ export function LandingPage() {
                       required
                       value={contactMessage}
                       onChange={(e) => setContactMessage(e.target.value)}
-                      rows={3}
+                      rows={4}
                       placeholder="Tell us about your project or inquiry..."
                       className="contact-input"
-                      style={{ width: "100%", resize: "none", padding: "0.75rem 1rem", fontSize: 13.5 }}
+                      style={{ width: "100%", resize: "none", padding: "0.8rem 1rem", fontSize: 13.5, lineHeight: 1.6 }}
                     />
                   </div>
 
@@ -719,8 +719,8 @@ export function LandingPage() {
                         background: "#FFCC00",
                         color: "#111",
                         border: "none",
-                        padding: "0.85rem 2.2rem",
-                        fontSize: 11.5,
+                        padding: "0.9rem 2.4rem",
+                        fontSize: 12,
                         fontWeight: 800,
                         letterSpacing: "0.08em",
                         textTransform: "uppercase",
@@ -732,7 +732,7 @@ export function LandingPage() {
                         alignItems: "center",
                         justifyContent: "center",
                         gap: "0.5rem",
-                        boxShadow: "0 4px 18px rgba(255, 204, 0, 0.2)"
+                        boxShadow: "0 4px 18px rgba(255, 204, 0, 0.25)"
                       }}
                     >
                       {isSubmitting ? "SENDING..." : "SUBMIT INQUIRY"} <ArrowRight size={13} />
@@ -756,23 +756,24 @@ export function LandingPage() {
                 </div>
               </FadeIn>
 
-              {/* ── CDR. SHIV MATHUR PROMINENT CARD ── */}
+              {/* ── CDR. SHIV MATHUR PROMINENT CARD (FULL FACE VISIBLE) ── */}
               <FadeIn delay={150}>
-                <div className="mb-4 bg-white/[0.05] hover:bg-white/[0.08] border border-[#FFCC00]/30 hover:border-[#FFCC00]/60 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg transition-all duration-300">
-                  <div className="flex items-center gap-4 min-w-0">
+                <div className="mb-3.5 bg-white/[0.05] hover:bg-white/[0.08] border border-[#FFCC00]/30 hover:border-[#FFCC00]/60 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3.5 shadow-lg transition-all duration-300">
+                  <div className="flex items-center gap-3.5 min-w-0">
                     <img
                       src="/team/shiv.jpeg"
                       alt="Cdr (Retd) Shiv Mathur"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/founder_shiv.webp';
                       }}
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-[#FFCC00] shadow-md shadow-amber-500/20 shrink-0"
+                      className="w-16 h-16 sm:w-18 sm:h-18 rounded-full object-cover border-2 border-[#FFCC00] shadow-md shadow-amber-500/20 shrink-0"
+                      style={{ objectPosition: "center 12%" }}
                     />
                     <div className="min-w-0 text-center sm:text-left">
                       <h3 className="text-white font-bold text-base sm:text-lg leading-tight">
                         Cdr (Retd) Shiv Mathur
                       </h3>
-                      <p className="text-white/70 text-xs sm:text-sm mt-1 leading-relaxed">
+                      <p className="text-white/70 text-xs sm:text-sm mt-0.5 leading-relaxed">
                         Founder & Mentor, Pune Authors Association
                       </p>
                     </div>
@@ -782,7 +783,7 @@ export function LandingPage() {
                       href="https://www.linkedin.com/in/commander-shiv-mathur-8696ba291/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#0077b5] hover:bg-[#005582] text-white text-xs sm:text-sm font-bold transition-all duration-200 hover:scale-105 shadow-md cursor-pointer w-full sm:w-auto"
+                      className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-[#0077b5] hover:bg-[#005582] text-white text-xs sm:text-sm font-bold transition-all duration-200 hover:scale-105 shadow-md cursor-pointer w-full sm:w-auto"
                       title="Cdr. Shiv Mathur's LinkedIn"
                     >
                       <Linkedin className="w-4 h-4" />
@@ -818,7 +819,7 @@ export function LandingPage() {
                       name: "Baani Garg",
                       image: "/team/baani.jpeg",
                       linkedin: "https://www.linkedin.com/in/baani-garg-3729a1289",
-                      portfolio: "https://www.linkedin.com/in/baani-garg-3729a1289",
+                      portfolio: "https://baani-garg-portfolio.vercel.app",
                     },
                     {
                       name: "Sourav Mamhotra",
@@ -835,10 +836,10 @@ export function LandingPage() {
                   ].map((dev, idx) => (
                     <div
                       key={idx}
-                      className="bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-[#FFCC00]/40 transition-all duration-300 rounded-xl p-2 sm:p-2.5 text-center group flex flex-col items-center shadow-sm hover:-translate-y-0.5"
+                      className="bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-[#FFCC00]/40 transition-all duration-300 rounded-xl py-2 px-2 text-center group flex flex-col items-center shadow-sm hover:-translate-y-0.5"
                     >
-                      {/* Avatar Image with fallback initials */}
-                      <div className="relative mb-1.5">
+                      {/* Avatar Image (Kept large & clear) */}
+                      <div className="relative mb-1">
                         <img
                           src={dev.image}
                           alt={dev.name}
@@ -847,28 +848,28 @@ export function LandingPage() {
                             const fallback = (e.target as HTMLElement).nextElementSibling;
                             if (fallback) (fallback as HTMLElement).style.display = 'flex';
                           }}
-                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-[#FFCC00]/40 group-hover:border-[#FFCC00] shadow-sm transition-all duration-300"
+                          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border border-[#FFCC00]/40 group-hover:border-[#FFCC00] shadow-sm transition-all duration-300"
                         />
                         <div
                           style={{ display: 'none' }}
-                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-amber-500/20 to-yellow-400/30 border border-[#FFCC00]/40 items-center justify-center text-[#FFCC00] font-black text-[10px] shadow-sm"
+                          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-amber-500/20 to-yellow-400/30 border border-[#FFCC00]/40 items-center justify-center text-[#FFCC00] font-black text-xs shadow-sm"
                         >
                           {dev.name.split(' ').map(n => n[0]).join('')}
                         </div>
                       </div>
 
                       {/* Name */}
-                      <h4 className="text-white font-bold text-[11px] sm:text-xs group-hover:text-[#FFCC00] transition-colors leading-tight mb-1.5 truncate w-full">
+                      <h4 className="text-white font-bold text-[11px] sm:text-xs group-hover:text-[#FFCC00] transition-colors leading-tight mb-1 truncate w-full">
                         {dev.name}
                       </h4>
 
-                      {/* Social Actions: Compact LinkedIn & Portfolio Icons */}
-                      <div className="flex items-center justify-center gap-1.5 mt-auto pt-0.5 w-full">
+                      {/* Compact Social Action Icons */}
+                      <div className="flex items-center justify-center gap-1.5 mt-auto w-full">
                         <a
                           href={dev.linkedin}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-[#0077b5]/20 hover:bg-[#0077b5] text-[#0077b5] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-sm border border-[#0077b5]/30 hover:border-transparent cursor-pointer"
+                          className="w-6 h-6 sm:w-6.5 sm:h-6.5 rounded-md bg-[#0077b5]/20 hover:bg-[#0077b5] text-[#0077b5] hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-sm border border-[#0077b5]/30 hover:border-transparent cursor-pointer"
                           title={`${dev.name}'s LinkedIn`}
                         >
                           <Linkedin className="w-3 h-3" />
