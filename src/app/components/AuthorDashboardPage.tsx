@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router';
 import { Home, Check, AlertCircle, Upload, Download, Loader2, LogOut, User, Bell, Search, ShoppingCart, BookOpen, CalendarIcon, BarChart3, Package, TrendingUp, TrendingDown, X, MapPin, Menu, ChevronDown, ChevronUp, DollarSign, CheckCircle2, FileText, Image as ImageIcon, Star, Plus, Minus, Eye, Edit2, Mail, Phone, Clock, Trash2, MessageSquare, ExternalLink, Send, ChevronLeft, ChevronRight, RefreshCw, Users, Megaphone, Archive, Sparkles } from 'lucide-react';
@@ -1461,8 +1461,8 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
             .filter((inv: any) => {
                const evt = inv.event;
                if (!evt) return false;
-               const isPast = evt.status === 'Past' || evt.status === 'Legacy Archive' || (evt.date && new Date(evt.date) < new Date());
-               return ((evt.livePosEnabled && evt.status === 'Live') || (isSpecialAuthor && !isPast)) && (inv.optInStatus === 'Registered' || inv.optInStatus === 'Approved');
+               const isPast = evt.isPast || evt.status === 'Past' || evt.status === 'Legacy Archive' || (evt.date && new Date(evt.date) < new Date());
+               return !isPast && ((evt.livePosEnabled && evt.status === 'Live') || isSpecialAuthor) && (inv.optInStatus === 'Registered' || inv.optInStatus === 'Approved');
             })
             .map((inv: any) => inv.event);
             
@@ -4996,7 +4996,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
           </div>
           {(() => {
              const isSpecialAuthor = dashboardData?.authorProfile?.email === 'arvindpuri1492@gmail.com';
-             const livePosEvents = allEvents.filter((evt: any) => ((evt.livePosEnabled && evt.status === 'Live') || (isSpecialAuthor && !evt.isPast)) && (evt.registration === 'Registered' || evt.registration === 'Approved'));
+              const livePosEvents = allEvents.filter((evt: any) => !evt.isPast && ((evt.livePosEnabled && evt.status === 'Live') || isSpecialAuthor) && (evt.registration === 'Registered' || evt.registration === 'Approved'));
              if (livePosEvents.length === 0) return null;
              return (
                <div className="mb-1 animate-fade-in-up space-y-2">
@@ -5501,7 +5501,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                       {statusText}
                                     </span>
                                   )}
-                                  {((evt.livePosEnabled && evt.status === 'Live') || dashboardData?.authorProfile?.email === 'arvindpuri1492@gmail.com') && (evt.registration === 'Registered' || evt.registration === 'Approved') && (
+                                  {!evt.isPast && ((evt.livePosEnabled && evt.status === 'Live') || dashboardData?.authorProfile?.email === 'arvindpuri1492@gmail.com') && (evt.registration === 'Registered' || evt.registration === 'Approved') && (
                                     <button onClick={(e) => { e.stopPropagation(); window.open('/dashboard/pos/' + evt.id, '_blank'); }} className="mt-1 w-full max-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap" title="Launch Point of Sale System">
                                       <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span> LAUNCH POS
                                     </button>

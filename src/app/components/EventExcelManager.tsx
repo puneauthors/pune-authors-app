@@ -234,6 +234,20 @@ export default function EventExcelManager({
     });
   };
 
+  const handleSoldStockChange = (authorId: string, bookIdx: number, value: string) => {
+    setAuthors(prev => {
+      const next = [...prev];
+      const aIdx = next.findIndex(a => a.authorId === authorId);
+      if (aIdx === -1) return prev;
+      const author = { ...next[aIdx] };
+      const book = { ...author.books[bookIdx] };
+      book.soldStock = value === "" ? 0 : parseInt(value) || 0;
+      author.books[bookIdx] = book;
+      next[aIdx] = author;
+      return next;
+    });
+  };
+
   const saveAuthorData = async (authorId: string) => {
     setIsSaving(true);
     try {
@@ -646,8 +660,18 @@ export default function EventExcelManager({
                         </td>
                       ))}
                       
-                      <td className="border-[1.5px] border-black bg-white text-black text-center font-bold p-1">
-                        {book.soldStock}
+                      <td className={`border-[1.5px] border-black text-black ${isEditing ? 'p-0' : 'text-center font-bold p-1'} bg-white`}>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            min={0}
+                            className="w-full h-full p-1 bg-transparent border-none text-center outline-none font-bold"
+                            value={book.soldStock ?? ""}
+                            onChange={(e) => handleSoldStockChange(author.authorId, bIdx, e.target.value)}
+                          />
+                        ) : (
+                          book.soldStock
+                        )}
                       </td>
                       <td className="border-[1.5px] border-black bg-[#e6f4ea] text-black text-center font-bold p-1">
                         ₹{(book.soldStock || 0) * mrp}
