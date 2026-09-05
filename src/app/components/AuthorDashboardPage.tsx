@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router';
 import { Home, Check, AlertCircle, Upload, Download, Loader2, LogOut, User, Bell, Search, ShoppingCart, BookOpen, CalendarIcon, BarChart3, Package, TrendingUp, TrendingDown, X, MapPin, Menu, ChevronDown, ChevronUp, DollarSign, CheckCircle2, FileText, Image as ImageIcon, Star, Plus, Minus, Eye, Edit2, Mail, Phone, Clock, Trash2, MessageSquare, ExternalLink, Send, ChevronLeft, ChevronRight, RefreshCw, Users, Megaphone, Archive, Sparkles } from 'lucide-react';
@@ -1461,7 +1461,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
             .filter((inv: any) => {
                const evt = inv.event;
                if (!evt) return false;
-               const isPast = evt.isPast || evt.status === 'Past' || evt.status === 'Legacy Archive' || (evt.date && new Date(evt.date) < new Date());
+               const isPast = evt.isPast || evt.status === 'Past' || evt.status === 'Legacy Archive' || checkIsPastEvent(evt.startDate || evt.date, evt.duration || '1 Day');
                return !isPast && ((evt.livePosEnabled && evt.status === 'Live') || isSpecialAuthor) && (inv.optInStatus === 'Registered' || inv.optInStatus === 'Approved');
             })
             .map((inv: any) => inv.event);
@@ -4659,7 +4659,8 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
         rejectionReason: inv.rejectionReason || null,
         manualTotalSold: inv.manualTotalSold,
         manualTotalRevenue: inv.manualTotalRevenue,
-        isPast: inv.event?.status === 'Past' || inv.event?.status === 'Legacy Archive',
+        isPast: inv.event?.status === 'Past' || inv.event?.status === 'Legacy Archive' || checkIsPastEvent(inv.event?.startDate || inv.event?.date, inv.event?.duration || '1 Day'),
+        status: (inv.event?.status === 'Past' || inv.event?.status === 'Legacy Archive' || checkIsPastEvent(inv.event?.startDate || inv.event?.date, inv.event?.duration || '1 Day')) && inv.event?.status !== 'Legacy Archive' ? 'Past' : inv.event?.status,
         isInvite: true,
         isDataUpdated: inv.manualTotalSold !== null || hasGranular || inv.event?.broadcastStatus === 'Published',
         aggSold: inv.event?.aggSold || 0,
@@ -4674,10 +4675,11 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
       );
       return {
         ...evt,
+        status: (evt.status === 'Past' || evt.status === 'Legacy Archive' || checkIsPastEvent(evt.startDate || evt.date, evt.duration || '1 Day')) && evt.status !== 'Legacy Archive' ? 'Past' : evt.status,
         isFeeExempt: isAvailExempt,
         registration: 'Pending',
         paymentStatus: isAvailExempt ? 'Paid' : '-',
-        isPast: evt.status === 'Past' || evt.status === 'Legacy Archive',
+        isPast: evt.status === 'Past' || evt.status === 'Legacy Archive' || checkIsPastEvent(evt.startDate || evt.date, evt.duration || '1 Day'),
         isInvite: true
       };
     }),
@@ -4996,34 +4998,37 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
           </div>
           {(() => {
              const isSpecialAuthor = dashboardData?.authorProfile?.email === 'arvindpuri1492@gmail.com';
-              const livePosEvents = allEvents.filter((evt: any) => !evt.isPast && ((evt.livePosEnabled && evt.status === 'Live') || isSpecialAuthor) && (evt.registration === 'Registered' || evt.registration === 'Approved'));
+              const livePosEvents = allEvents.filter((evt: any) => {
+                const isEvtPast = evt.isPast || evt.status === 'Past' || evt.status === 'Legacy Archive' || checkIsPastEvent(evt.startDate || evt.date, evt.duration || '1 Day');
+                return !isEvtPast && ((evt.livePosEnabled && evt.status === 'Live') || isSpecialAuthor) && (evt.registration === 'Registered' || evt.registration === 'Approved');
+              });
              if (livePosEvents.length === 0) return null;
              return (
                <div className="mb-1 animate-fade-in-up space-y-2">
                  {livePosEvents.map((evt: any) => (
-                    <div key={evt.id} className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-2xl p-3 md:p-4 border-2 border-indigo-400/30 shadow-premium flex flex-col md:flex-row items-center justify-between gap-3 relative overflow-hidden group">
+                    <div key={evt.id} className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-2xl p-4 sm:p-5 md:p-6 border-2 border-indigo-400/30 shadow-premium flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden group">
                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-110"></div>
                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl -ml-20 -mb-20 transition-transform duration-700 group-hover:scale-110"></div>
                        
                        <div className="relative z-10 flex-1 w-full text-center md:text-left">
-                          <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
+                          <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
                              <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
-                             <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">Active Now</span>
+                             <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest bg-emerald-400/10 px-2.5 py-0.5 rounded-full border border-emerald-400/20">Active Now</span>
                           </div>
-                          <h3 className="text-2xl md:text-3xl font-serif font-black text-white leading-tight mb-2 drop-shadow-md">{evt.name}</h3>
-                          <p className="text-blue-100/80 text-xs font-bold uppercase tracking-widest flex items-center justify-center md:justify-start gap-3 mt-3">
-                              <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> {evt.location || evt.venue || 'TBA'}</span>
-                              <span className="text-blue-500">&bull;</span>
-                              <span className="flex items-center gap-1"><CalendarIcon className="w-3.5 h-3.5"/> {new Date(evt.startDate || evt.date).toLocaleDateString()}</span>
+                          <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-black text-white leading-tight mb-2 drop-shadow-md break-words">{evt.name}</h3>
+                          <p className="text-blue-100/80 text-xs font-bold uppercase tracking-widest flex flex-wrap items-center justify-center md:justify-start gap-2 sm:gap-3 mt-2">
+                              <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 shrink-0"/> {evt.location || evt.venue || 'TBA'}</span>
+                              <span className="text-blue-500 hidden sm:inline">&bull;</span>
+                              <span className="flex items-center gap-1"><CalendarIcon className="w-3.5 h-3.5 shrink-0"/> {new Date(evt.startDate || evt.date).toLocaleDateString()}</span>
                           </p>
                        </div>
                        
                        <div className="relative z-10 shrink-0 w-full md:w-auto mt-2 md:mt-0">
                           <button 
                              onClick={(e) => { e.stopPropagation(); window.open('/dashboard/pos/' + evt.id, '_blank'); }} 
-                             className="w-full md:w-auto bg-[#ccff00] text-black hover:bg-[#b3e600] px-8 py-4 rounded-xl font-black text-sm uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(204,255,0,0.3)] hover:shadow-[0_0_30px_rgba(204,255,0,0.6)] hover:-translate-y-1 flex items-center justify-center gap-3"
+                             className="w-full md:w-auto bg-[#ccff00] text-black hover:bg-[#b3e600] px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(204,255,0,0.3)] hover:shadow-[0_0_30px_rgba(204,255,0,0.6)] hover:-translate-y-1 flex items-center justify-center gap-2.5 sm:gap-3 active:scale-95 cursor-pointer"
                           >
-                             <ShoppingCart className="w-5 h-5" />
+                             <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                              Launch POS
                           </button>
                        </div>
@@ -5277,7 +5282,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
 
           
 
-          <div className="mt-0 border border-black overflow-x-auto shadow-sm rounded-xl mb-4">
+          <div className="mt-0 border border-black overflow-x-auto shadow-sm rounded-xl mb-4 overscroll-x-contain touch-pan-x">
             <table className="w-full text-left text-[11px] border-collapse border-[1.5px] border-black">
               <thead className="bg-[#FFE600] border-b-2 border-black">
                 <tr>
@@ -5501,11 +5506,15 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                       {statusText}
                                     </span>
                                   )}
-                                  {!evt.isPast && ((evt.livePosEnabled && evt.status === 'Live') || dashboardData?.authorProfile?.email === 'arvindpuri1492@gmail.com') && (evt.registration === 'Registered' || evt.registration === 'Approved') && (
-                                    <button onClick={(e) => { e.stopPropagation(); window.open('/dashboard/pos/' + evt.id, '_blank'); }} className="mt-1 w-full max-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap" title="Launch Point of Sale System">
-                                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span> LAUNCH POS
-                                    </button>
-                                  )}
+                                   {(() => {
+                                     const isEvtPast = evt.isPast || evt.status === 'Past' || evt.status === 'Legacy Archive' || checkIsPastEvent(evt.startDate || evt.date, evt.duration || '1 Day');
+                                     if (isEvtPast) return null;
+                                     return (((evt.livePosEnabled && evt.status === 'Live') || dashboardData?.authorProfile?.email === 'arvindpuri1492@gmail.com') && (evt.registration === 'Registered' || evt.registration === 'Approved')) && (
+                                       <button onClick={(e) => { e.stopPropagation(); window.open('/dashboard/pos/' + evt.id, '_blank'); }} className="mt-1 w-full max-w-[110px] flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap cursor-pointer active:scale-95" title="Launch Point of Sale System">
+                                         <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span> LAUNCH POS
+                                       </button>
+                                     );
+                                   })()}
                                   {(evt.registration === 'Rejected' || evt.registration === 'Declined') && (
                                     <>
                                       {evt.rejectionReason && (

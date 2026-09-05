@@ -6303,6 +6303,10 @@ const totalAuthorsBase = eventRegistrations.length;
       );
     const now = new Date();
     let chartEvents = allCombinedEvents.filter((e: any) => {
+      if (e.isArchived || e.status === "Deleted") return false;
+      if (e.isProposed || e.status === "Proposed") return false;
+      if (e.status === "Pending Approval" || e.status === "Rejected") return false;
+
       const eventDate = new Date(e.date || e.startDate || 0);
       if (eventDate >= now) return false;
 
@@ -6505,7 +6509,7 @@ const totalAuthorsBase = eventRegistrations.length;
       if (participantsData) return; // Prevent re-fetching if data already exists
       setIsLoadingParticipants(true);
       try {
-        const sortedEvents = [...allCombinedEvents].sort((a, b) => {
+        const sortedEvents = [...allCombinedEvents.filter(e => !e.isArchived && !e.isProposed && e.status !== "Proposed")].sort((a, b) => {
           let da = new Date(a.date).getTime();
           let db = new Date(b.date).getTime();
           if (isNaN(da)) da = new Date(a.createdAt).getTime();
@@ -6797,7 +6801,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 </p>
                 <div className="text-2xl font-bold tracking-tight">
                   {
-                    allCombinedEvents.filter(e => e.status !== "Rejected" && e.status !== "Pending Approval").length
+                    allCombinedEvents.filter(e => !e.isArchived && !e.isProposed && e.status !== "Proposed" && e.status !== "Rejected" && e.status !== "Pending Approval").length
                   }
                 </div>
               </div>
@@ -6806,7 +6810,9 @@ const totalAuthorsBase = eventRegistrations.length;
                   Total Books Sold
                 </p>
                 <div className="text-2xl font-bold tracking-tight">
-                  {allCombinedEvents.reduce(
+                  {allCombinedEvents
+                    .filter(e => !e.isArchived && !e.isProposed && e.status !== "Proposed" && e.status !== "Rejected" && e.status !== "Pending Approval")
+                    .reduce(
                     (acc, evt) => {
                       const books =
                         evt.aggSold != null
@@ -6830,6 +6836,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 <div className="text-2xl font-bold tracking-tight">
                   {
                     allCombinedEvents.filter((e) => {
+                      if (e.isArchived || e.isProposed || e.status === "Proposed" || e.status === "Rejected" || e.status === "Pending Approval") return false;
                       const d = new Date(e.date).getTime();
                       return !isNaN(d) && d > Date.now();
                     }).length
@@ -6843,6 +6850,7 @@ const totalAuthorsBase = eventRegistrations.length;
                 <div className="text-2xl font-bold tracking-tight">
                   ₹
                   {allCombinedEvents
+                    .filter(e => !e.isArchived && !e.isProposed && e.status !== "Proposed" && e.status !== "Rejected" && e.status !== "Pending Approval")
                     .reduce(
                       (acc, evt) => {
                         const revenue =

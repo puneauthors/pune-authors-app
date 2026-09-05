@@ -29,6 +29,43 @@ const deleteCatalogueCache = () => {
   }
 };
 
+const parseEventDateHelper = (dStr) => {
+  if (!dStr) return null;
+  if (dStr instanceof Date) return isNaN(dStr.getTime()) ? null : dStr;
+  try {
+    const s = String(dStr).trim();
+    if (!s) return null;
+    let dt = new Date(s);
+    if (!isNaN(dt.getTime())) return dt;
+    dt = new Date(s.replace(/-/g, '/'));
+    if (!isNaN(dt.getTime())) return dt;
+    const dmy = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (dmy) {
+      dt = new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+      if (!isNaN(dt.getTime())) return dt;
+    }
+    return null;
+  } catch (e) { return null; }
+};
+
+const isEventPastHelper = (evt) => {
+  if (!evt) return false;
+  if (evt.status === 'Past' || evt.status === 'Legacy Archive') return true;
+  const startDate = parseEventDateHelper(evt.date || evt.startDate);
+  if (!startDate) return false;
+  let durationDays = 1;
+  if (typeof evt.duration === 'string') {
+    const match = evt.duration.match(/(\d+)\s*Days?/i);
+    if (match && parseInt(match[1]) > 0) {
+      durationDays = parseInt(match[1]);
+    }
+  }
+  const endDate = new Date(startDate.getTime());
+  endDate.setDate(endDate.getDate() + Math.max(1, durationDays) - 1);
+  endDate.setHours(23, 59, 59, 999);
+  return Date.now() > endDate.getTime();
+};
+
 // --- PUBLIC FORMS --- //
 
 // Author Event Request (from Author Landing Page)
@@ -2678,6 +2715,13 @@ router.get('/api/author/dashboard-data', verifyToken, async (req, res) => {
       where: { authorId: authorProfile.id },
       include: { event: true }
     });
+    if (eventInvites) {
+      eventInvites.forEach(ei => {
+        if (ei.event && isEventPastHelper(ei.event) && ei.event.status !== 'Legacy Archive') {
+          ei.event.status = 'Past';
+        }
+      });
+    }
     const listedBooks = await prisma.eventBook.findMany({
       where: { authorId: authorProfile.id },
       include: { book: true, event: true }
@@ -5672,6 +5716,9 @@ router.get('/api/author/events', verifyToken, async (req, res) => {
       const isExempt = Boolean(ei.isFeeExempt || (ei.event?.exemptAuthorIds && Array.isArray(ei.event.exemptAuthorIds) && ei.event.exemptAuthorIds.includes(author.id)));
       ei.isFeeExempt = isExempt;
       if (ei.event) {
+        if (isEventPastHelper(ei.event) && ei.event.status !== 'Legacy Archive') {
+          ei.event.status = 'Past';
+        }
         attachParticipation(ei.event);
         ei.event.isFeeExempt = isExempt;
       }
