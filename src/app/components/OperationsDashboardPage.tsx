@@ -4101,7 +4101,15 @@ const totalAuthorsBase = eventRegistrations.length;
             ? "NA"
             : totalSaleBase;
       const totalPaymentsBase = eventRegistrations.reduce(
-        (acc: number, a: any) => acc + (a.amountPaid || 0),
+        (acc: number, a: any) => {
+          const paidValue = Number(a.amountPaid) || 0;
+          const isFeeWaived = Boolean(a.isFeeExempt && paidValue === 0);
+          const paymentStatus = String(a.paymentStatus || '').trim().toLowerCase();
+          const optInStatus = String(a.optInStatus || '').trim().toLowerCase();
+          const isPending = ['pending', 'pending approval', 'pending payment', 'pending verification'].includes(optInStatus) || ['pending', 'pending approval', 'pending payment', 'pending verification', 'rejected', 'declined'].includes(paymentStatus);
+          const isCountable = paidValue > 0 && !isFeeWaived && !isPending;
+          return acc + (isCountable ? paidValue : 0);
+        },
         0,
       );
       const totalPayments =
@@ -5216,11 +5224,14 @@ const totalAuthorsBase = eventRegistrations.length;
           ? (m.books?.length || 0) *
             (selectedEventBreakdown.registrationFee || 0)
           : selectedEventBreakdown?.registrationFee || 0;
+      const isFeeWaived = Boolean(m.isFeeExempt);
       setManageAmountPaid(
-        m.amountPaid ||
-          (m.paymentStatus === "Paid" || m.optInStatus?.startsWith("Registered")
-            ? expectedFee
-            : 0),
+        isFeeWaived
+          ? 0
+          : (m.amountPaid ??
+              (m.paymentStatus === "Paid" || m.optInStatus?.startsWith("Registered")
+                ? expectedFee
+                : 0)),
       );
       const isLegacyEvent =
         selectedEventBreakdown?.status === "Legacy Archive" ||
@@ -5410,14 +5421,17 @@ const totalAuthorsBase = eventRegistrations.length;
       );
       const totalFeesReceived = eventRegistrations.reduce(
         (acc: number, a: any) => {
+          const paidValue = Number(a.amountPaid) || 0;
+          const isFeeWaived = Boolean(a.isFeeExempt && paidValue === 0);
           const fee =
-            a.amountPaid != null
-              ? parseFloat(a.amountPaid)
-              : a.paymentStatus === "Paid" ||
-                  a.optInStatus?.startsWith("Registered")
-                ? parseFloat(selectedEventBreakdown.registrationFee || 0)
-                : 0;
-          return acc + (!isNaN(fee) ? fee : 0);
+            isFeeWaived
+              ? 0
+              : paidValue > 0
+                ? paidValue
+                : a.paymentStatus === "Paid" || a.optInStatus?.startsWith("Registered")
+                  ? parseFloat(selectedEventBreakdown.registrationFee || 0)
+                  : 0;
+          return acc + (a.paymentStatus === 'Paid' && !isFeeWaived && !isNaN(fee) ? fee : 0);
         },
         0,
       );

@@ -367,14 +367,25 @@ export default function EventExcelManager({
     }
   };
 
+  const isApprovedPaymentEntry = (author: any) => {
+    const isFeeExempt = Boolean(author.isFeeExempt || (eventBreakdown?.exemptAuthorIds && Array.isArray(eventBreakdown.exemptAuthorIds) && eventBreakdown.exemptAuthorIds.includes(author.authorId)));
+    const rawAmount = author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== "" ? Number(author.amountPaid) : 0;
+    const paymentStatus = String(author.paymentStatus || '').trim().toLowerCase();
+    const optInStatus = String(author.optInStatus || '').trim().toLowerCase();
+    const isPending = ['pending', 'pending approval', 'pending payment', 'pending verification'].includes(optInStatus) || ['pending', 'pending approval', 'pending payment', 'pending verification', 'rejected', 'declined'].includes(paymentStatus);
+    return !isFeeExempt && rawAmount > 0 && !isPending;
+  };
+
   let totalSold = 0;
   let totalRevenue = 0;
   let totalAmountPaid = 0;
   authors.forEach(author => {
-    const expectedFee = eventBreakdown?.registrationFee ? (eventBreakdown.feeType === 'Per Title' ? eventBreakdown.registrationFee * (author.books?.length || 0) : eventBreakdown.registrationFee) : null;
-    const authorPaid = author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== ""
-      ? parseFloat(author.amountPaid)
-      : (expectedFee || 0);
+    const isFeeExempt = Boolean(author.isFeeExempt || (eventBreakdown?.exemptAuthorIds && Array.isArray(eventBreakdown.exemptAuthorIds) && eventBreakdown.exemptAuthorIds.includes(author.authorId)));
+    const rawAmount = author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== "" ? Number(author.amountPaid) : 0;
+    const paymentStatus = String(author.paymentStatus || '').trim().toLowerCase();
+    const optInStatus = String(author.optInStatus || '').trim().toLowerCase();
+    const isPending = ['pending', 'pending approval', 'pending payment', 'pending verification'].includes(optInStatus) || ['pending', 'pending approval', 'pending payment', 'pending verification', 'rejected', 'declined'].includes(paymentStatus);
+    const authorPaid = !isFeeExempt && rawAmount > 0 && !isPending ? rawAmount : 0;
     if (!isNaN(authorPaid)) {
       totalAmountPaid += authorPaid;
     }
@@ -475,7 +486,14 @@ export default function EventExcelManager({
             ) : (
               authors.map((author, aIdx) => {
                 const isEditing = editingAuthorId === author.authorId;
+                const isFeeExempt = Boolean(author.isFeeExempt || (eventBreakdown?.exemptAuthorIds && Array.isArray(eventBreakdown.exemptAuthorIds) && eventBreakdown.exemptAuthorIds.includes(author.authorId)));
                 const expectedFee = eventBreakdown?.registrationFee ? (eventBreakdown.feeType === 'Per Title' ? eventBreakdown.registrationFee * (author.books?.length || 0) : eventBreakdown.registrationFee) : null;
+                const rawAmount = author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== "" ? Number(author.amountPaid) : 0;
+                const paymentStatus = String(author.paymentStatus || '').trim().toLowerCase();
+                const optInStatus = String(author.optInStatus || '').trim().toLowerCase();
+                const statusIsApproved = ['paid', 'verified', 'approved', 'confirmed'].includes(paymentStatus) || ['approved', 'registered'].includes(optInStatus);
+                const isPending = ['pending', 'pending approval', 'pending payment', 'rejected', 'declined'].includes(optInStatus) || ['pending verification', 'rejected'].includes(paymentStatus);
+                const displayedAmount = !isFeeExempt && rawAmount > 0 && statusIsApproved && !isPending ? rawAmount : (isFeeExempt ? 0 : (rawAmount > 0 ? rawAmount : expectedFee));
                 const expectedFeeStr = expectedFee !== null ? `₹${expectedFee}` : "NA";
                 
                 if (!author.books || author.books.length === 0) {
@@ -490,12 +508,12 @@ export default function EventExcelManager({
                             <input
                               type="number"
                               className="w-full h-full p-1 bg-transparent border-none text-center outline-none font-bold text-black"
-                              value={author.amountPaid || ""}
+                              value={isFeeExempt ? 0 : (author.amountPaid || "")}
                               onChange={(e) => handleAmountPaidChange(author.authorId, e.target.value)}
                               placeholder="0"
                             />
                           ) : (
-                            author.amountPaid ? `₹${author.amountPaid}` : expectedFeeStr
+                            isFeeExempt ? '₹0' : (author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== "" ? `₹${author.amountPaid}` : expectedFeeStr)
                           )}
                       </td>
                       <td className="border-[1.5px] border-black text-gray-400 italic p-1 px-2 text-center">
@@ -599,12 +617,12 @@ export default function EventExcelManager({
                             <input
                               type="number"
                               className="w-full h-full p-1 bg-transparent border-none text-center outline-none font-bold text-black"
-                              value={author.amountPaid || ""}
+                              value={isFeeExempt ? 0 : (author.amountPaid || "")}
                               onChange={(e) => handleAmountPaidChange(author.authorId, e.target.value)}
                               placeholder="0"
                             />
                           ) : (
-                            author.amountPaid ? `₹${author.amountPaid}` : expectedFeeStr
+                            isFeeExempt ? '₹0' : (author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== "" ? `₹${author.amountPaid}` : expectedFeeStr)
                           )}
                         </td>
                       )}
