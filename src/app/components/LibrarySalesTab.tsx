@@ -72,6 +72,7 @@ export function LibrarySalesTab() {
   const [platformAuthors, setPlatformAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isFetchingAuthors, setIsFetchingAuthors] = useState(false);
 
   // Active view: null = Master Libraries Table, object = Specific Library Sales Breakdown
   const [selectedLibrary, setSelectedLibrary] = useState<any | null>(null);
@@ -123,10 +124,9 @@ export function LibrarySalesTab() {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [salesRes, libsRes, authorsRes] = await Promise.all([
+      const [salesRes, libsRes] = await Promise.all([
         axios.get(`${API}/api/admin/library-sales`, { headers }),
-        axios.get(`${API}/api/admin/library-sales/libraries`, { headers }),
-        axios.get(`${API}/api/admin/authors?limit=1000`, { headers }).catch(() => ({ data: { data: [] } }))
+        axios.get(`${API}/api/admin/library-sales/libraries`, { headers })
       ]);
 
       if (salesRes.data.success) {
@@ -143,8 +143,7 @@ export function LibrarySalesTab() {
           }
         }
       }
-      const fetchedAuthors = authorsRes.data?.data || authorsRes.data?.authors || (Array.isArray(authorsRes.data) ? authorsRes.data : []);
-      setPlatformAuthors(fetchedAuthors);
+      // Authors are fetched on demand when opening the Add Participant modal
     } catch (err: any) {
       console.error('Error fetching library sales data:', err);
       toast.error('Failed to load library sales data');
@@ -343,6 +342,30 @@ export function LibrarySalesTab() {
         if (!qtyMap[id]) qtyMap[id] = defaultQuantity || 10;
       });
       setBookQuantities(qtyMap);
+    }
+  };
+
+  // Open Add Participant modal and fetch authors if not loaded yet
+  const handleOpenAddModal = async () => {
+    setNewAuthorId('');
+    setSelectedBookIds([]);
+    setBookQuantities({});
+    setShowAddModal(true);
+    
+    if (platformAuthors.length === 0) {
+      setIsFetchingAuthors(true);
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API}/api/admin/authors?limit=5000`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const fetchedAuthors = res.data?.data || res.data?.authors || (Array.isArray(res.data) ? res.data : []);
+        setPlatformAuthors(fetchedAuthors);
+      } catch (err: any) {
+        toast.error('Failed to load authors for selection');
+      } finally {
+        setIsFetchingAuthors(false);
+      }
     }
   };
 
@@ -868,15 +891,12 @@ export function LibrarySalesTab() {
 
             {/* ADD PARTICIPANT (OPENS STREAMLINED MODAL) */}
             <button
-              onClick={() => {
-                setNewAuthorId('');
-                setSelectedBookIds([]);
-                setBookQuantities({});
-                setShowAddModal(true);
-              }}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#b44d28] hover:bg-[#963c1e] text-white rounded-xl text-xs font-bold shadow-sm transition-all"
+              onClick={handleOpenAddModal}
+              disabled={isFetchingAuthors}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#b44d28] hover:bg-[#963c1e] text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-70"
             >
-              <Plus className="w-4 h-4" /> Add Participant / Book
+              <Plus className="w-4 h-4" /> 
+              {isFetchingAuthors ? 'Loading...' : 'Add Participant / Book'}
             </button>
 
             {/* DOWNLOAD EXCEL */}
@@ -1003,15 +1023,11 @@ export function LibrarySalesTab() {
                 REVENUE: ₹{libraryMetrics.totalRevenue.toLocaleString()}
               </span>
               <button
-                onClick={() => {
-                  setNewAuthorId('');
-                  setSelectedBookIds([]);
-                  setBookQuantities({});
-                  setShowAddModal(true);
-                }}
-                className="bg-white text-black px-3.5 py-1 text-xs font-black uppercase tracking-wider border-[1.5px] border-black hover:bg-gray-100 transition-colors shadow-xs"
+                onClick={handleOpenAddModal}
+                disabled={isFetchingAuthors}
+                className="bg-white text-black px-3.5 py-1 text-xs font-black uppercase tracking-wider border-[1.5px] border-black hover:bg-gray-100 transition-colors shadow-xs disabled:opacity-70"
               >
-                + ADD PARTICIPANT
+                {isFetchingAuthors ? 'LOADING...' : '+ ADD PARTICIPANT'}
               </button>
             </div>
           </div>
@@ -1525,10 +1541,15 @@ export function LibrarySalesTab() {
                     required
                     value={newAuthorId}
                     onChange={e => handleAuthorSelectionChange(e.target.value)}
-                    className="w-full border border-gray-300 rounded-xl p-2.5 text-xs font-bold text-gray-900 outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                    disabled={isFetchingAuthors}
+                    className="w-full border border-gray-300 rounded-xl p-2.5 text-xs font-bold text-gray-900 outline-none focus:ring-2 focus:ring-amber-500 bg-white disabled:bg-gray-100"
                   >
                     <option value="">
-                      {availableAuthorsToAdd.length > 0 ? 'Choose an author...' : 'All authors are already in this library'}
+                      {isFetchingAuthors 
+                        ? 'Loading authors...' 
+                        : availableAuthorsToAdd.length > 0 
+                          ? 'Choose an author...' 
+                          : 'All authors are already in this library'}
                     </option>
                     {availableAuthorsToAdd.map(a => (
                       <option key={a.id} value={a.id.toString()}>
