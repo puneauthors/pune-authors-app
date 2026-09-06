@@ -89,11 +89,11 @@ export function LibrarySalesTab() {
   const [editNotes, setEditNotes] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Bulk Edit / Live Edit State for Specific Library (allows live editing on the sheet and Save All)
+  // Bulk Edit / Live Edit State for Specific Library
   const [localSalesState, setLocalSalesState] = useState<Record<number, { copiesPlaced: number; soldStock: number; overrideMrp: string; notes: string }>>({});
   const [isSavingAll, setIsSavingAll] = useState(false);
 
-  // Add Book modal state
+  // Add Book modal state (Only for specific library)
   const [showAddModal, setShowAddModal] = useState(false);
   const [newLibraryId, setNewLibraryId] = useState<string>('');
   const [newAuthorId, setNewAuthorId] = useState<string>('');
@@ -141,7 +141,6 @@ export function LibrarySalesTab() {
         const libsList = libsRes.data.libraries || [];
         setLibraries(libsList);
         
-        // Update selected library instance if one was open
         if (selectedLibrary) {
           const freshSelected = libsList.find((l: any) => l.id === selectedLibrary.id);
           if (freshSelected) {
@@ -843,7 +842,7 @@ export function LibrarySalesTab() {
                 setEditingSaleId(null);
                 setDetailSearch('');
               }}
-              className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-paa-navy hover:text-white text-gray-700 rounded-xl text-xs font-bold transition-all shadow-sm group"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-gray-100 hover:bg-paa-navy hover:text-white text-gray-800 rounded-xl text-xs font-bold transition-all shadow-sm group"
             >
               <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
               <span>Back to All Libraries</span>
@@ -885,7 +884,7 @@ export function LibrarySalesTab() {
               <Edit className="w-3.5 h-3.5" /> Edit Info
             </button>
 
-            {/* ADD PARTICIPANT / BOOK */}
+            {/* ADD PARTICIPANT / BOOK (SPECIFIC TO THIS LIBRARY) */}
             <button
               onClick={() => {
                 setNewLibraryId(selectedLibrary.id.toString());
@@ -916,87 +915,107 @@ export function LibrarySalesTab() {
           </div>
         </div>
 
-        {/* Library Info Card & KPI Metrics */}
+        {/* BRIGHT COLORFUL KPI METRICS & LIBRARY INFO */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Library Details Card */}
-          <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-4 flex flex-col justify-between">
+          {/* Library Details Card (Colorful amber/gold gradient theme) */}
+          <div className="bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-amber-200/40 border-2 border-amber-300 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-200 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-950 bg-amber-300 px-2.5 py-0.5 rounded shadow-xs">
                   Library Details
                 </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${selectedLibrary.status === 'Inactive' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'}`}>
+                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${selectedLibrary.status === 'Inactive' ? 'bg-red-200 text-red-900' : 'bg-emerald-200 text-emerald-950'}`}>
                   {selectedLibrary.status || 'Active'}
                 </span>
               </div>
-              <h3 className="font-black text-paa-navy text-sm">{selectedLibrary.name}</h3>
-              <p className="text-xs text-gray-600 font-medium mt-1 flex items-center gap-1">
+              <h3 className="font-black text-paa-navy text-base tracking-tight">{selectedLibrary.name}</h3>
+              <p className="text-xs text-amber-950 font-semibold mt-1 flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-amber-700 flex-shrink-0" />
                 {selectedLibrary.shippingAddress || `${selectedLibrary.city}, ${selectedLibrary.state}`}
               </p>
             </div>
 
-            <div className="pt-3 mt-3 border-t border-amber-200/60 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-700">
+            <div className="pt-3 mt-3 border-t border-amber-300/70 flex flex-wrap gap-x-4 gap-y-1 text-xs text-amber-950 font-bold">
               {selectedLibrary.contactPerson && (
-                <div className="flex items-center gap-1 font-medium">
-                  <User className="w-3.5 h-3.5 text-gray-500" />
+                <div className="flex items-center gap-1">
+                  <User className="w-3.5 h-3.5 text-amber-800" />
                   <span>{selectedLibrary.contactPerson}</span>
                   {selectedLibrary.contactNumber && (
-                    <span className="text-gray-500 font-normal">({selectedLibrary.contactNumber})</span>
+                    <span className="text-amber-800/80 font-semibold">({selectedLibrary.contactNumber})</span>
                   )}
                 </div>
               )}
               {selectedLibrary.email && (
-                <div className="flex items-center gap-1 text-gray-600">
-                  <Mail className="w-3.5 h-3.5 text-gray-400" />
+                <div className="flex items-center gap-1">
+                  <Mail className="w-3.5 h-3.5 text-amber-800" />
                   <span>{selectedLibrary.email}</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* KPI Metrics */}
+          {/* BRIGHT COLORFUL KPI CARDS */}
           <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex flex-col justify-center">
-              <div className="flex items-center gap-2 text-blue-600 mb-1">
-                <Users className="w-4 h-4" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Authors</span>
+            {/* Authors: Bright Indigo/Violet Gradient */}
+            <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-indigo-100">Authors</span>
+                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-white" />
+                </div>
               </div>
-              <div className="text-2xl font-black text-paa-navy">{libraryMetrics.uniqueAuthors}</div>
-              <div className="text-[11px] text-gray-400 font-medium">{libraryMetrics.totalTitles} Titles Listed</div>
+              <div className="mt-2">
+                <div className="text-3xl font-black text-white">{libraryMetrics.uniqueAuthors}</div>
+                <div className="text-[11px] text-indigo-100 font-bold mt-0.5">{libraryMetrics.totalTitles} Titles Listed</div>
+              </div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex flex-col justify-center">
-              <div className="flex items-center gap-2 text-purple-600 mb-1">
-                <Package className="w-4 h-4" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Placed</span>
+            {/* Placed: Bright Cyan/Blue Gradient */}
+            <div className="bg-gradient-to-br from-cyan-500 via-blue-500 to-blue-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-cyan-100">Placed</span>
+                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+                  <Package className="w-4 h-4 text-white" />
+                </div>
               </div>
-              <div className="text-2xl font-black text-paa-navy">{libraryMetrics.totalPlaced}</div>
-              <div className="text-[11px] text-gray-400 font-medium">Copies Stocked</div>
+              <div className="mt-2">
+                <div className="text-3xl font-black text-white">{libraryMetrics.totalPlaced}</div>
+                <div className="text-[11px] text-cyan-100 font-bold mt-0.5">Copies Stocked</div>
+              </div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex flex-col justify-center">
-              <div className="flex items-center gap-2 text-emerald-600 mb-1">
-                <CheckCircle2 className="w-4 h-4" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Sold</span>
+            {/* Sold: Bright Emerald/Teal Gradient */}
+            <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-100">Sold</span>
+                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4 text-white" />
+                </div>
               </div>
-              <div className="text-2xl font-black text-emerald-600">{libraryMetrics.totalSold}</div>
-              <div className="text-[11px] text-gray-400 font-medium">{libraryMetrics.totalRemaining} in Stock</div>
+              <div className="mt-2">
+                <div className="text-3xl font-black text-white">{libraryMetrics.totalSold}</div>
+                <div className="text-[11px] text-emerald-100 font-bold mt-0.5">{libraryMetrics.totalRemaining} in Stock</div>
+              </div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex flex-col justify-center">
-              <div className="flex items-center gap-2 text-amber-600 mb-1">
-                <IndianRupee className="w-4 h-4" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Revenue</span>
+            {/* Revenue: Bright Amber/Orange Gradient */}
+            <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-100">Revenue</span>
+                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+                  <IndianRupee className="w-4 h-4 text-white" />
+                </div>
               </div>
-              <div className="text-2xl font-black text-amber-600">₹{libraryMetrics.totalRevenue.toLocaleString()}</div>
-              <div className="text-[11px] text-gray-400 font-medium">Direct Sales Value</div>
+              <div className="mt-2">
+                <div className="text-3xl font-black text-white">₹{libraryMetrics.totalRevenue.toLocaleString()}</div>
+                <div className="text-[11px] text-amber-100 font-bold mt-0.5">Direct Sales Value</div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Search Bar for Specific Library */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-gray-200 shadow-xs">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
             <input
@@ -1004,38 +1023,38 @@ export function LibrarySalesTab() {
               placeholder="Search author, pen name, or book title in this library..."
               value={detailSearch}
               onChange={e => setDetailSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-amber-500"
+              className="w-full pl-9 pr-3 py-1.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-amber-500 font-medium"
             />
           </div>
-          <div className="text-xs text-gray-500 font-bold">
-            Showing <span className="text-paa-navy font-black">{filteredLibrarySales.length}</span> listed book entries
+          <div className="text-xs text-gray-600 font-bold">
+            Showing <span className="text-paa-navy font-black text-sm">{filteredLibrarySales.length}</span> listed book entries
           </div>
         </div>
 
         {/* EVENT-STYLE EXCEL SHEET TABLE */}
-        <div className="flex flex-col border-[1.5px] border-black shadow-sm overflow-hidden bg-white">
+        <div className="flex flex-col border-[2px] border-black shadow-md overflow-hidden bg-white">
           {/* Cyan Title Banner */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-[#00D8F5] p-2.5 border-b-[1.5px] border-black font-bold">
-            <h2 className="text-black uppercase text-xs sm:text-[13px] m-0 tracking-wide">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-[#00D8F5] p-2.5 border-b-[2px] border-black font-bold">
+            <h2 className="text-black uppercase text-xs sm:text-[13px] m-0 tracking-wide font-black">
               LIST OF BOOKS FOR {selectedLibrary.name.toUpperCase()} - {authorGroupedSales.length} AUTHORS ({filteredLibrarySales.length} TITLES)
             </h2>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-black font-black uppercase bg-white/80 px-2 py-0.5 rounded border border-black/30">
-                Revenue: ₹{libraryMetrics.totalRevenue.toLocaleString()}
+              <span className="text-xs text-black font-black uppercase bg-white/90 px-2.5 py-1 rounded border-[1.5px] border-black">
+                REVENUE: ₹{libraryMetrics.totalRevenue.toLocaleString()}
               </span>
               <button
                 onClick={() => {
                   setNewLibraryId(selectedLibrary.id.toString());
                   setShowAddModal(true);
                 }}
-                className="bg-white text-black px-3 py-1 text-xs font-bold uppercase tracking-wider border-[1.5px] border-black hover:bg-gray-100 transition-colors"
+                className="bg-white text-black px-3.5 py-1 text-xs font-black uppercase tracking-wider border-[1.5px] border-black hover:bg-gray-100 transition-colors shadow-xs"
               >
                 + ADD PARTICIPANT
               </button>
               <button
                 onClick={handleSaveAllChanges}
                 disabled={isSavingAll}
-                className="bg-black text-white px-3 py-1 text-xs font-bold uppercase tracking-wider hover:bg-gray-800 transition-colors disabled:opacity-50"
+                className="bg-black text-white px-3.5 py-1 text-xs font-black uppercase tracking-wider hover:bg-gray-800 transition-colors disabled:opacity-50 shadow-xs"
               >
                 {isSavingAll ? 'SAVING...' : 'SAVE ALL CHANGES'}
               </button>
@@ -1047,16 +1066,16 @@ export function LibrarySalesTab() {
             <table className="w-full text-[12px] font-sans border-collapse whitespace-nowrap">
               <thead>
                 <tr>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-10 text-center">S.No</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-56 text-left px-2">Book Title</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-20 text-center">MRP (₹)</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-40 text-left px-2">Author Name</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Suggested /<br/>Placed Copies</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Actual<br/>Copies Sold</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Revenue (₹)</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Stock<br/>Remaining</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-32 text-left px-2">Notes / Shelf</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-28 text-center">Actions</th>
+                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-10 text-center font-black text-black">S.No</th>
+                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-56 text-left px-2 font-black text-black">Book Title</th>
+                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-20 text-center font-black text-black">MRP (₹)</th>
+                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-40 text-left px-2 font-black text-black">Author Name</th>
+                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Suggested /<br/>Placed Copies</th>
+                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Actual<br/>Copies Sold</th>
+                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Revenue (₹)</th>
+                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Stock<br/>Remaining</th>
+                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-32 text-left px-2 font-black text-black">Notes / Shelf</th>
+                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-28 text-center font-black text-black">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -1093,7 +1112,6 @@ export function LibrarySalesTab() {
                       const revenue = currentSold * currentMrp;
                       const remaining = Math.max(0, currentPlaced - currentSold);
 
-                      // Calculate global sequential row number
                       let previousCount = 0;
                       for (let i = 0; i < gIdx; i++) {
                         previousCount += authorGroupedSales[i].items.length;
@@ -1103,7 +1121,7 @@ export function LibrarySalesTab() {
                       return (
                         <tr key={sale.id} className="hover:brightness-95 transition-all bg-white">
                           {/* S.No */}
-                          <td className="border-[1.5px] border-black bg-red-600 text-white font-bold text-center p-1">
+                          <td className="border-[1.5px] border-black bg-red-600 text-white font-black text-center p-1">
                             {rowSNo}
                           </td>
 
@@ -1263,20 +1281,20 @@ export function LibrarySalesTab() {
 
                 {/* GRAND TOTAL FOOTER */}
                 {filteredLibrarySales.length > 0 && (
-                  <tr className="bg-[#FFE600] font-bold text-black border-t-2 border-black">
-                    <td colSpan={4} className="border-[1.5px] border-black text-right p-2 uppercase tracking-widest text-[11px]">
+                  <tr className="bg-[#FFE600] font-black text-black border-t-2 border-black">
+                    <td colSpan={4} className="border-[1.5px] border-black text-right p-2 uppercase tracking-widest text-[11px] font-black">
                       GRAND TOTAL
                     </td>
-                    <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-bold">
+                    <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-black">
                       {libraryMetrics.totalPlaced}
                     </td>
-                    <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-emerald-900 font-bold">
+                    <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-emerald-900 font-black">
                       {libraryMetrics.totalSold}
                     </td>
                     <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-black">
                       ₹{libraryMetrics.totalRevenue.toLocaleString()}
                     </td>
-                    <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-bold">
+                    <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-black">
                       {libraryMetrics.totalRemaining}
                     </td>
                     <td colSpan={2} className="border-[1.5px] border-black bg-[#FFE600]"></td>
@@ -1294,9 +1312,9 @@ export function LibrarySalesTab() {
               setSelectedLibrary(null);
               setEditingSaleId(null);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-paa-navy hover:text-white text-gray-800 rounded-xl text-xs font-bold transition-all shadow-sm group"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
             <span>Return to All Libraries Table</span>
           </button>
         </div>
@@ -1326,7 +1344,7 @@ export function LibrarySalesTab() {
               </span>
             </h1>
             <p className="text-xs text-gray-500 font-medium">
-              Directory of all Airport Flybraries and Public Libraries. Click "Edit" on any library to manage its sales sheet.
+              Directory of all Airport Flybraries and Public Libraries. Click "Edit Sales" on any library to manage its sales sheet.
             </p>
           </div>
         </div>
@@ -1353,17 +1371,6 @@ export function LibrarySalesTab() {
             <Plus className="w-4 h-4" /> Add Library
           </button>
 
-          {/* ADD PARTICIPANT / BOOK BUTTON */}
-          <button
-            onClick={() => {
-              setNewLibraryId('');
-              setShowAddModal(true);
-            }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#b44d28] hover:bg-[#963c1e] text-white rounded-xl text-xs font-bold shadow-sm transition-all"
-          >
-            <Plus className="w-4 h-4" /> Add Participant / Book
-          </button>
-
           {/* DOWNLOAD REPORT */}
           <button
             onClick={() => handleDownloadExcel()}
@@ -1374,55 +1381,60 @@ export function LibrarySalesTab() {
         </div>
       </div>
 
-      {/* Metrics Cards */}
+      {/* BRIGHT COLORFUL METRIC CARDS */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
-        <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold">
-            <Building2 className="w-5 h-5" />
+        {/* Libraries Active: Vibrant Blue/Sky */}
+        <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white p-4 rounded-2xl shadow-md flex items-center gap-3.5 relative overflow-hidden">
+          <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
+            <Building2 className="w-6 h-6 text-white" />
           </div>
           <div>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Libraries Active</div>
-            <div className="text-xl font-black text-paa-navy">{overallMetrics.activeLibraries}</div>
+            <div className="text-[10px] font-black text-blue-100 uppercase tracking-wider">Libraries Active</div>
+            <div className="text-2xl font-black text-white">{overallMetrics.activeLibraries}</div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
-            <Users className="w-5 h-5" />
+        {/* Authors Enrolled: Vibrant Indigo/Purple */}
+        <div className="bg-gradient-to-br from-indigo-500 via-purple-600 to-purple-700 text-white p-4 rounded-2xl shadow-md flex items-center gap-3.5 relative overflow-hidden">
+          <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
+            <Users className="w-6 h-6 text-white" />
           </div>
           <div>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Authors Enrolled</div>
-            <div className="text-xl font-black text-indigo-600">{overallMetrics.uniqueAuthors}</div>
+            <div className="text-[10px] font-black text-purple-100 uppercase tracking-wider">Authors Enrolled</div>
+            <div className="text-2xl font-black text-white">{overallMetrics.uniqueAuthors}</div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center font-bold">
-            <Package className="w-5 h-5" />
+        {/* Copies Placed: Vibrant Cyan/Blue */}
+        <div className="bg-gradient-to-br from-cyan-500 via-teal-600 to-blue-600 text-white p-4 rounded-2xl shadow-md flex items-center gap-3.5 relative overflow-hidden">
+          <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
+            <Package className="w-6 h-6 text-white" />
           </div>
           <div>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Copies Placed</div>
-            <div className="text-xl font-black text-paa-navy">{overallMetrics.totalPlaced}</div>
+            <div className="text-[10px] font-black text-cyan-100 uppercase tracking-wider">Copies Placed</div>
+            <div className="text-2xl font-black text-white">{overallMetrics.totalPlaced}</div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-bold">
-            <CheckCircle2 className="w-5 h-5" />
+        {/* Copies Sold: Vibrant Emerald/Teal */}
+        <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 text-white p-4 rounded-2xl shadow-md flex items-center gap-3.5 relative overflow-hidden">
+          <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-white" />
           </div>
           <div>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Copies Sold</div>
-            <div className="text-xl font-black text-emerald-600">{overallMetrics.totalSold}</div>
+            <div className="text-[10px] font-black text-emerald-100 uppercase tracking-wider">Copies Sold</div>
+            <div className="text-2xl font-black text-white">{overallMetrics.totalSold}</div>
           </div>
         </div>
 
-        <div className="col-span-2 md:col-span-1 bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center font-bold">
-            <IndianRupee className="w-5 h-5" />
+        {/* Total Revenue: Vibrant Amber/Orange */}
+        <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white p-4 rounded-2xl shadow-md flex items-center gap-3.5 relative overflow-hidden">
+          <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
+            <IndianRupee className="w-6 h-6 text-white" />
           </div>
           <div>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Revenue</div>
-            <div className="text-xl font-black text-amber-600">₹{overallMetrics.totalRevenue.toLocaleString()}</div>
+            <div className="text-[10px] font-black text-amber-100 uppercase tracking-wider">Total Revenue</div>
+            <div className="text-2xl font-black text-white">₹{overallMetrics.totalRevenue.toLocaleString()}</div>
           </div>
         </div>
       </div>
@@ -1431,11 +1443,11 @@ export function LibrarySalesTab() {
       <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-gray-700">Type:</label>
+            <label className="text-xs font-bold text-gray-700">Type Filter:</label>
             <select
               value={masterTypeFilter}
               onChange={e => setMasterTypeFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-semibold bg-white text-gray-900 outline-none focus:ring-2 focus:ring-amber-500"
+              className="border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-bold bg-white text-gray-900 outline-none focus:ring-2 focus:ring-amber-500"
             >
               <option value="all">All Types ({libraries.length})</option>
               <option value="Airport Library">Airport Library</option>
@@ -1458,28 +1470,28 @@ export function LibrarySalesTab() {
         </div>
       </div>
 
-      {/* TABLE OF ALL LIBRARIES */}
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+      {/* BRIGHT YELLOW HEADER & COLORFUL MASTER TABLE OF ALL LIBRARIES */}
+      <div className="border-[2px] border-black shadow-md overflow-hidden bg-white">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase tracking-wider text-[11px]">
-                <th className="py-3 px-3 w-12 text-center">S.No</th>
-                <th className="py-3 px-4">Library / Flybrary Name</th>
-                <th className="py-3 px-4">Location</th>
-                <th className="py-3 px-3 text-center">No. of Authors</th>
-                <th className="py-3 px-3 text-center">Books Placed</th>
-                <th className="py-3 px-3 text-center">Books Sold</th>
-                <th className="py-3 px-3 text-center">Revenue</th>
-                <th className="py-3 px-3 text-center">Remaining</th>
-                <th className="py-3 px-3 text-center">Status</th>
+              <tr className="bg-[#FFE600] border-b-[2px] border-black text-black font-black uppercase tracking-wider text-[11px]">
+                <th className="py-3 px-2 w-12 text-center border-r border-black/30">S.No</th>
+                <th className="py-3 px-4 border-r border-black/30">Library / Flybrary Name</th>
+                <th className="py-3 px-4 border-r border-black/30">Location</th>
+                <th className="py-3 px-3 text-center border-r border-black/30">No. of Authors</th>
+                <th className="py-3 px-3 text-center border-r border-black/30">Books Placed</th>
+                <th className="py-3 px-3 text-center border-r border-black/30">Books Sold</th>
+                <th className="py-3 px-3 text-center border-r border-black/30">Revenue (₹)</th>
+                <th className="py-3 px-3 text-center border-r border-black/30">Remaining</th>
+                <th className="py-3 px-3 text-center border-r border-black/30">Status</th>
                 <th className="py-3 px-4 text-center w-48">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="p-8 text-center">
+                  <td colSpan={10} className="p-8 text-center border-b border-black/20">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <RefreshCw className="w-6 h-6 animate-spin text-gray-500" />
                       <span className="text-xs font-bold text-gray-500">Loading libraries...</span>
@@ -1488,7 +1500,7 @@ export function LibrarySalesTab() {
                 </tr>
               ) : filteredLibraries.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="p-8 text-center text-gray-500 italic">
+                  <td colSpan={10} className="p-8 text-center text-gray-500 italic border-b border-black/20">
                     No libraries found matching your criteria. Click "+ Add Library" to create one.
                   </td>
                 </tr>
@@ -1499,29 +1511,35 @@ export function LibrarySalesTab() {
                   const revenue = lib.totalRevenue || 0;
                   const remaining = Math.max(0, placed - sold);
                   const authorsCount = lib.totalAuthors || 0;
+                  
+                  // Vibrant alternating background for crisp excel aesthetics
+                  const isEven = idx % 2 === 0;
+                  const rowBg = isEven ? 'bg-white' : 'bg-[#fcf8e8]/60';
 
                   return (
                     <tr 
                       key={lib.id} 
-                      className="hover:bg-amber-50/40 transition-colors group cursor-pointer"
+                      className={`${rowBg} hover:bg-amber-100/70 transition-colors border-b border-gray-200 cursor-pointer`}
                       onClick={() => setSelectedLibrary(lib)}
                     >
                       {/* S.No */}
-                      <td className="py-3.5 px-3 text-center font-bold text-gray-500">
-                        {idx + 1}
+                      <td className="py-3 px-2 text-center font-black text-black border-r border-gray-200">
+                        <span className="inline-block w-6 h-6 rounded bg-amber-200/90 text-black text-center leading-6 font-bold">
+                          {idx + 1}
+                        </span>
                       </td>
 
                       {/* Library Name & Type */}
-                      <td className="py-3.5 px-4 font-bold text-gray-900">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0">
+                      <td className="py-3 px-4 font-bold text-gray-900 border-r border-gray-200">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-900 flex items-center justify-center flex-shrink-0 border border-amber-300">
                             <LibraryIcon className="w-4 h-4" />
                           </div>
                           <div>
                             <div className="font-black text-paa-navy text-sm flex items-center gap-1.5">
                               {lib.name}
                             </div>
-                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">
+                            <span className="text-[10px] font-black text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded uppercase tracking-wide">
                               {lib.type}
                             </span>
                           </div>
@@ -1529,60 +1547,60 @@ export function LibrarySalesTab() {
                       </td>
 
                       {/* Location */}
-                      <td className="py-3.5 px-4 text-gray-700">
-                        <div className="flex items-center gap-1.5 font-medium">
+                      <td className="py-3 px-4 text-gray-700 border-r border-gray-200">
+                        <div className="flex items-center gap-1.5 font-bold text-gray-900">
                           <MapPin className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
                           <span>{lib.city}, {lib.state}</span>
                         </div>
                         {lib.airportCode && (
-                          <div className="text-[10px] font-bold text-indigo-600 ml-5">
+                          <div className="text-[10px] font-black text-indigo-700 ml-5">
                             Code: {lib.airportCode}
                           </div>
                         )}
                       </td>
 
-                      {/* No. of Authors */}
-                      <td className="py-3.5 px-3 text-center">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-indigo-50 text-indigo-700">
+                      {/* No. of Authors (Cyan accent block) */}
+                      <td className="py-3 px-3 text-center border-r border-gray-200">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-black bg-[#00ffff]/30 text-blue-950 border border-cyan-400">
                           <Users className="w-3 h-3" />
                           {authorsCount}
                         </span>
                       </td>
 
                       {/* Books Placed */}
-                      <td className="py-3.5 px-3 text-center font-bold text-gray-900">
+                      <td className="py-3 px-3 text-center font-black text-gray-900 border-r border-gray-200 bg-[#ffddaa]/25">
                         {placed}
                       </td>
 
                       {/* Books Sold */}
-                      <td className="py-3.5 px-3 text-center font-black text-emerald-600">
+                      <td className="py-3 px-3 text-center font-black text-emerald-700 border-r border-gray-200 bg-[#e6f4ea]">
                         {sold}
                       </td>
 
                       {/* Revenue */}
-                      <td className="py-3.5 px-3 text-center font-black text-amber-700">
+                      <td className="py-3 px-3 text-center font-black text-amber-900 border-r border-gray-200 bg-amber-50">
                         ₹{revenue.toLocaleString()}
                       </td>
 
                       {/* Remaining */}
-                      <td className="py-3.5 px-3 text-center font-bold text-gray-700">
+                      <td className="py-3 px-3 text-center font-black text-gray-800 border-r border-gray-200">
                         {remaining}
                       </td>
 
                       {/* Status */}
-                      <td className="py-3.5 px-3 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${lib.status === 'Inactive' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'}`}>
+                      <td className="py-3 px-3 text-center border-r border-gray-200">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${lib.status === 'Inactive' ? 'bg-red-200 text-red-900' : 'bg-emerald-200 text-emerald-950'}`}>
                           {lib.status || 'Active'}
                         </span>
                       </td>
 
                       {/* Actions */}
-                      <td className="py-3.5 px-4 text-center" onClick={e => e.stopPropagation()}>
+                      <td className="py-3 px-4 text-center" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-center gap-1.5">
                           {/* Primary Edit / Open Sales Button */}
                           <button
                             onClick={() => setSelectedLibrary(lib)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-[#b44d28] hover:bg-[#963c1e] text-white rounded-lg text-xs font-bold shadow-sm transition-all"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-[#b44d28] hover:bg-[#963c1e] text-white rounded-lg text-xs font-black shadow-sm transition-all"
                             title="Open Sales Sheet"
                           >
                             <Edit className="w-3.5 h-3.5" />
@@ -1592,7 +1610,7 @@ export function LibrarySalesTab() {
                           {/* Edit Info Button */}
                           <button
                             onClick={() => openEditLibrary(lib)}
-                            className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                            className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors border border-gray-300"
                             title="Edit Library Details"
                           >
                             <Edit className="w-3.5 h-3.5" />
@@ -1601,7 +1619,7 @@ export function LibrarySalesTab() {
                           {/* Delete Library */}
                           <button
                             onClick={() => handleDeleteLibrary(lib.id, lib.name)}
-                            className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                            className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors border border-red-200"
                             title="Delete Library"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
