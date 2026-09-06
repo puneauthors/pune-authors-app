@@ -23,7 +23,9 @@ import {
   ArrowLeft,
   Mail,
   ChevronRight,
-  FileSpreadsheet
+  FileSpreadsheet,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 
 interface LibrarySaleItem {
@@ -89,15 +91,12 @@ export function LibrarySalesTab() {
   const [editNotes, setEditNotes] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Add Book modal state (Only for specific library)
+  // Add Participant modal state
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newLibraryId, setNewLibraryId] = useState<string>('');
   const [newAuthorId, setNewAuthorId] = useState<string>('');
-  const [newBookId, setNewBookId] = useState<string>('');
-  const [newPlaced, setNewPlaced] = useState<number>(10);
-  const [newSold, setNewSold] = useState<number>(0);
-  const [newOverrideMrp, setNewOverrideMrp] = useState<string>('');
-  const [newNotes, setNewNotes] = useState<string>('');
+  const [selectedBookIds, setSelectedBookIds] = useState<number[]>([]);
+  const [bookQuantities, setBookQuantities] = useState<Record<number, number>>({});
+  const [defaultQuantity, setDefaultQuantity] = useState<number>(10);
 
   // Add / Edit Library modal state
   const [showAddLibraryModal, setShowAddLibraryModal] = useState(false);
@@ -283,12 +282,70 @@ export function LibrarySalesTab() {
     return Array.from(groupsMap.values());
   }, [filteredLibrarySales, selectedLibrary]);
 
-  // Selected author books for the Add Book modal
-  const selectedAuthorBooks = useMemo(() => {
-    if (!newAuthorId) return [];
-    const author = platformAuthors.find(a => a.id.toString() === newAuthorId);
-    return author?.books?.filter((b: any) => !b.isArchived) || [];
+  // Authors NOT already present in this specific library
+  const availableAuthorsToAdd = useMemo(() => {
+    if (!selectedLibrary) return [];
+    const existingAuthorIds = new Set(currentLibrarySales.map(s => s.authorId));
+    return (platformAuthors || []).filter(a => !existingAuthorIds.has(a.id));
+  }, [platformAuthors, currentLibrarySales, selectedLibrary]);
+
+  // Books of the newly selected author in modal
+  const newlySelectedAuthorObj = useMemo(() => {
+    if (!newAuthorId) return null;
+    return platformAuthors.find(a => a.id.toString() === newAuthorId) || null;
   }, [newAuthorId, platformAuthors]);
+
+  const newlySelectedAuthorBooks = useMemo(() => {
+    if (!newlySelectedAuthorObj) return [];
+    return (newlySelectedAuthorObj.books || []).filter((b: any) => !b.isArchived);
+  }, [newlySelectedAuthorObj]);
+
+  // When author changes in modal, auto-select all their books with default copies
+  const handleAuthorSelectionChange = (authorIdStr: string) => {
+    setNewAuthorId(authorIdStr);
+    if (!authorIdStr) {
+      setSelectedBookIds([]);
+      setBookQuantities({});
+      return;
+    }
+
+    const author = platformAuthors.find(a => a.id.toString() === authorIdStr);
+    const books = (author?.books || []).filter((b: any) => !b.isArchived);
+    const bookIds = books.map((b: any) => b.id);
+    setSelectedBookIds(bookIds);
+
+    const qtyMap: Record<number, number> = {};
+    bookIds.forEach((id: number) => {
+      qtyMap[id] = defaultQuantity || 10;
+    });
+    setBookQuantities(qtyMap);
+  };
+
+  // Toggle book selection checkbox in modal
+  const toggleBookSelection = (bookId: number) => {
+    setSelectedBookIds(prev => {
+      if (prev.includes(bookId)) {
+        return prev.filter(id => id !== bookId);
+      } else {
+        return [...prev, bookId];
+      }
+    });
+  };
+
+  // Select all or deselect all books in modal
+  const handleSelectAllBooks = () => {
+    if (selectedBookIds.length === newlySelectedAuthorBooks.length) {
+      setSelectedBookIds([]);
+    } else {
+      const allIds = newlySelectedAuthorBooks.map((b: any) => b.id);
+      setSelectedBookIds(allIds);
+      const qtyMap = { ...bookQuantities };
+      allIds.forEach((id: number) => {
+        if (!qtyMap[id]) qtyMap[id] = defaultQuantity || 10;
+      });
+      setBookQuantities(qtyMap);
+    }
+  };
 
   // Start single row edit (only this row becomes editable)
   const startEdit = (sale: LibrarySaleItem) => {
@@ -303,7 +360,7 @@ export function LibrarySalesTab() {
     setEditingSaleId(null);
   };
 
-  // Save single row edit (commited to database)
+  // Save single row edit (committed to database)
   const handleSaveRow = async (saleId: number) => {
     setIsSaving(true);
     try {
@@ -373,40 +430,60 @@ export function LibrarySalesTab() {
     }
   };
 
-  // Add Book to Library
-  const handleAddBookToLibrary = async (e: React.FormEvent) => {
+  // Add Participant & Selected Books to Library
+  const handleAddParticipantToLibrary = async (e: React.FormEvent) => {
     e.preventDefault();
-    const targetLibId = newLibraryId || (selectedLibrary ? selectedLibrary.id.toString() : '');
-    if (!targetLibId || !newAuthorId || !newBookId) {
-      toast.error('Please select library, author, and book');
+    if (!selectedLibrary) {
+      toast.error('No library selected');
+      return;
+    }
+    if (!newAuthorId) {
+      toast.error('Please select an author');
+      return;
+    }
+    if (selectedBookIds.length === 0) {
+      toast.error('Please select at least one book to place');
       return;
     }
 
     setIsSaving(true);
     try {
       const token = localStorage.getItem('token');
+      const authorIdNum = parseInt(newAuthorId);
+
+      // Create payload for all selected books
+      const salesPayload = selectedBookIds.map(bookId => {
+        const bookObj = newlySelectedAuthorBooks.find((b: any) => b.id === bookId);
+        const qty = bookQuantities[bookId] || defaultQuantity || 10;
+        return {
+          libraryId: selectedLibrary.id,
+          authorId: authorIdNum,
+          bookId: bookId,
+          copiesPlaced: qty,
+          soldStock: 0,
+          overrideMrp: bookObj?.mrp ? parseFloat(bookObj.mrp) : null,
+          notes: null
+        };
+      });
+
       await axios.post(
         `${API}/api/admin/library-sales`,
         {
-          libraryId: parseInt(targetLibId),
-          authorId: parseInt(newAuthorId),
-          bookId: parseInt(newBookId),
-          copiesPlaced: parseInt(newPlaced.toString()) || 0,
-          soldStock: parseInt(newSold.toString()) || 0,
-          overrideMrp: newOverrideMrp ? parseFloat(newOverrideMrp) : null,
-          notes: newNotes || null
+          libraryId: selectedLibrary.id,
+          sales: salesPayload
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success('Book successfully added to library sales sheet');
+      toast.success(`Successfully added ${newlySelectedAuthorObj?.name || 'Author'} with ${selectedBookIds.length} book(s)`);
       setShowAddModal(false);
-      setNewBookId('');
-      setNewNotes('');
+      setNewAuthorId('');
+      setSelectedBookIds([]);
+      setBookQuantities({});
       fetchData();
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.response?.data?.error || 'Failed to add book to library');
+      console.error('Error adding participant to library:', err);
+      toast.error(err.response?.data?.error || 'Failed to add participant to library');
     } finally {
       setIsSaving(false);
     }
@@ -801,10 +878,12 @@ export function LibrarySalesTab() {
               <Edit className="w-3.5 h-3.5" /> Edit Info
             </button>
 
-            {/* ADD PARTICIPANT / BOOK (SPECIFIC TO THIS LIBRARY) */}
+            {/* ADD PARTICIPANT (OPENS STREAMLINED MODAL) */}
             <button
               onClick={() => {
-                setNewLibraryId(selectedLibrary.id.toString());
+                setNewAuthorId('');
+                setSelectedBookIds([]);
+                setBookQuantities({});
                 setShowAddModal(true);
               }}
               className="flex items-center gap-1.5 px-3.5 py-2 bg-[#b44d28] hover:bg-[#963c1e] text-white rounded-xl text-xs font-bold shadow-sm transition-all"
@@ -951,7 +1030,9 @@ export function LibrarySalesTab() {
               </span>
               <button
                 onClick={() => {
-                  setNewLibraryId(selectedLibrary.id.toString());
+                  setNewAuthorId('');
+                  setSelectedBookIds([]);
+                  setBookQuantities({});
                   setShowAddModal(true);
                 }}
                 className="bg-white text-black px-3.5 py-1 text-xs font-black uppercase tracking-wider border-[1.5px] border-black hover:bg-gray-100 transition-colors shadow-xs"
@@ -1508,143 +1589,149 @@ export function LibrarySalesTab() {
   );
 
   // =========================================================================
-  // HELPER: MODALS (ADD BOOK & ADD/EDIT LIBRARY)
+  // HELPER: MODALS (STREAMLINED ADD PARTICIPANT & ADD/EDIT LIBRARY)
   // =========================================================================
   function renderModals() {
     return (
       <>
-        {/* ADD PARTICIPANT / BOOK TO LIBRARY MODAL */}
+        {/* STREAMLINED ADD PARTICIPANT & BOOKS MODAL */}
         {showAddModal && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
               <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center font-bold">
-                    <Plus className="w-5 h-5" />
+                  <div className="w-10 h-10 bg-amber-500/15 text-amber-700 rounded-xl flex items-center justify-center font-bold border border-amber-300">
+                    <Users className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-gray-900">Add Participant / Book to Library</h3>
-                    <p className="text-xs text-gray-500">Record copies placed and sales at a specific library</p>
+                    <h3 className="text-base font-black text-paa-navy">
+                      Add Participant to {selectedLibrary?.name || 'Library'}
+                    </h3>
+                    <p className="text-xs text-gray-500 font-medium">
+                      Select an author and their books to place in this library
+                    </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100"
+                  className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleAddBookToLibrary} className="space-y-4 pt-4">
-                {/* Library Select */}
+              <form onSubmit={handleAddParticipantToLibrary} className="space-y-4 pt-4">
+                {/* 1. Author Dropdown (Filtered to ONLY authors not yet in this library) */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Target Library *</label>
-                  <select
-                    required
-                    value={newLibraryId || (selectedLibrary ? selectedLibrary.id.toString() : '')}
-                    onChange={e => setNewLibraryId(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium text-gray-900 outline-none focus:ring-2 focus:ring-amber-500"
-                  >
-                    <option value="">Select Library...</option>
-                    {libraries.map(l => (
-                      <option key={l.id} value={l.id.toString()}>{l.name} - {l.city} ({l.type})</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Author Select */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Author *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-black text-gray-800">
+                      Select Author *
+                    </label>
+                    <span className="text-[11px] font-bold text-indigo-600">
+                      {availableAuthorsToAdd.length} authors available
+                    </span>
+                  </div>
                   <select
                     required
                     value={newAuthorId}
-                    onChange={e => {
-                      setNewAuthorId(e.target.value);
-                      setNewBookId('');
-                    }}
-                    className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium text-gray-900 outline-none focus:ring-2 focus:ring-amber-500"
+                    onChange={e => handleAuthorSelectionChange(e.target.value)}
+                    className="w-full border border-gray-300 rounded-xl p-2.5 text-xs font-bold text-gray-900 outline-none focus:ring-2 focus:ring-amber-500 bg-white"
                   >
-                    <option value="">Select Author...</option>
-                    {platformAuthors.map(a => (
-                      <option key={a.id} value={a.id.toString()}>{a.name}</option>
+                    <option value="">
+                      {availableAuthorsToAdd.length > 0 ? 'Choose an author...' : 'All authors are already in this library'}
+                    </option>
+                    {availableAuthorsToAdd.map(a => (
+                      <option key={a.id} value={a.id.toString()}>
+                        {a.name} {a.books?.length ? `(${a.books.length} book${a.books.length > 1 ? 's' : ''})` : '(0 books)'}
+                      </option>
                     ))}
                   </select>
                 </div>
 
-                {/* Book Select */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Book Title *</label>
-                  <select
-                    required
-                    value={newBookId}
-                    onChange={e => {
-                      setNewBookId(e.target.value);
-                      const book = selectedAuthorBooks.find((b: any) => b.id === parseInt(e.target.value));
-                      if (book && book.mrp) {
-                        setNewOverrideMrp(book.mrp.toString());
-                      }
-                    }}
-                    disabled={!newAuthorId}
-                    className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium text-gray-900 outline-none focus:ring-2 focus:ring-amber-500 disabled:bg-gray-100"
-                  >
-                    <option value="">{newAuthorId ? 'Select Book...' : 'Select Author First'}</option>
-                    {selectedAuthorBooks.map((b: any) => (
-                      <option key={b.id} value={b.id.toString()}>{b.title} (MRP: ₹{b.mrp})</option>
-                    ))}
-                  </select>
-                </div>
+                {/* 2. Books Selection with Checkboxes and Placed Quantities */}
+                {newAuthorId && (
+                  <div className="space-y-3 pt-2 border-t border-gray-100 animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-black text-gray-800">
+                        Select Books to Place ({selectedBookIds.length}/{newlySelectedAuthorBooks.length})
+                      </label>
+                      {newlySelectedAuthorBooks.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleSelectAllBooks}
+                          className="text-[11px] font-black text-[#b44d28] hover:underline"
+                        >
+                          {selectedBookIds.length === newlySelectedAuthorBooks.length ? 'Deselect All' : 'Select All Books'}
+                        </button>
+                      )}
+                    </div>
 
-                {/* Placed & Sold Numbers */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Copies Placed</label>
-                    <input
-                      type="number"
-                      min="0"
-                      required
-                      value={newPlaced}
-                      onChange={e => setNewPlaced(parseInt(e.target.value) || 0)}
-                      className="w-full border border-gray-300 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500"
-                    />
+                    {newlySelectedAuthorBooks.length === 0 ? (
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 font-medium text-center">
+                        This author has no active books uploaded in their profile yet.
+                      </div>
+                    ) : (
+                      <div className="max-h-60 overflow-y-auto space-y-2 border border-gray-200 rounded-xl p-2 bg-gray-50/50">
+                        {newlySelectedAuthorBooks.map((book: any) => {
+                          const isSelected = selectedBookIds.includes(book.id);
+                          const currentQty = bookQuantities[book.id] ?? defaultQuantity ?? 10;
+
+                          return (
+                            <div
+                              key={book.id}
+                              onClick={() => toggleBookSelection(book.id)}
+                              className={`flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-white border-amber-400 shadow-xs ring-1 ring-amber-400/20'
+                                  : 'bg-white/60 border-gray-200 opacity-65 hover:opacity-100'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => {}} // Handled by parent container click
+                                  className="w-4 h-4 text-amber-600 rounded border-gray-300 focus:ring-amber-500 cursor-pointer"
+                                />
+                                <div className="truncate">
+                                  <div className="text-xs font-bold text-gray-900 truncate">
+                                    {book.title}
+                                  </div>
+                                  <div className="text-[10px] text-gray-500 font-semibold">
+                                    MRP: ₹{book.mrp || 0}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Placed copies input for this specific book */}
+                              {isSelected && (
+                                <div 
+                                  className="flex items-center gap-1.5 flex-shrink-0"
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  <span className="text-[10px] font-bold text-gray-500">Placed:</span>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={currentQty}
+                                    onChange={e => {
+                                      const val = parseInt(e.target.value) || 1;
+                                      setBookQuantities(prev => ({ ...prev, [book.id]: val }));
+                                    }}
+                                    className="w-16 p-1 text-center text-xs font-black border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Copies Sold</label>
-                    <input
-                      type="number"
-                      min="0"
-                      required
-                      value={newSold}
-                      onChange={e => setNewSold(parseInt(e.target.value) || 0)}
-                      className="w-full border border-gray-300 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500"
-                    />
-                  </div>
-                </div>
+                )}
 
-                {/* Custom MRP Override */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">MRP Override (₹) (Optional)</label>
-                  <input
-                    type="number"
-                    placeholder="Default Book MRP"
-                    value={newOverrideMrp}
-                    onChange={e => setNewOverrideMrp(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
-
-                {/* Notes */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Notes / Remarks</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Placed at reception shelf"
-                    value={newNotes}
-                    onChange={e => setNewNotes(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
-
-                <div className="flex gap-2 pt-2">
+                {/* Footer Submit Buttons */}
+                <div className="flex gap-2 pt-3 border-t border-gray-100">
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
@@ -1654,10 +1741,10 @@ export function LibrarySalesTab() {
                   </button>
                   <button
                     type="submit"
-                    disabled={isSaving}
-                    className="flex-1 py-2.5 bg-[#b44d28] hover:bg-[#963c1e] text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-50"
+                    disabled={isSaving || !newAuthorId || selectedBookIds.length === 0}
+                    className="flex-1 py-2.5 bg-[#b44d28] hover:bg-[#963c1e] text-white rounded-xl text-xs font-black shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSaving ? 'Saving...' : 'Add to Sheet'}
+                    {isSaving ? 'Adding...' : `Add Participant & ${selectedBookIds.length} Book(s)`}
                   </button>
                 </div>
               </form>
