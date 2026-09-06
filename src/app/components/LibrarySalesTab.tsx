@@ -126,7 +126,7 @@ export function LibrarySalesTab() {
       const [salesRes, libsRes, authorsRes] = await Promise.all([
         axios.get(`${API}/api/admin/library-sales`, { headers }),
         axios.get(`${API}/api/admin/library-sales/libraries`, { headers }),
-        axios.get(`${API}/api/admin/authors`, { headers }).catch(() => ({ data: { authors: [] } }))
+        axios.get(`${API}/api/admin/authors?limit=1000`, { headers }).catch(() => ({ data: { data: [] } }))
       ]);
 
       if (salesRes.data.success) {
@@ -143,9 +143,8 @@ export function LibrarySalesTab() {
           }
         }
       }
-      if (authorsRes.data.authors) {
-        setPlatformAuthors(authorsRes.data.authors || []);
-      }
+      const fetchedAuthors = authorsRes.data?.data || authorsRes.data?.authors || (Array.isArray(authorsRes.data) ? authorsRes.data : []);
+      setPlatformAuthors(fetchedAuthors);
     } catch (err: any) {
       console.error('Error fetching library sales data:', err);
       toast.error('Failed to load library sales data');
@@ -930,7 +929,7 @@ export function LibrarySalesTab() {
           </div>
 
           {/* BRIGHT COLORFUL KPI CARDS */}
-          <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Authors */}
             <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between relative overflow-hidden">
               <div className="flex items-center justify-between">
@@ -945,31 +944,17 @@ export function LibrarySalesTab() {
               </div>
             </div>
 
-            {/* Placed */}
-            <div className="bg-gradient-to-br from-cyan-500 via-blue-500 to-blue-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-cyan-100">Placed</span>
-                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
-                  <Package className="w-4 h-4 text-white" />
-                </div>
-              </div>
-              <div className="mt-2">
-                <div className="text-3xl font-black text-white">{libraryMetrics.totalPlaced}</div>
-                <div className="text-[11px] text-cyan-100 font-bold mt-0.5">Copies Stocked</div>
-              </div>
-            </div>
-
             {/* Sold */}
             <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between relative overflow-hidden">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-100">Sold</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-100">Books Sold</span>
                 <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
                   <CheckCircle2 className="w-4 h-4 text-white" />
                 </div>
               </div>
               <div className="mt-2">
                 <div className="text-3xl font-black text-white">{libraryMetrics.totalSold}</div>
-                <div className="text-[11px] text-emerald-100 font-bold mt-0.5">{libraryMetrics.totalRemaining} in Stock</div>
+                <div className="text-[11px] text-emerald-100 font-bold mt-0.5">Total Copies Sold</div>
               </div>
             </div>
 
@@ -1040,7 +1025,6 @@ export function LibrarySalesTab() {
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-56 text-left px-2 font-black text-black">Book Title</th>
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-20 text-center font-black text-black">MRP (₹)</th>
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-40 text-left px-2 font-black text-black">Author Name</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Books Placed</th>
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Actual<br/>Copies Sold</th>
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Revenue (₹)</th>
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-28 text-center font-black text-black">Actions</th>
@@ -1049,7 +1033,7 @@ export function LibrarySalesTab() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center border-[1.5px] border-black">
+                    <td colSpan={7} className="p-8 text-center border-[1.5px] border-black">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <RefreshCw className="w-6 h-6 animate-spin text-gray-500" />
                         <span className="text-xs font-bold text-gray-500">Loading library sales records...</span>
@@ -1058,7 +1042,7 @@ export function LibrarySalesTab() {
                   </tr>
                 ) : filteredLibrarySales.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-gray-500 italic border-[1.5px] border-black">
+                    <td colSpan={7} className="p-8 text-center text-gray-500 italic border-[1.5px] border-black">
                       No book placements found for this library. Click "+ Add Participant / Book" to add authors and books.
                     </td>
                   </tr>
@@ -1068,7 +1052,6 @@ export function LibrarySalesTab() {
                       const isEditing = editingSaleId === sale.id;
 
                       const mrp = sale.overrideMrp || sale.book?.mrp || 0;
-                      const placed = sale.copiesPlaced || 0;
                       const sold = sale.soldStock || 0;
                       const revenue = sold * mrp;
 
@@ -1111,21 +1094,6 @@ export function LibrarySalesTab() {
                             <span className="font-black text-black">
                               {group.author.name || sale.author?.name || 'Unknown Author'}
                             </span>
-                          </td>
-
-                          {/* Copies Placed (Editable only when isEditing is true) */}
-                          <td className={`border-[1.5px] border-black text-center font-bold ${isEditing ? 'bg-white p-0' : 'bg-[#ffddaa] p-1 text-black'}`}>
-                            {isEditing ? (
-                              <input
-                                type="number"
-                                min="0"
-                                value={editPlaced}
-                                onChange={e => setEditPlaced(parseInt(e.target.value) || 0)}
-                                className="w-full h-full p-1 text-center outline-none font-bold bg-white text-black border-2 border-indigo-500"
-                              />
-                            ) : (
-                              placed
-                            )}
                           </td>
 
                           {/* Copies Sold (Editable only when isEditing is true) */}
@@ -1198,9 +1166,6 @@ export function LibrarySalesTab() {
                   <tr className="bg-[#FFE600] font-black text-black border-t-2 border-black">
                     <td colSpan={4} className="border-[1.5px] border-black text-right p-2 uppercase tracking-widest text-[11px] font-black">
                       GRAND TOTAL
-                    </td>
-                    <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-black">
-                      {libraryMetrics.totalPlaced}
                     </td>
                     <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-emerald-900 font-black">
                       {libraryMetrics.totalSold}
@@ -1369,7 +1334,6 @@ export function LibrarySalesTab() {
                 <th className="py-3 px-4 border-r border-black/30">Library / Flybrary Name</th>
                 <th className="py-3 px-4 border-r border-black/30">Location</th>
                 <th className="py-3 px-3 text-center border-r border-black/30">No. of Authors</th>
-                <th className="py-3 px-3 text-center border-r border-black/30">Books Placed</th>
                 <th className="py-3 px-3 text-center border-r border-black/30">Books Sold</th>
                 <th className="py-3 px-3 text-center border-r border-black/30">Revenue (₹)</th>
                 <th className="py-3 px-3 text-center border-r border-black/30">Status</th>
@@ -1379,7 +1343,7 @@ export function LibrarySalesTab() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center border-b border-black/20">
+                  <td colSpan={8} className="p-8 text-center border-b border-black/20">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <RefreshCw className="w-6 h-6 animate-spin text-gray-500" />
                       <span className="text-xs font-bold text-gray-500">Loading libraries...</span>
@@ -1388,13 +1352,12 @@ export function LibrarySalesTab() {
                 </tr>
               ) : filteredLibraries.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center text-gray-500 italic border-b border-black/20">
+                  <td colSpan={8} className="p-8 text-center text-gray-500 italic border-b border-black/20">
                     No libraries found matching your criteria. Click "+ Add Library" to create one.
                   </td>
                 </tr>
               ) : (
                 filteredLibraries.map((lib, idx) => {
-                  const placed = lib.totalPlaced || 0;
                   const sold = lib.totalSold || 0;
                   const revenue = lib.totalRevenue || 0;
                   const authorsCount = lib.totalAuthors || 0;
@@ -1451,11 +1414,6 @@ export function LibrarySalesTab() {
                           <Users className="w-3 h-3" />
                           {authorsCount}
                         </span>
-                      </td>
-
-                      {/* Books Placed */}
-                      <td className="py-3 px-3 text-center font-black text-gray-900 border-r border-gray-200 bg-[#ffddaa]/25">
-                        {placed}
                       </td>
 
                       {/* Books Sold */}

@@ -403,25 +403,15 @@ export function AuthorLibrarySalesTab() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
             <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Active Libraries</div>
             <div className="text-xl font-black text-paa-navy">{metrics.uniqueLibraries}</div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
-            <Package className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Copies Placed</div>
-            <div className="text-xl font-black text-paa-navy">{metrics.totalPlaced}</div>
           </div>
         </div>
 
@@ -487,7 +477,6 @@ export function AuthorLibrarySalesTab() {
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-44 text-left px-2">Library / Flybrary</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-32 text-left px-2">City / Type</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-20 text-center">MRP (₹)</th>
-                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Copies<br/>Placed</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Copies<br/>Sold</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-28 text-center">Revenue (₹)</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Actions</th>
@@ -496,7 +485,7 @@ export function AuthorLibrarySalesTab() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center border-[1.5px] border-black">
+                  <td colSpan={8} className="p-8 text-center border-[1.5px] border-black">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <RefreshCw className="w-6 h-6 animate-spin text-gray-500" />
                       <span className="text-xs font-bold text-gray-500">Loading your library sales...</span>
@@ -505,7 +494,7 @@ export function AuthorLibrarySalesTab() {
                 </tr>
               ) : filteredSales.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center text-gray-500 italic border-[1.5px] border-black">
+                  <td colSpan={8} className="p-8 text-center text-gray-500 italic border-[1.5px] border-black">
                     No library sales records found. Click "+ Add Placement / Sale" to record your copies at a library.
                   </td>
                 </tr>
@@ -513,7 +502,6 @@ export function AuthorLibrarySalesTab() {
                 filteredSales.map((sale, idx) => {
                   const isEditing = editingSaleId === sale.id;
                   const mrp = sale.overrideMrp || sale.book?.mrp || 0;
-                  const placed = sale.copiesPlaced || 0;
                   const sold = sale.soldStock || 0;
                   const revenue = sold * mrp;
 
@@ -542,21 +530,6 @@ export function AuthorLibrarySalesTab() {
                       {/* MRP */}
                       <td className="border-[1.5px] border-black bg-[#ffddaa] text-black text-center font-mono font-bold p-1">
                         ₹{mrp}
-                      </td>
-
-                      {/* Copies Placed */}
-                      <td className={`border-[1.5px] border-black text-center font-bold ${isEditing ? 'bg-white p-0' : 'bg-[#ffddaa] p-1 text-black'}`}>
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            min="0"
-                            value={editPlaced}
-                            onChange={e => setEditPlaced(parseInt(e.target.value) || 0)}
-                            className="w-full h-full p-1 text-center outline-none font-bold bg-white text-black"
-                          />
-                        ) : (
-                          placed
-                        )}
                       </td>
 
                       {/* Copies Sold */}
@@ -617,9 +590,6 @@ export function AuthorLibrarySalesTab() {
                 <tr className="bg-[#FFE600] font-bold text-black border-t-2 border-black">
                   <td colSpan={5} className="border-[1.5px] border-black text-right p-2 uppercase tracking-widest text-[11px]">
                     GRAND TOTAL
-                  </td>
-                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black">
-                    {metrics.totalPlaced}
                   </td>
                   <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-emerald-900">
                     {metrics.totalSold}
