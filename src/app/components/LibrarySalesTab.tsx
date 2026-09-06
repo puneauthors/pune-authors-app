@@ -623,7 +623,7 @@ export function LibrarySalesTab() {
         worksheet.addRow([]);
         worksheet.addRow(['Report Date:', new Date().toLocaleDateString('en-GB'), '', 'Location:', `${currentLib.city}, ${currentLib.state}`]);
         worksheet.addRow(['Total Books Placed:', libraryMetrics.totalPlaced, '', 'Total Books Sold:', libraryMetrics.totalSold]);
-        worksheet.addRow(['Total Revenue (₹):', `₹${libraryMetrics.totalRevenue.toLocaleString()}`, '', 'Stock Remaining:', libraryMetrics.totalRemaining]);
+        worksheet.addRow(['Total Revenue (₹):', `₹${libraryMetrics.totalRevenue.toLocaleString()}`]);
         worksheet.addRow([]);
 
         for (let r = 3; r <= 5; r++) {
@@ -636,7 +636,6 @@ export function LibrarySalesTab() {
           'Book Title',
           'MRP (₹)',
           'Author Name',
-          'Books Placed',
           'Copies Sold',
           'Revenue (₹)'
         ];
@@ -672,7 +671,6 @@ export function LibrarySalesTab() {
             s.book?.title || 'Unknown Title',
             mrp,
             s.author?.name || 'Unknown Author',
-            placed,
             sold,
             revenue
           ]);
@@ -681,11 +679,10 @@ export function LibrarySalesTab() {
           row.getCell(3).alignment = { horizontal: 'center' };
           row.getCell(5).alignment = { horizontal: 'center' };
           row.getCell(6).alignment = { horizontal: 'center' };
-          row.getCell(7).alignment = { horizontal: 'center' };
 
           // Styling
           row.getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00FFFF' } }; // Cyan author cell
-          row.getCell(6).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F4EA' } }; // Light green sold cell
+          row.getCell(5).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F4EA' } }; // Light green sold cell
 
           row.eachCell(cell => {
             cell.border = {
@@ -703,7 +700,6 @@ export function LibrarySalesTab() {
           '',
           '',
           '',
-          libraryMetrics.totalPlaced,
           libraryMetrics.totalSold,
           libraryMetrics.totalRevenue
         ]);
@@ -769,7 +765,6 @@ export function LibrarySalesTab() {
           'City & State',
           'Airport Code',
           'Authors Count',
-          'Total Placed',
           'Total Sold',
           'Revenue (₹)',
           'Status'
@@ -792,7 +787,6 @@ export function LibrarySalesTab() {
             `${lib.city}, ${lib.state}`,
             lib.airportCode || '-',
             lib.totalAuthors || 0,
-            lib.totalPlaced || 0,
             lib.totalSold || 0,
             lib.totalRevenue || 0,
             lib.status || 'Active'
@@ -805,7 +799,6 @@ export function LibrarySalesTab() {
           row.getCell(7).alignment = { horizontal: 'center' };
           row.getCell(8).alignment = { horizontal: 'center' };
           row.getCell(9).alignment = { horizontal: 'center' };
-          row.getCell(10).alignment = { horizontal: 'center' };
 
           row.eachCell(cell => {
             cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };

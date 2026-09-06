@@ -7,7 +7,6 @@ import {
   Download, 
   BookOpen, 
   IndianRupee, 
-  Package, 
   CheckCircle2, 
   RefreshCw,
   MapPin
@@ -124,12 +123,11 @@ export function AuthorLibrarySalesTab() {
 
       worksheet.addRow([]);
       worksheet.addRow(['Report Date:', new Date().toLocaleDateString('en-GB'), '', 'Active Libraries:', metrics.uniqueLibraries]);
-      worksheet.addRow(['Total Copies Placed:', metrics.totalPlaced, '', 'Total Books Sold:', metrics.totalSold]);
-      worksheet.addRow(['Total Revenue (INR):', metrics.totalRevenue, '', 'Stock Remaining:', metrics.totalRemaining]);
+      worksheet.addRow(['Total Books Sold:', metrics.totalSold, '', 'Total Revenue (INR):', metrics.totalRevenue]);
       worksheet.addRow([]);
-      for (let r = 3; r <= 5; r++) { worksheet.getRow(r).font = { bold: true }; }
+      for (let r = 3; r <= 4; r++) { worksheet.getRow(r).font = { bold: true }; }
 
-      const headers = ['S.No', 'Book Title', 'MRP (INR)', 'Library Name', 'City / Type', 'Copies Placed', 'Copies Sold', 'Revenue (INR)', 'Stock Remaining', 'Notes / Shelf'];
+      const headers = ['S.No', 'Book Title', 'MRP (INR)', 'Library Name', 'City / Type', 'Copies Sold', 'Revenue (INR)'];
       const headerRow = worksheet.addRow(headers);
       headerRow.height = 24;
       headerRow.eachCell(cell => {
@@ -146,13 +144,13 @@ export function AuthorLibrarySalesTab() {
         const sold = sale.soldStock || 0;
         const revenue = sold * mrp;
         const remaining = Math.max(0, placed - sold);
-        const row = worksheet.addRow([sNo++, sale.book?.title || 'Unknown', mrp, sale.library?.name || 'Library', `${sale.library?.city || ''} (${sale.library?.type || ''})`, placed, sold, revenue, remaining, sale.notes || '']);
+        const row = worksheet.addRow([sNo++, sale.book?.title || 'Unknown', mrp, sale.library?.name || 'Library', `${sale.library?.city || ''} (${sale.library?.type || ''})`, sold, revenue]);
         row.eachCell(cell => { cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }; });
-        [1, 3, 6, 7, 8, 9].forEach(c => { row.getCell(c).alignment = { horizontal: 'center' }; });
-        row.getCell(7).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F4EA' } };
+        [1, 3, 5, 6, 7].forEach(c => { row.getCell(c).alignment = { horizontal: 'center' }; });
+        row.getCell(6).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F4EA' } };
       });
 
-      const grandRow = worksheet.addRow(['GRAND TOTAL', '', '', '', '', metrics.totalPlaced, metrics.totalSold, metrics.totalRevenue, metrics.totalRemaining, '']);
+      const grandRow = worksheet.addRow(['GRAND TOTAL', '', '', '', '', metrics.totalSold, metrics.totalRevenue]);
       worksheet.mergeCells(`A${grandRow.number}:E${grandRow.number}`);
       grandRow.height = 24;
       grandRow.eachCell(cell => {
@@ -205,8 +203,8 @@ export function AuthorLibrarySalesTab() {
         </div>
       </div>
 
-      {/* Colorful KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* Colorful KPI Cards — 3 cards only: Libraries, Sold, Revenue */}
+      <div className="grid grid-cols-3 gap-3">
         <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black uppercase tracking-wider text-indigo-100">Libraries</span>
@@ -215,17 +213,6 @@ export function AuthorLibrarySalesTab() {
           <div className="mt-2">
             <div className="text-3xl font-black text-white">{metrics.uniqueLibraries}</div>
             <div className="text-[11px] text-indigo-100 font-bold mt-0.5">Active Libraries</div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-cyan-500 via-cyan-600 to-teal-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-cyan-100">Placed</span>
-            <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center"><Package className="w-4 h-4 text-white" /></div>
-          </div>
-          <div className="mt-2">
-            <div className="text-3xl font-black text-white">{metrics.totalPlaced}</div>
-            <div className="text-[11px] text-cyan-100 font-bold mt-0.5">Copies Stocked</div>
           </div>
         </div>
 
@@ -294,17 +281,14 @@ export function AuthorLibrarySalesTab() {
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-52 text-left px-2 font-black text-black">Book Title</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-20 text-center font-black text-black">MRP (&#8377;)</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-44 text-left px-2 font-black text-black">Library Name</th>
-                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Copies<br/>Placed</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Copies<br/>Sold</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Revenue (&#8377;)</th>
-                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Stock<br/>Remaining</th>
-                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-32 text-center font-black text-black">Notes / Shelf</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center border-[1.5px] border-black">
+                  <td colSpan={6} className="p-8 text-center border-[1.5px] border-black">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <RefreshCw className="w-6 h-6 animate-spin text-gray-500" />
                       <span className="text-xs font-bold text-gray-500">Loading your library sales...</span>
@@ -313,7 +297,7 @@ export function AuthorLibrarySalesTab() {
                 </tr>
               ) : filteredSales.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="p-10 text-center text-gray-500 italic border-[1.5px] border-black">
+                  <td colSpan={6} className="p-10 text-center text-gray-500 italic border-[1.5px] border-black">
                     <div className="flex flex-col items-center gap-2">
                       <Building2 className="w-8 h-8 text-gray-300" />
                       <span className="font-semibold">No library sales records found for your books yet.</span>
@@ -331,7 +315,7 @@ export function AuthorLibrarySalesTab() {
 
                   return [
                     <tr key={`lib-header-${group.library.id}`}>
-                      <td colSpan={9} className="border-[1.5px] border-black bg-indigo-600 text-white p-2 px-3">
+                      <td colSpan={6} className="border-[1.5px] border-black bg-indigo-600 text-white p-2 px-3">
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <div className="flex items-center gap-2">
                             <Building2 className="w-4 h-4 text-indigo-200 flex-shrink-0" />
@@ -348,7 +332,6 @@ export function AuthorLibrarySalesTab() {
                               </span>
                             )}
                             <span className="bg-white/20 px-2 py-0.5 rounded text-white">{group.items.length} title{group.items.length !== 1 ? 's' : ''}</span>
-                            <span className="bg-white/20 px-2 py-0.5 rounded text-white">{groupPlaced} placed &middot; {groupSold} sold</span>
                             <span className="bg-white/20 px-2 py-0.5 rounded text-white font-black">&#8377;{groupRevenue.toLocaleString()}</span>
                           </div>
                         </div>
@@ -369,11 +352,8 @@ export function AuthorLibrarySalesTab() {
                           <td className="border-[1.5px] border-black bg-[#ffcccc] text-black font-bold p-1 px-2 truncate max-w-[200px] text-left" title={sale.book?.title}>{sale.book?.title || 'Unknown Title'}</td>
                           <td className="border-[1.5px] border-black bg-[#ffddaa] text-black text-center font-mono font-bold p-1">{mrp}</td>
                           <td className="border-[1.5px] border-black bg-[#00ffff] text-black font-black p-1 px-2 truncate max-w-[170px] text-left" title={group.library.name}>{group.library.name}</td>
-                          <td className="border-[1.5px] border-black bg-blue-50 text-blue-900 text-center font-black p-1">{placed}</td>
                           <td className="border-[1.5px] border-black bg-emerald-100 text-emerald-900 text-center font-black p-1">{sold}</td>
                           <td className="border-[1.5px] border-black bg-[#e6f4ea] text-black text-center font-black p-1">&#8377;{revenue.toLocaleString()}</td>
-                          <td className={`border-[1.5px] border-black text-center font-black p-1 ${remaining === 0 ? 'bg-red-100 text-red-700' : 'bg-orange-50 text-orange-800'}`}>{remaining}</td>
-                          <td className="border-[1.5px] border-black bg-gray-50 text-gray-700 text-center font-medium p-1 px-2 truncate max-w-[120px]" title={sale.notes || ''}>{sale.notes || <span className="text-gray-300 italic text-[10px]">—</span>}</td>
                         </tr>
                       );
                     })
@@ -385,11 +365,8 @@ export function AuthorLibrarySalesTab() {
               {filteredSales.length > 0 && (
                 <tr className="bg-[#FFE600] font-black text-black border-t-2 border-black">
                   <td colSpan={4} className="border-[1.5px] border-black text-right p-2 uppercase tracking-widest text-[11px] font-black">GRAND TOTAL</td>
-                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-blue-900 font-black">{metrics.totalPlaced}</td>
                   <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-emerald-900 font-black">{metrics.totalSold}</td>
                   <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-black">&#8377;{metrics.totalRevenue.toLocaleString()}</td>
-                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-orange-800 font-black">{metrics.totalRemaining}</td>
-                  <td className="border-[1.5px] border-black bg-[#FFE600]"></td>
                 </tr>
               )}
             </tbody>
