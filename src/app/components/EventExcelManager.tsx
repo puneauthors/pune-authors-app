@@ -367,16 +367,71 @@ export default function EventExcelManager({
     }
   };
 
+  const isAuthorFeeExempt = (author: any) => {
+    if (author?.isFeeExempt || author?.feeWaived) return true;
+    if (eventBreakdown?.isFeeExempt) return true;
+    const exemptList = eventBreakdown?.exemptAuthorIds;
+    if (exemptList) {
+      try {
+        const list = Array.isArray(exemptList)
+          ? exemptList
+          : typeof exemptList === "string"
+          ? JSON.parse(exemptList || "[]")
+          : [];
+        const aid = Number(author?.authorId || author?.id || author?.author?.id);
+        if (list.map(Number).includes(aid)) return true;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return false;
+  };
+
+  const getAuthorPaymentInfo = (author: any) => {
+    const isExempt = isAuthorFeeExempt(author);
+    if (isExempt) {
+      return {
+        isExempt: true,
+        isVerified: false,
+        amountPaid: 0,
+        displayStr: "₹0"
+      };
+    }
+
+    const isVerified = author.paymentStatus === "Paid" || author.paymentStatus === "Confirmed";
+
+    if (isVerified) {
+      let amount = 0;
+      if (author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== "" && !isNaN(parseFloat(author.amountPaid))) {
+        amount = parseFloat(author.amountPaid);
+      } else if (eventBreakdown?.registrationFee) {
+        amount = eventBreakdown.feeType === "Per Title"
+          ? (eventBreakdown.registrationFee || 0) * (author.books?.length || 0)
+          : (eventBreakdown.registrationFee || 0);
+      }
+      return {
+        isExempt: false,
+        isVerified: true,
+        amountPaid: amount,
+        displayStr: `₹${amount}`
+      };
+    }
+
+    return {
+      isExempt: false,
+      isVerified: false,
+      amountPaid: 0,
+      displayStr: "₹0"
+    };
+  };
+
   let totalSold = 0;
   let totalRevenue = 0;
   let totalAmountPaid = 0;
   authors.forEach(author => {
-    const expectedFee = eventBreakdown?.registrationFee ? (eventBreakdown.feeType === 'Per Title' ? eventBreakdown.registrationFee * (author.books?.length || 0) : eventBreakdown.registrationFee) : null;
-    const authorPaid = author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== ""
-      ? parseFloat(author.amountPaid)
-      : (expectedFee || 0);
-    if (!isNaN(authorPaid)) {
-      totalAmountPaid += authorPaid;
+    const paymentInfo = getAuthorPaymentInfo(author);
+    if (!paymentInfo.isExempt && paymentInfo.isVerified && !isNaN(paymentInfo.amountPaid)) {
+      totalAmountPaid += paymentInfo.amountPaid;
     }
 
     if (author.books) {
@@ -475,8 +530,8 @@ export default function EventExcelManager({
             ) : (
               authors.map((author, aIdx) => {
                 const isEditing = editingAuthorId === author.authorId;
-                const expectedFee = eventBreakdown?.registrationFee ? (eventBreakdown.feeType === 'Per Title' ? eventBreakdown.registrationFee * (author.books?.length || 0) : eventBreakdown.registrationFee) : null;
-                const expectedFeeStr = expectedFee !== null ? `₹${expectedFee}` : "NA";
+                const paymentInfo = getAuthorPaymentInfo(author);
+                const isExempt = paymentInfo.isExempt;
                 
                 if (!author.books || author.books.length === 0) {
                   return (
@@ -490,12 +545,19 @@ export default function EventExcelManager({
                             <input
                               type="number"
                               className="w-full h-full p-1 bg-transparent border-none text-center outline-none font-bold text-black"
-                              value={author.amountPaid || ""}
+                              value={author.amountPaid !== null && author.amountPaid !== undefined ? author.amountPaid : (isExempt ? 0 : (paymentInfo.isVerified ? paymentInfo.amountPaid : ""))}
                               onChange={(e) => handleAmountPaidChange(author.authorId, e.target.value)}
                               placeholder="0"
                             />
                           ) : (
-                            author.amountPaid ? `₹${author.amountPaid}` : expectedFeeStr
+                            <div className="flex flex-col items-center justify-center">
+                              <span>{paymentInfo.displayStr}</span>
+                              {isExempt && (
+                                <span className="text-[8px] font-bold text-purple-800 uppercase tracking-wider block">
+                                  (Waived)
+                                </span>
+                              )}
+                            </div>
                           )}
                       </td>
                       <td className="border-[1.5px] border-black text-gray-400 italic p-1 px-2 text-center">
@@ -506,9 +568,15 @@ export default function EventExcelManager({
                       </td>
                       <td className="border-[1.5px] border-black text-gray-400 p-1" colSpan={4 + dayColumns.length}></td>
                       <td className="border-[1.5px] border-black bg-white text-center p-1 font-bold">
-                        <span className={`px-2 py-0.5 text-[9px] rounded-full text-black whitespace-nowrap ${author.optInStatus === 'Pending Approval' || (author.optInStatus === 'Approved' && author.paymentStatus !== 'Paid' && eventBreakdown?.registrationFee > 0) ? 'bg-yellow-300 animate-pulse' : author.optInStatus === 'Rejected' ? 'bg-red-300' : 'bg-green-300'}`}>
-                          {author.paymentScreenshot && author.optInStatus === 'Approved' ? "Verify Payment" : (!author.paymentScreenshot && author.optInStatus === 'Approved' && author.paymentStatus !== 'Paid' && eventBreakdown?.registrationFee > 0 ? "Pending Payment" : author.optInStatus || "Registered")}
-                        </span>
+                        {author.paymentScreenshot && author.optInStatus === 'Approved' ? (
+                          <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Verify Payment</span>
+                        ) : (!author.paymentScreenshot && author.optInStatus === 'Approved' && author.paymentStatus !== 'Paid' && eventBreakdown?.registrationFee > 0 && !isExempt) ? (
+                          <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Pending Payment</span>
+                        ) : (
+                          <span className={`px-2 py-0.5 text-[9px] rounded-full text-black whitespace-nowrap font-bold ${isExempt ? 'bg-purple-200 text-purple-900' : author.optInStatus === 'Pending Approval' ? 'bg-yellow-300 animate-pulse' : author.optInStatus === 'Rejected' ? 'bg-red-300' : 'bg-green-300'}`}>
+                            {isExempt ? "Exempt (₹0)" : (author.optInStatus || "Registered")}
+                          </span>
+                        )}
                       </td>
                       <td className="border-[1.5px] border-black bg-white p-1 text-center">
                         {isEditing ? (
@@ -599,12 +667,19 @@ export default function EventExcelManager({
                             <input
                               type="number"
                               className="w-full h-full p-1 bg-transparent border-none text-center outline-none font-bold text-black"
-                              value={author.amountPaid || ""}
+                              value={author.amountPaid !== null && author.amountPaid !== undefined ? author.amountPaid : (isExempt ? 0 : (paymentInfo.isVerified ? paymentInfo.amountPaid : ""))}
                               onChange={(e) => handleAmountPaidChange(author.authorId, e.target.value)}
                               placeholder="0"
                             />
                           ) : (
-                            author.amountPaid ? `₹${author.amountPaid}` : expectedFeeStr
+                            <div className="flex flex-col items-center justify-center">
+                              <span>{paymentInfo.displayStr}</span>
+                              {isExempt && (
+                                <span className="text-[8px] font-bold text-purple-800 uppercase tracking-wider block">
+                                  (Waived)
+                                </span>
+                              )}
+                            </div>
                           )}
                         </td>
                       )}
@@ -680,11 +755,13 @@ export default function EventExcelManager({
                       {isFirstBook && (
                         <td rowSpan={rowSpan} className="border-[1.5px] border-black bg-white p-1 text-center font-bold">
                           {author.paymentScreenshot && author.optInStatus === 'Approved' ? (
-                            <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px]">Verify Payment</span>
-                          ) : (!author.paymentScreenshot && author.optInStatus === 'Approved' && author.paymentStatus !== 'Paid' && eventBreakdown?.registrationFee > 0) ? (
-                            <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px]">Pending Payment</span>
+                            <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Verify Payment</span>
+                          ) : (!author.paymentScreenshot && author.optInStatus === 'Approved' && author.paymentStatus !== 'Paid' && eventBreakdown?.registrationFee > 0 && !isExempt) ? (
+                            <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Pending Payment</span>
                           ) : (
-                            author.optInStatus || "Pending"
+                            <span className={`px-2 py-0.5 text-[9px] rounded-full text-black whitespace-nowrap font-bold ${isExempt ? 'bg-purple-200 text-purple-900' : author.optInStatus === 'Pending Approval' ? 'bg-yellow-300 animate-pulse' : author.optInStatus === 'Rejected' ? 'bg-red-300' : 'bg-green-300'}`}>
+                              {isExempt ? "Exempt (₹0)" : (author.optInStatus || "Registered")}
+                            </span>
                           )}
                         </td>
                       )}

@@ -4101,7 +4101,23 @@ const totalAuthorsBase = eventRegistrations.length;
             ? "NA"
             : totalSaleBase;
       const totalPaymentsBase = eventRegistrations.reduce(
-        (acc: number, a: any) => acc + (a.amountPaid || 0),
+        (acc: number, a: any) => {
+          const isExempt = Boolean(
+            a.isFeeExempt ||
+            a.feeWaived ||
+            selectedEventBreakdown?.isFeeExempt ||
+            (selectedEventBreakdown?.exemptAuthorIds && Array.isArray(selectedEventBreakdown.exemptAuthorIds) && (
+              selectedEventBreakdown.exemptAuthorIds.includes(a.authorId || a.id || a.author?.id)
+            ))
+          );
+          if (isExempt) return acc;
+          const isVerified = a.paymentStatus === "Paid" || a.paymentStatus === "Confirmed";
+          if (!isVerified) return acc;
+          const fee = a.amountPaid != null && a.amountPaid !== "" && !isNaN(parseFloat(a.amountPaid))
+            ? parseFloat(a.amountPaid)
+            : parseFloat(selectedEventBreakdown.registrationFee || 0);
+          return acc + (!isNaN(fee) ? fee : 0);
+        },
         0,
       );
       const totalPayments =
@@ -5410,13 +5426,20 @@ const totalAuthorsBase = eventRegistrations.length;
       );
       const totalFeesReceived = eventRegistrations.reduce(
         (acc: number, a: any) => {
-          const fee =
-            a.amountPaid != null
-              ? parseFloat(a.amountPaid)
-              : a.paymentStatus === "Paid" ||
-                  a.optInStatus?.startsWith("Registered")
-                ? parseFloat(selectedEventBreakdown.registrationFee || 0)
-                : 0;
+          const isExempt = Boolean(
+            a.isFeeExempt ||
+            a.feeWaived ||
+            selectedEventBreakdown?.isFeeExempt ||
+            (selectedEventBreakdown?.exemptAuthorIds && Array.isArray(selectedEventBreakdown.exemptAuthorIds) && (
+              selectedEventBreakdown.exemptAuthorIds.includes(a.authorId || a.id || a.author?.id)
+            ))
+          );
+          if (isExempt) return acc;
+          const isPaid = a.paymentStatus === "Paid" || a.paymentStatus === "Confirmed";
+          if (!isPaid) return acc;
+          const fee = a.amountPaid != null && a.amountPaid !== "" && !isNaN(parseFloat(a.amountPaid))
+            ? parseFloat(a.amountPaid)
+            : parseFloat(selectedEventBreakdown.registrationFee || 0);
           return acc + (!isNaN(fee) ? fee : 0);
         },
         0,
@@ -5525,14 +5548,23 @@ const totalAuthorsBase = eventRegistrations.length;
             r.authorId === author.id ||
             r.id === author.id,
         );
-        const isParticipating = reg ? "Yes" : "No";
-        const amountPaid =
-          reg?.amountPaid != null
-            ? reg.amountPaid
-            : reg?.paymentStatus === "Paid" ||
-                reg?.optInStatus?.startsWith("Registered")
-              ? selectedEventBreakdown.registrationFee || 0
-              : 0;
+        const isExempt = Boolean(
+          reg?.isFeeExempt ||
+          author?.isFeeExempt ||
+          selectedEventBreakdown?.isFeeExempt ||
+          (selectedEventBreakdown?.exemptAuthorIds && Array.isArray(selectedEventBreakdown.exemptAuthorIds) && (
+            selectedEventBreakdown.exemptAuthorIds.includes(author.id) ||
+            selectedEventBreakdown.exemptAuthorIds.includes(reg?.authorId)
+          ))
+        );
+        const isPaid = !isExempt && (reg?.paymentStatus === "Paid" || reg?.paymentStatus === "Confirmed");
+        const amountPaid = isExempt
+          ? 0
+          : (isPaid
+              ? (reg?.amountPaid != null && reg.amountPaid !== "" && !isNaN(parseFloat(reg.amountPaid))
+                  ? parseFloat(reg.amountPaid)
+                  : (selectedEventBreakdown.registrationFee || 0))
+              : 0);
         const paymentStatus = reg?.paymentStatus || "NA";
         const authorName = author.name || "";
         const phone = author.phone || "NA";
