@@ -5618,6 +5618,89 @@ router.post('/api/admin/events/:eventId/author/:authorId/verify-payment', verify
   }
 });
 
+// Admin upload payment proof & record payment on behalf of author
+router.post('/api/admin/events/:eventId/author/:authorId/upload-payment', verifyToken, isAdmin, upload.single('paymentScreenshot'), async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+    const authorId = parseInt(req.params.authorId);
+    const transactionId = req.body.transactionId || 'ADMIN-RECORDED';
+    const paymentStatus = req.body.paymentStatus || 'Paid';
+    const optInStatus = req.body.optInStatus || 'Registered';
+    const paymentScreenshot = req.file ? `/uploads/${req.file.filename}` : (req.body.paymentScreenshotUrl || null);
+
+    const event = await prisma.event.findUnique({ where: { id: eventId } });
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+
+    const author = await prisma.author.findUnique({ where: { id: authorId } });
+    if (!author) return res.status(404).json({ error: 'Author not found' });
+
+    let existingRegistration = await prisma.eventAuthor.findFirst({
+      where: { eventId, authorId }
+    });
+
+    let calcPaid = req.body.amountPaid !== undefined && req.body.amountPaid !== '' ? parseFloat(req.body.amountPaid) : null;
+    if (calcPaid === null || isNaN(calcPaid)) {
+      if (event.feeType === 'Per Title') {
+        const eventBooksCount = await prisma.eventBook.count({ where: { eventId, authorId } });
+        calcPaid = (event.registrationFee || 0) * (eventBooksCount || 1);
+      } else {
+        calcPaid = event.registrationFee || 0;
+      }
+    }
+
+    if (existingRegistration) {
+      existingRegistration = await prisma.eventAuthor.update({
+        where: { id: existingRegistration.id },
+        data: {
+          ...(paymentScreenshot && { paymentScreenshot }),
+          transactionId,
+          paymentStatus,
+          optInStatus,
+          amountPaid: calcPaid
+        }
+      });
+    } else {
+      existingRegistration = await prisma.eventAuthor.create({
+        data: {
+          eventId,
+          authorId,
+          paymentScreenshot,
+          transactionId,
+          paymentStatus,
+          optInStatus,
+          amountPaid: calcPaid
+        }
+      });
+    }
+
+    invalidateCache(`author:dashboard:${author.email}`);
+    invalidateCache(`author:events:${author.email}`);
+    invalidateCache('admin:dashboard-stats');
+
+    if (paymentStatus === 'Paid') {
+      sendNotificationEmail(
+        author.email,
+        `Payment Received: Event Registration Confirmed - ${event.name}`,
+        emailWrap(
+          `Payment Recorded & Registration Confirmed!`,
+          `<p>Dear ${author.name},</p>
+           <p>Your payment of <strong>₹${calcPaid}</strong> (Ref / Txn ID: <code>${transactionId}</code>) for the event <strong>${event.name}</strong> has been recorded and verified.</p>
+           <p>Your slot is now confirmed. We look forward to your active participation!</p>`
+        )
+      ).catch(e => console.error('Failed to send payment confirmation email:', e));
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Payment recorded and confirmed successfully',
+      registration: existingRegistration 
+    });
+  } catch (error) {
+    console.error('Error in admin upload-payment:', error);
+    res.status(500).json({ error: 'Failed to record payment on behalf of author' });
+  }
+});
+
 router.post('/api/admin/events/:eventId/author/:authorId/reject-payment', verifyToken, isAdmin, async (req, res) => {
   try {
     const eventId = parseInt(req.params.eventId);

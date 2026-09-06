@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { CheckCircle, XCircle, Edit, Save, X, Trash, Bell } from "lucide-react";
+import { CheckCircle, XCircle, Edit, Save, X, Trash, Bell, UploadCloud, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export default function EventExcelManager({
@@ -28,6 +28,14 @@ export default function EventExcelManager({
   const [globalRevenue, setGlobalRevenue] = useState(eventBreakdown.aggRevenue || "");
   const [globalAuthors, setGlobalAuthors] = useState(eventBreakdown.aggAuthors || "");
   const [isSavingGlobals, setIsSavingGlobals] = useState(false);
+
+  // Admin Upload Payment Proof Modal State
+  const [uploadModalAuthor, setUploadModalAuthor] = useState<any | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadTxnId, setUploadTxnId] = useState("");
+  const [uploadAmount, setUploadAmount] = useState("");
+  const [uploadAutoConfirm, setUploadAutoConfirm] = useState(true);
+  const [isUploadingProof, setIsUploadingProof] = useState(false);
   
   useEffect(() => {
     setGlobalSold(eventBreakdown.aggSold || "");
@@ -339,6 +347,53 @@ export default function EventExcelManager({
     }
   };
 
+  const openUploadModal = (author: any) => {
+    const paymentInfo = getAuthorPaymentInfo(author);
+    setUploadModalAuthor(author);
+    setUploadFile(null);
+    setUploadTxnId(author.transactionId || `ADMIN-${Date.now().toString().slice(-6)}`);
+    setUploadAmount(
+      author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== ""
+        ? author.amountPaid.toString()
+        : paymentInfo.amountPaid > 0
+        ? paymentInfo.amountPaid.toString()
+        : (eventBreakdown?.registrationFee || 0).toString()
+    );
+    setUploadAutoConfirm(true);
+  };
+
+  const handleUploadProofSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadModalAuthor) return;
+    setIsUploadingProof(true);
+    try {
+      const fd = new FormData();
+      if (uploadFile) {
+        fd.append("paymentScreenshot", uploadFile);
+      }
+      fd.append("transactionId", uploadTxnId || "ADMIN-RECORDED");
+      fd.append("amountPaid", uploadAmount || "0");
+      fd.append("paymentStatus", uploadAutoConfirm ? "Paid" : "Pending Verification");
+      fd.append("optInStatus", "Registered");
+
+      await axios.post(
+        `${API}/api/admin/events/${eventBreakdown.id}/author/${uploadModalAuthor.authorId}/upload-payment`,
+        fd,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+
+      toast.success(`Payment recorded & verified for ${uploadModalAuthor.authorName}`);
+      setUploadModalAuthor(null);
+      setUploadFile(null);
+      onRefresh();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.error || "Failed to upload payment proof");
+    } finally {
+      setIsUploadingProof(false);
+    }
+  };
+
   const saveAllAuthorsData = async () => {
     setIsSaving(true);
     try {
@@ -484,7 +539,8 @@ export default function EventExcelManager({
   };
 
   return (
-    <div className="flex flex-col mt-8 border-[1.5px] border-black shadow-sm overflow-hidden bg-white">
+    <>
+      <div className="flex flex-col mt-8 border-[1.5px] border-black shadow-sm overflow-hidden bg-white">
       <div className="flex justify-between items-center bg-[#00D8F5] p-2 border-b-[1.5px] border-black font-bold">
         <h2 className="text-black uppercase text-[13px] m-0">
           LIST OF BOOKS FOR {eventBreakdown.name} ({startDate.toLocaleDateString()}) - {registrations.length} REGISTERED AUTHORS
@@ -708,6 +764,22 @@ export default function EventExcelManager({
                                     <Bell size={10} /> Remind Payment
                                   </button>
                                 )}
+                                {!paymentInfo.isExempt && (
+                                  <button
+                                    onClick={() => openUploadModal(author)}
+                                    className={`w-full py-1 px-2 rounded text-[9px] font-bold shadow-sm transition-all flex items-center justify-center gap-1 mt-1 ${
+                                      author.paymentStatus === 'Paid' || author.paymentStatus === 'Confirmed'
+                                        ? 'bg-slate-700 hover:bg-slate-800 text-white'
+                                        : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                                    }`}
+                                    title={author.paymentStatus === 'Paid' ? 'Re-upload / update payment proof' : 'Upload payment proof on behalf of author'}
+                                  >
+                                    <UploadCloud size={11} />
+                                    {author.paymentStatus === 'Paid' || author.paymentStatus === 'Confirmed'
+                                      ? (author.paymentScreenshot ? 'Re-upload Proof' : 'Attach Proof')
+                                      : 'Upload Payment Proof'}
+                                  </button>
+                                )}
                               </div>
                             </div>
                           )}
@@ -904,7 +976,23 @@ export default function EventExcelManager({
                                   <Bell size={10} /> Remind Payment
                                 </button>
                               )}
-                              
+                              {!paymentInfo.isExempt && (
+                                <button
+                                  onClick={() => openUploadModal(author)}
+                                  className={`w-full py-1 px-2 rounded text-[9px] font-bold shadow-sm transition-all flex items-center justify-center gap-1 mt-1 ${
+                                    author.paymentStatus === 'Paid' || author.paymentStatus === 'Confirmed'
+                                      ? 'bg-slate-700 hover:bg-slate-800 text-white'
+                                      : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                                  }`}
+                                  title={author.paymentStatus === 'Paid' ? 'Re-upload / update payment proof' : 'Upload payment proof on behalf of author'}
+                                >
+                                  <UploadCloud size={11} />
+                                  {author.paymentStatus === 'Paid' || author.paymentStatus === 'Confirmed'
+                                    ? (author.paymentScreenshot ? 'Re-upload Proof' : 'Attach Proof')
+                                    : 'Upload Payment Proof'}
+                                </button>
+                              )}
+
                               {author.paymentScreenshot && (
                                 <a href={`${import.meta.env.VITE_API_URL || "http://localhost:3001"}${author.paymentScreenshot}`} target="_blank" rel="noopener noreferrer" className="text-[9px] text-blue-600 underline font-semibold text-center block mt-1 hover:text-blue-800">
                                   View Payment Proof
@@ -920,58 +1008,212 @@ export default function EventExcelManager({
                         </td>
                       )}
                     </tr>
-                  );
-                });
-              })
-            )}
-            
-            {/* Grand Total Footer */}
-            {authors.length > 0 && (
-              <tr className="bg-[#FFE600] font-bold text-black border-t-2 border-black">
-                <td colSpan={2} className="border-[1.5px] border-black text-right p-2 uppercase tracking-widest text-[11px]">
-                  GRAND TOTAL
-                </td>
-                <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white">
-                  ₹{totalAmountPaid}
-                </td>
-                <td colSpan={4 + (dayColumns.length > 0 ? dayColumns.length : 0)} className="border-[1.5px] border-black"></td>
-                <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white">
-                  {totalSold}
-                </td>
-                <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white">
-                  ₹{totalRevenue}
-                </td>
-                <td colSpan={2} className="border-[1.5px] border-black"></td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-      
-      {/* GLOBAL OVERRIDES */}
-      <div className="bg-gray-100 border-t-[1.5px] border-black p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h3 className="font-black text-black text-[13px] uppercase tracking-widest m-0">Global Overrides</h3>
-          <p className="text-[10px] font-bold text-gray-800 m-0 mt-0.5">For events without individual breakdown (Overrides computed totals).</p>
+                    );
+                  });
+                })
+              )}
+              
+              {/* Grand Total Footer */}
+              {authors.length > 0 && (
+                <tr className="bg-[#FFE600] font-bold text-black border-t-2 border-black">
+                  <td colSpan={2} className="border-[1.5px] border-black text-right p-2 uppercase tracking-widest text-[11px]">
+                    GRAND TOTAL
+                  </td>
+                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white">
+                    ₹{totalAmountPaid}
+                  </td>
+                  <td colSpan={4 + (dayColumns.length > 0 ? dayColumns.length : 0)} className="border-[1.5px] border-black"></td>
+                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white">
+                    {totalSold}
+                  </td>
+                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white">
+                    ₹{totalRevenue}
+                  </td>
+                  <td colSpan={2} className="border-[1.5px] border-black"></td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-        <div className="flex flex-wrap gap-3 items-end">
-          <div className="flex flex-col">
-            <label className="text-[10px] font-black uppercase text-black mb-1">Total Authors</label>
-            <input type="number" value={globalAuthors} onChange={e => setGlobalAuthors(e.target.value)} className="border-[1.5px] border-black p-1.5 text-xs w-24 outline-none font-bold text-center" placeholder="Auto" />
+        
+        {/* GLOBAL OVERRIDES */}
+        <div className="bg-gray-100 border-t-[1.5px] border-black p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-black text-black text-[13px] uppercase tracking-widest m-0">Global Overrides</h3>
+            <p className="text-[10px] font-bold text-gray-800 m-0 mt-0.5">For events without individual breakdown (Overrides computed totals).</p>
           </div>
-          <div className="flex flex-col">
-            <label className="text-[10px] font-black uppercase text-black mb-1">Total Books Sold</label>
-            <input type="number" value={globalSold} onChange={e => setGlobalSold(e.target.value)} className="border-[1.5px] border-black p-1.5 text-xs w-24 outline-none font-bold text-center" placeholder="Auto" />
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="flex flex-col">
+              <label className="text-[10px] font-black uppercase text-black mb-1">Total Authors</label>
+              <input type="number" value={globalAuthors} onChange={e => setGlobalAuthors(e.target.value)} className="border-[1.5px] border-black p-1.5 text-xs w-24 outline-none font-bold text-center" placeholder="Auto" />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-[10px] font-black uppercase text-black mb-1">Total Books Sold</label>
+              <input type="number" value={globalSold} onChange={e => setGlobalSold(e.target.value)} className="border-[1.5px] border-black p-1.5 text-xs w-24 outline-none font-bold text-center" placeholder="Auto" />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-[10px] font-black uppercase text-black mb-1">Total Revenue (₹)</label>
+              <input type="number" value={globalRevenue} onChange={e => setGlobalRevenue(e.target.value)} className="border-[1.5px] border-black p-1.5 text-xs w-28 outline-none font-bold text-center" placeholder="Auto" />
+            </div>
+            <button onClick={handleSaveGlobals} disabled={isSavingGlobals} className="bg-black text-white px-4 py-1.5 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 disabled:opacity-50 border-[1.5px] border-black h-[33px]">
+              {isSavingGlobals ? "SAVING..." : "SAVE GLOBALS"}
+            </button>
           </div>
-          <div className="flex flex-col">
-            <label className="text-[10px] font-black uppercase text-black mb-1">Total Revenue (₹)</label>
-            <input type="number" value={globalRevenue} onChange={e => setGlobalRevenue(e.target.value)} className="border-[1.5px] border-black p-1.5 text-xs w-28 outline-none font-bold text-center" placeholder="Auto" />
-          </div>
-          <button onClick={handleSaveGlobals} disabled={isSavingGlobals} className="bg-black text-white px-4 py-1.5 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 disabled:opacity-50 border-[1.5px] border-black h-[33px]">
-            {isSavingGlobals ? "SAVING..." : "SAVE GLOBALS"}
-          </button>
         </div>
       </div>
-    </div>
+
+      {/* ADMIN UPLOAD PAYMENT PROOF MODAL */}
+      {uploadModalAuthor && (
+        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
+                  <UploadCloud className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-gray-900">Upload Payment Proof</h3>
+                  <p className="text-xs text-gray-500">Record & verify payment on behalf of the author</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setUploadModalAuthor(null)}
+                className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUploadProofSubmit} className="space-y-4 pt-4">
+              {/* Author & Event Banner */}
+              <div className="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-wider text-indigo-600">Author</div>
+                  <div className="font-bold text-indigo-950 text-sm">{uploadModalAuthor.authorName}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-indigo-600">Event</div>
+                  <div className="font-bold text-indigo-950 text-xs truncate max-w-[160px]">{eventBreakdown.name}</div>
+                </div>
+              </div>
+
+              {/* File Upload / Screenshot */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  Payment Screenshot / Receipt (Image or PDF)
+                </label>
+                <div className="border-2 border-dashed border-gray-300 hover:border-indigo-500 rounded-xl p-4 text-center transition-colors bg-gray-50/50">
+                  <input
+                    type="file"
+                    id="adminPaymentProofInput"
+                    accept="image/*,application/pdf"
+                    onChange={e => {
+                      if (e.target.files && e.target.files[0]) {
+                        setUploadFile(e.target.files[0]);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <label htmlFor="adminPaymentProofInput" className="cursor-pointer flex flex-col items-center gap-1.5">
+                    <ImageIcon className="w-8 h-8 text-gray-400" />
+                    {uploadFile ? (
+                      <div className="text-xs font-bold text-indigo-600 truncate max-w-[300px]">
+                        Selected: {uploadFile.name}
+                      </div>
+                    ) : (
+                      <>
+                        <span className="text-xs font-bold text-indigo-600 hover:underline">
+                          Click to browse and upload screenshot
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          (Optional if recording offline/cash payment)
+                        </span>
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              {/* Amount Paid */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Amount Paid (₹) <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-xs font-bold text-gray-500">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    required
+                    value={uploadAmount}
+                    onChange={e => setUploadAmount(e.target.value)}
+                    placeholder="Enter amount paid"
+                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-xl text-xs font-bold text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                  />
+                </div>
+              </div>
+
+              {/* Transaction ID / Reference */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Transaction ID / UTR / Reference No.
+                </label>
+                <input
+                  type="text"
+                  value={uploadTxnId}
+                  onChange={e => setUploadTxnId(e.target.value)}
+                  placeholder="e.g. UPI-123456789 or CASH"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs font-medium text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                />
+              </div>
+
+              {/* Auto Confirm Checkbox */}
+              <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  id="autoConfirmCheck"
+                  checked={uploadAutoConfirm}
+                  onChange={e => setUploadAutoConfirm(e.target.checked)}
+                  className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500"
+                />
+                <label htmlFor="autoConfirmCheck" className="text-xs text-emerald-950 font-medium cursor-pointer">
+                  <span className="font-bold block text-emerald-900">Mark as Paid & Confirmed immediately</span>
+                  Automatically updates payment status to &quot;Paid&quot;, confirms participation slot, and sends confirmation email.
+                </label>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setUploadModalAuthor(null)}
+                  disabled={isUploadingProof}
+                  className="px-4 py-2 border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-xl text-xs font-bold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploadingProof}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {isUploadingProof ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-3.5 h-3.5" /> Save & Confirm Payment
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
