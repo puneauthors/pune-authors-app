@@ -5146,6 +5146,127 @@ router.delete('/api/admin/gallery/images/:imageId', verifyToken, isAdmin, async 
   }
 });
 
+// HELPER FOR RICH EVENT APPROVAL & PAYMENT REMINDER EMAILS
+async function sendEventApprovalOrReminderEmail(eventId, authorId, isReminder = false) {
+  try {
+    const event = await prisma.event.findUnique({ where: { id: eventId } });
+    const author = await prisma.author.findUnique({ where: { id: authorId } });
+    if (!event || !author || !author.email) return;
+
+    const eventAuthor = await prisma.eventAuthor.findFirst({
+      where: { eventId, authorId }
+    });
+
+    const isExempt = Boolean(
+      eventAuthor?.isFeeExempt ||
+      (event?.exemptAuthorIds && Array.isArray(event.exemptAuthorIds) && event.exemptAuthorIds.includes(authorId))
+    );
+
+    if (isExempt) {
+      if (isReminder) return; // Free registration, no payment reminder needed
+      const emailBody = `
+        <div style="font-size: 15px; color: #222; line-height: 1.6;">
+          <p>Dear <strong>${author.name}</strong>,</p>
+          <p>Great news! Your registration for <strong>${event.name}</strong> has been <span style="color: #16a34a; font-weight: bold;">APPROVED</span> by the administrators.</p>
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; margin: 18px 0;">
+            <p style="margin: 0; color: #166534; font-weight: bold; font-size: 15px;">🎉 Participation Confirmed</p>
+            <p style="margin: 4px 0 0; color: #15803d; font-size: 13px;">Your event registration fee has been waived (₹0 fee). Your slot is confirmed!</p>
+          </div>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="https://puneauthorsassociation.com/dashboard/events" style="background: #1a1a2e; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">View Event Details in Dashboard</a>
+          </div>
+        </div>
+      `;
+      await sendNotificationEmail(
+        author.email,
+        `Your Event Registration is Confirmed: ${event.name}`,
+        emailWrap(`Registration Approved`, emailBody)
+      );
+      return;
+    }
+
+    // Fetch registered books for this author in this event
+    const eventBooks = await prisma.eventBook.findMany({
+      where: { eventId, authorId },
+      include: { book: true }
+    });
+
+    const booksCount = eventBooks.length;
+    let expectedFee = 0;
+    if (event.registrationFee > 0) {
+      if (event.feeType === 'Per Title') {
+        expectedFee = (booksCount > 0 ? booksCount : 1) * event.registrationFee;
+      } else {
+        expectedFee = event.registrationFee;
+      }
+    }
+
+    const booksListHtml = eventBooks.length > 0
+      ? `<div style="margin: 14px 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
+          <strong style="font-size: 13px; color: #334155; text-transform: uppercase; letter-spacing: 0.5px;">Registered Titles (${eventBooks.length}):</strong>
+          <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 13px; color: #475569; line-height: 1.5;">
+            ${eventBooks.map(eb => `<li style="margin-bottom: 4px;"><strong>${eb.book?.title || 'Book Title'}</strong>${eb.book?.mrp ? ` (MRP ₹${eb.book.mrp})` : ''}</li>`).join('')}
+          </ul>
+        </div>`
+      : '';
+
+    const headingText = isReminder ? `Payment Reminder: ${event.name}` : `Registration Approved: ${event.name}`;
+    const subjectLine = isReminder
+      ? `Action Required: Payment Reminder for ${event.name}`
+      : `Action Required: Event Registration Approved - ${event.name}`;
+
+    const upiId = "info@puneauthorsassociation.com";
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi://pay?pa=${encodeURIComponent(upiId)}%26pn=Pune%20Authors%20Association%26am=${expectedFee}%26cu=INR`;
+
+    const emailBody = `
+      <div style="font-size: 15px; color: #222; line-height: 1.6;">
+        <p>Dear <strong>${author.name}</strong>,</p>
+        <p>${isReminder ? `This is a reminder to complete your registration payment for <strong>${event.name}</strong> to secure your slot.` : `Great news! Your participation request for <strong>${event.name}</strong> has been <span style="color: #16a34a; font-weight: bold;">APPROVED</span> by the administrators.`}</p>
+        
+        ${booksListHtml}
+
+        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 10px; padding: 18px; margin: 20px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #d97706; padding-bottom: 10px; margin-bottom: 12px;">
+            <span style="font-size: 14px; font-weight: bold; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px;">Total Amount Payable</span>
+            <span style="font-size: 22px; font-weight: 800; color: #b45309;">₹${expectedFee}</span>
+          </div>
+          <p style="margin: 0 0 12px; font-size: 13px; color: #78350f;">
+            ${event.feeType === 'Per Title' ? `Fee calculation: ₹${event.registrationFee} × ${booksCount || 1} titles = ₹${expectedFee}` : `Standard Registration Fee: ₹${expectedFee}`}
+          </p>
+          <div style="background: #ffffff; border: 1px solid #fef08a; border-radius: 8px; padding: 14px; text-align: center;">
+            <p style="margin: 0 0 10px; font-size: 12px; font-weight: bold; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px;">Scan QR to Pay via Any UPI App (GPay / PhonePe / Paytm):</p>
+            <img src="${qrUrl}" alt="UPI QR Code" style="width: 150px; height: 150px; display: inline-block; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px; background: #fff;" />
+            <p style="margin: 10px 0 0; font-size: 13px; font-weight: bold; color: #0f172a;">UPI ID: <span style="font-family: monospace; background: #f1f5f9; padding: 3px 8px; border-radius: 4px; border: 1px solid #e2e8f0;">${upiId}</span></p>
+          </div>
+        </div>
+
+        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 14px; margin: 18px 0;">
+          <h4 style="margin: 0 0 6px; font-size: 14px; color: #0369a1;">⚡ Quick Next Step (Takes 1 Minute):</h4>
+          <ol style="margin: 0; padding-left: 20px; font-size: 13px; color: #0c4a6e; line-height: 1.6;">
+            <li>Pay <strong>₹${expectedFee}</strong> using UPI or QR Code above.</li>
+            <li>Take a screenshot of the payment receipt / note the <strong>Transaction ID / UTR</strong>.</li>
+            <li>Click the button below to upload the screenshot and confirm your slot.</li>
+          </ol>
+        </div>
+
+        <div style="text-align: center; margin: 28px 0 12px;">
+          <a href="https://puneauthorsassociation.com/dashboard/events" style="background: #0284c7; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);">
+            👉 Upload Payment Proof in Dashboard
+          </a>
+        </div>
+        <p style="text-align: center; font-size: 12px; color: #64748b; margin-top: 6px;">Your registration and table/book display allocation are finalized once payment proof is submitted.</p>
+      </div>
+    `;
+
+    await sendNotificationEmail(
+      author.email,
+      subjectLine,
+      emailWrap(headingText, emailBody)
+    );
+  } catch (err) {
+    console.error('Error in sendEventApprovalOrReminderEmail:', err);
+  }
+}
 
 // EVENT REGISTRATIONS FOR ADMIN
 router.post('/api/admin/events/registration', verifyToken, isAdmin, async (req, res) => {
@@ -5195,15 +5316,7 @@ router.post('/api/admin/events/registration', verifyToken, isAdmin, async (req, 
     const oldStatus = existingAuthor ? existingAuthor.optInStatus : null;
 
     if (newStatus === 'Approved' && oldStatus !== 'Approved') {
-      const author = await prisma.author.findUnique({ where: { id: authorId } });
-      const event = await prisma.event.findUnique({ where: { id: eventId } });
-      if (author && event) {
-        const isExempt = Boolean((existingAuthor?.isFeeExempt) || (event?.exemptAuthorIds && Array.isArray(event.exemptAuthorIds) && event.exemptAuthorIds.includes(authorId)));
-        const emailBody = isExempt
-          ? `<p>Great news! Your registration for the event <strong>${event.name}</strong> has been approved by the administrators.</p><p><strong>Fee Exemption:</strong> Your event registration fee has been waived (₹0 fee). Your slot is confirmed!</p>`
-          : `<p>Great news! Your registration for the event <strong>${event.name}</strong> has been approved by the administrators.</p><p><strong>Next Step:</strong> Please log in to your Author Dashboard and navigate to the Events section to complete your payment and secure your slot.</p><p>Your slot is not confirmed until the payment has been processed.</p>`;
-        sendNotificationEmail(author.email, `Action Required: Event Registration Approved - ${event.name}`, emailWrap(`Your Registration is Approved`, emailBody)).catch(e => console.error('Failed to send approve email:', e));
-      }
+      sendEventApprovalOrReminderEmail(eventId, authorId, false).catch(e => console.error('Failed to send approve email:', e));
     }
 
     if (books && Array.isArray(books)) {
@@ -5219,11 +5332,11 @@ router.post('/api/admin/events/registration', verifyToken, isAdmin, async (req, 
           await prisma.eventBook.update({
             where: { id: existingBook.id },
             data: {
-              listedStock: b.actualSent !== undefined ? parseInt(b.actualSent) : undefined,
-              soldStock: b.soldStock !== undefined ? parseInt(b.soldStock) : undefined,
+              listedStock: b.listedStock !== undefined ? parseInt(b.listedStock) || 0 : existingBook.listedStock,
+              soldStock: b.soldStock !== undefined ? parseInt(b.soldStock) || 0 : existingBook.soldStock,
               returnedStock: b.returnedStock !== undefined ? parseInt(b.returnedStock) : undefined,
               manualDailySales: b.manualDailySales || undefined,
-              overrideMrp: b.overrideMrp !== undefined && b.overrideMrp !== "" && b.overrideMrp !== null ? parseFloat(b.overrideMrp) : null
+              overrideMrp: b.overrideMrp !== undefined ? (b.overrideMrp === "" ? null : parseFloat(b.overrideMrp)) : existingBook.overrideMrp
             }
           });
         } else {
@@ -5232,11 +5345,11 @@ router.post('/api/admin/events/registration', verifyToken, isAdmin, async (req, 
               eventId,
               authorId,
               bookId: targetBookId,
-              listedStock: b.actualSent !== undefined ? parseInt(b.actualSent) : 0,
-              soldStock: b.soldStock !== undefined ? parseInt(b.soldStock) : 0,
+              listedStock: parseInt(b.listedStock) || 0,
+              soldStock: parseInt(b.soldStock) || 0,
               returnedStock: b.returnedStock !== undefined ? parseInt(b.returnedStock) : 0,
               manualDailySales: b.manualDailySales || {},
-              overrideMrp: b.overrideMrp !== undefined && b.overrideMrp !== "" && b.overrideMrp !== null ? parseFloat(b.overrideMrp) : null
+              overrideMrp: b.overrideMrp !== undefined && b.overrideMrp !== "" ? parseFloat(b.overrideMrp) : null
             }
           });
         }
@@ -5371,18 +5484,7 @@ router.post('/api/admin/events/:eventId/author/:authorId/approve', verifyToken, 
 
     const author = await prisma.author.findUnique({ where: { id: authorId } });
     if (author && event) {
-      const emailBody = isExempt
-        ? `<p>Great news! Your registration for the event <strong>${event.name}</strong> has been approved by the administrators.</p>
-           <p><strong>Fee Exemption:</strong> Your event registration fee has been waived (₹0 fee). Your slot is confirmed!</p>`
-        : `<p>Great news! Your registration for the event <strong>${event.name}</strong> has been approved by the administrators.</p>
-           <p><strong>Next Step:</strong> Please log in to your Author Dashboard and navigate to the Events section to complete your payment and secure your slot.</p>
-           <p>Your slot is not confirmed until the payment has been processed.</p>`;
-
-      sendNotificationEmail(
-        author.email,
-        `Action Required: Event Registration Approved - ${event.name}`,
-        emailWrap(`Your Registration is Approved`, emailBody)
-      ).catch(e => console.error('Failed to send approve email:', e));
+      sendEventApprovalOrReminderEmail(eventId, authorId, false).catch(e => console.error('Failed to send approve email:', e));
 
       invalidateCache(`author:dashboard:${author.email}`);
       invalidateCache(`author:events:${author.email}`);
@@ -5392,6 +5494,56 @@ router.post('/api/admin/events/:eventId/author/:authorId/approve', verifyToken, 
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Failed to approve' });
+  }
+});
+
+// REMIND ALL APPROVED UNPAID AUTHORS FOR AN EVENT
+router.post('/api/admin/events/:eventId/remind-unpaid', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+    const event = await prisma.event.findUnique({ where: { id: eventId } });
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+
+    const eventAuthors = await prisma.eventAuthor.findMany({
+      where: {
+        eventId,
+        optInStatus: 'Approved',
+        paymentStatus: { not: 'Paid' },
+        isFeeExempt: false
+      },
+      include: { author: true }
+    });
+
+    let count = 0;
+    for (const ea of eventAuthors) {
+      const isExempt = Boolean(event.exemptAuthorIds && Array.isArray(event.exemptAuthorIds) && event.exemptAuthorIds.includes(ea.authorId));
+      if (isExempt) continue;
+      if (ea.paymentScreenshot || ea.paymentStatus === 'Pending Verification') continue;
+
+      if (ea.author && ea.author.email) {
+        await sendEventApprovalOrReminderEmail(eventId, ea.authorId, true);
+        count++;
+      }
+    }
+
+    res.json({ success: true, count, message: `Payment reminder sent to ${count} authors.` });
+  } catch (error) {
+    console.error('Failed to send unpaid reminders:', error);
+    res.status(500).json({ error: 'Failed to send payment reminders' });
+  }
+});
+
+// REMIND INDIVIDUAL AUTHOR FOR AN EVENT
+router.post('/api/admin/events/:eventId/author/:authorId/remind-payment', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.eventId);
+    const authorId = parseInt(req.params.authorId);
+
+    await sendEventApprovalOrReminderEmail(eventId, authorId, true);
+    res.json({ success: true, message: 'Payment reminder sent to author.' });
+  } catch (error) {
+    console.error('Failed to send individual reminder:', error);
+    res.status(500).json({ error: 'Failed to send payment reminder' });
   }
 });
 
@@ -6499,15 +6651,7 @@ router.post('/api/admin/events/:eventId/author/:authorId/publish', async (req, r
 
     const oldStatus = existingAuthor ? existingAuthor.optInStatus : null;
     if (statusValue === 'Approved' && oldStatus !== 'Approved') {
-      const author = await tx.author.findUnique({ where: { id: authorId } });
-      const event = await tx.event.findUnique({ where: { id: eventId } });
-      if (author && event) {
-        const isExempt = Boolean((existingAuthor?.isFeeExempt) || (event?.exemptAuthorIds && Array.isArray(event.exemptAuthorIds) && event.exemptAuthorIds.includes(authorId)));
-        const emailBody = isExempt
-          ? `<p>Great news! Your registration for the event <strong>${event.name}</strong> has been approved by the administrators.</p><p><strong>Fee Exemption:</strong> Your event registration fee has been waived (₹0 fee). Your slot is confirmed!</p>`
-          : `<p>Great news! Your registration for the event <strong>${event.name}</strong> has been approved by the administrators.</p><p><strong>Next Step:</strong> Please log in to your Author Dashboard and navigate to the Events section to complete your payment and secure your slot.</p><p>Your slot is not confirmed until the payment has been processed.</p>`;
-        sendNotificationEmail(author.email, `Action Required: Event Registration Approved - ${event.name}`, emailWrap(`Your Registration is Approved`, emailBody)).catch(e => console.error('Failed to send approve email:', e));
-      }
+      sendEventApprovalOrReminderEmail(eventId, authorId, false).catch(e => console.error('Failed to send approve email:', e));
     }
 
     if (true) {

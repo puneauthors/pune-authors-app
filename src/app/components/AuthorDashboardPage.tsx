@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router';
-import { Home, Check, AlertCircle, Upload, Download, Loader2, LogOut, User, Bell, Search, ShoppingCart, BookOpen, CalendarIcon, BarChart3, Package, TrendingUp, TrendingDown, X, MapPin, Menu, ChevronDown, ChevronUp, DollarSign, CheckCircle2, FileText, Image as ImageIcon, Star, Plus, Minus, Eye, Edit2, Mail, Phone, Clock, Trash2, MessageSquare, ExternalLink, Send, ChevronLeft, ChevronRight, RefreshCw, Users, Megaphone, Archive, Sparkles, Building2 } from 'lucide-react';
+import { Home, Check, AlertCircle, Upload, Download, Loader2, LogOut, User, Bell, Search, ShoppingCart, BookOpen, CalendarIcon, BarChart3, Package, TrendingUp, TrendingDown, X, MapPin, Menu, ChevronDown, ChevronUp, DollarSign, CheckCircle2, FileText, Image as ImageIcon, Star, Plus, Minus, Eye, Edit2, Mail, Phone, Clock, Trash2, MessageSquare, ExternalLink, Send, ChevronLeft, ChevronRight, RefreshCw, Users, Megaphone, Archive, Sparkles, Building2, ArrowRight } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell , AreaChart, Area, LabelList, Legend, ScatterChart, Scatter, ZAxis, Label } from 'recharts';
 import axios from 'axios';
 // exceljs and file-saver are dynamically imported inside export handlers to reduce initial bundle size
@@ -1590,6 +1590,42 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
           </Link>
         </div>
       ))}
+
+      {/* ════ High-Visibility Event Payment Action Banner ════ */}
+      {totalPendingPayments > 0 && (
+        <div className="mb-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 rounded-2xl p-4 sm:p-5 text-white shadow-lg border-2 border-amber-300 animate-fade-in-up">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 bg-white/20 backdrop-blur-sm rounded-xl shrink-0 mt-0.5">
+                <DollarSign className="w-6 h-6 text-white animate-bounce" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-white text-amber-900 text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
+                    ⚡ Action Required
+                  </span>
+                  <span className="text-xs text-amber-100 font-medium">
+                    {totalPendingPayments} Participation{totalPendingPayments > 1 ? 's' : ''} Approved
+                  </span>
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-white mt-1">
+                  Your registration for {pendingPaymentEvents.map((inv: any) => inv.event?.name).concat(pendingPaymentActivities.map((reg: any) => reg.activity?.name)).filter(Boolean).join(', ') || 'Event'} is Approved!
+                </h3>
+                <p className="text-xs text-amber-100 mt-0.5 max-w-xl">
+                  Please complete payment and submit your Transaction ID / screenshot to secure your slot and display allocation.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/dashboard/events')}
+              className="w-full md:w-auto bg-white hover:bg-amber-50 text-amber-900 font-extrabold text-xs px-5 py-3 rounded-xl shadow-md uppercase tracking-wider transition-all transform hover:scale-105 active:scale-95 shrink-0 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Pay & Confirm Slot</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ════ Pending Actions — Compact, Space-Efficient, Rendered ONLY when there are active actions ════ */}
       {actionItems.length > 0 && (

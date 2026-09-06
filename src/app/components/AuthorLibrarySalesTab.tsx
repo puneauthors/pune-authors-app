@@ -62,7 +62,7 @@ export function AuthorLibrarySalesTab() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newLibraryId, setNewLibraryId] = useState<string>('');
   const [newBookId, setNewBookId] = useState<string>('');
-  const [newPlaced, setNewPlaced] = useState<number>(5);
+  const [newPlaced, setNewPlaced] = useState<number>(0);
   const [newSold, setNewSold] = useState<number>(0);
   const [newNotes, setNewNotes] = useState<string>('');
 
@@ -246,13 +246,12 @@ export function AuthorLibrarySalesTab() {
       const headers = [
         'S.No',
         'Book Title',
-        'Library Name',
+        'Library',
         'City & Type',
         'MRP (₹)',
         'Copies Placed',
         'Copies Sold',
-        'Revenue (₹)',
-        'Stock Remaining'
+        'Revenue (₹)'
       ];
 
       const headerRow = worksheet.addRow(headers);
@@ -279,7 +278,6 @@ export function AuthorLibrarySalesTab() {
         const placed = sale.copiesPlaced || 0;
         const sold = sale.soldStock || 0;
         const revenue = sold * mrp;
-        const remaining = Math.max(0, placed - sold);
 
         const row = worksheet.addRow([
           index + 1,
@@ -289,8 +287,7 @@ export function AuthorLibrarySalesTab() {
           mrp,
           placed,
           sold,
-          revenue,
-          remaining
+          revenue
         ]);
 
         row.eachCell((cell, colNumber) => {
@@ -317,8 +314,7 @@ export function AuthorLibrarySalesTab() {
         '',
         metrics.totalPlaced,
         metrics.totalSold,
-        metrics.totalRevenue,
-        metrics.totalRemaining
+        metrics.totalRevenue
       ]);
 
       grandTotalRow.height = 24;
@@ -450,66 +446,57 @@ export function AuthorLibrarySalesTab() {
         </div>
       </div>
 
-      {/* Filter / Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-bold text-gray-700">Filter Library:</label>
-          <select
-            value={selectedLibraryFilter}
-            onChange={e => setSelectedLibraryFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-bold bg-white text-gray-900 outline-none"
-          >
-            <option value="all">All Libraries</option>
-            {allLibraries.map(l => (
-              <option key={l.id} value={l.id.toString()}>{l.name} ({l.city})</option>
-            ))}
-          </select>
+      {/* Filter & Search Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-gray-700">Library Filter:</label>
+            <select
+              value={selectedLibraryFilter}
+              onChange={e => setSelectedLibraryFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-bold bg-white text-gray-900 outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="all">All Libraries ({allLibraries.length})</option>
+              {allLibraries.map(l => (
+                <option key={l.id} value={l.id.toString()}>{l.name} ({l.city})</option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div className="relative w-full md:w-72">
+        <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search book title or library..."
+            placeholder="Search book title, library, city..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-[#b44d28]"
+            className="w-full pl-9 pr-3 py-1.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-amber-500 font-medium"
           />
         </div>
       </div>
 
-      {/* EXCEL SHEET FORMAT TABLE */}
-      <div className="flex flex-col border-[1.5px] border-black shadow-sm overflow-hidden bg-white">
-        {/* Banner Title */}
-        <div className="flex justify-between items-center bg-[#00D8F5] p-2 border-b-[1.5px] border-black font-bold">
-          <h2 className="text-black uppercase text-[13px] m-0 tracking-wide">
-            MY LIBRARY SALES SHEET - {filteredSales.length} RECORDED TITLES
-          </h2>
-          <div className="text-xs text-black font-black uppercase">
-            Total Revenue: ₹{metrics.totalRevenue.toLocaleString()}
-          </div>
-        </div>
-
+      {/* Yellow Excel Header Table */}
+      <div className="border-[2px] border-black shadow-md overflow-hidden bg-white">
         <div className="overflow-x-auto">
-          <table className="w-full text-[12px] font-sans border-collapse whitespace-nowrap">
+          <table className="w-full text-xs text-left border-collapse">
             <thead>
-              <tr>
-                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-10 text-center">S.No</th>
-                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-60 text-left px-2">Book Title</th>
-                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-44 text-left px-2">Library Name</th>
+              <tr className="bg-[#FFE600] border-b-[2px] border-black text-black font-black uppercase tracking-wider text-[11px]">
+                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-10 text-center font-black text-black">S.No</th>
+                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-56 text-left px-2">Book Title</th>
+                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-44 text-left px-2">Library / Flybrary</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-32 text-left px-2">City / Type</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-20 text-center">MRP (₹)</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Copies<br/>Placed</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Copies<br/>Sold</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-28 text-center">Revenue (₹)</th>
-                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Stock<br/>Remaining</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="p-8 text-center border-[1.5px] border-black">
+                  <td colSpan={9} className="p-8 text-center border-[1.5px] border-black">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <RefreshCw className="w-6 h-6 animate-spin text-gray-500" />
                       <span className="text-xs font-bold text-gray-500">Loading your library sales...</span>
@@ -518,7 +505,7 @@ export function AuthorLibrarySalesTab() {
                 </tr>
               ) : filteredSales.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="p-8 text-center text-gray-500 italic border-[1.5px] border-black">
+                  <td colSpan={9} className="p-8 text-center text-gray-500 italic border-[1.5px] border-black">
                     No library sales records found. Click "+ Add Placement / Sale" to record your copies at a library.
                   </td>
                 </tr>
@@ -529,7 +516,6 @@ export function AuthorLibrarySalesTab() {
                   const placed = sale.copiesPlaced || 0;
                   const sold = sale.soldStock || 0;
                   const revenue = sold * mrp;
-                  const remaining = Math.max(0, placed - sold);
 
                   return (
                     <tr key={sale.id} className="hover:brightness-95 transition-all bg-white">
@@ -593,11 +579,6 @@ export function AuthorLibrarySalesTab() {
                         ₹{revenue.toLocaleString()}
                       </td>
 
-                      {/* Stock Remaining */}
-                      <td className="border-[1.5px] border-black bg-white text-center font-bold p-1 text-gray-900">
-                        {remaining}
-                      </td>
-
                       {/* Actions */}
                       <td className="border-[1.5px] border-black bg-gray-50 p-1 text-center">
                         {isEditing ? (
@@ -645,9 +626,6 @@ export function AuthorLibrarySalesTab() {
                   </td>
                   <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-black">
                     ₹{metrics.totalRevenue.toLocaleString()}
-                  </td>
-                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black">
-                    {metrics.totalRemaining}
                   </td>
                   <td className="border-[1.5px] border-black bg-[#FFE600]"></td>
                 </tr>

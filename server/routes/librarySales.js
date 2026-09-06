@@ -7,72 +7,9 @@ const { verifyToken, isAdmin } = require('../middleware/auth');
 // ADMIN ROUTES: LIBRARY SALES
 // ==========================================
 
-// Helper to auto-sync non-archived donation registrations to LibraryBookSale
-async function autoSyncDonationsToLibrarySales() {
-  try {
-    const registrations = await prisma.donationRegistration.findMany({
-      where: { isArchived: false },
-      include: {
-        announcement: true,
-        books: true
-      }
-    });
-
-    const map = new Map();
-    registrations.forEach(r => {
-      const libraryId = r.announcement?.libraryId;
-      const authorId = r.authorId;
-      if (!libraryId || !authorId) return;
-
-      r.books.forEach(b => {
-        const bookId = b.bookId;
-        const qty = b.quantityDonated || 0;
-        if (!bookId) return;
-
-        const key = `${libraryId}_${bookId}_${authorId}`;
-        if (!map.has(key)) {
-          map.set(key, { libraryId, bookId, authorId, copiesPlaced: 0 });
-        }
-        map.get(key).copiesPlaced += qty;
-      });
-    });
-
-    // Check existing in 1 query
-    const existing = await prisma.libraryBookSale.findMany({
-      select: { libraryId: true, bookId: true, authorId: true }
-    });
-    const existingKeys = new Set(existing.map(e => `${e.libraryId}_${e.bookId}_${e.authorId}`));
-
-    const toCreate = [];
-    for (const [key, item] of map.entries()) {
-      if (!existingKeys.has(key)) {
-        toCreate.push({
-          libraryId: item.libraryId,
-          bookId: item.bookId,
-          authorId: item.authorId,
-          copiesPlaced: item.copiesPlaced,
-          soldStock: 0,
-          isArchived: false
-        });
-      }
-    }
-
-    if (toCreate.length > 0) {
-      await prisma.libraryBookSale.createMany({
-        data: toCreate,
-        skipDuplicates: true
-      });
-    }
-  } catch (err) {
-    console.error('Auto-sync donations to library sales error:', err);
-  }
-}
-
 // Get all library sales records with library, author, and book details
 router.get('/api/admin/library-sales', verifyToken, isAdmin, async (req, res) => {
   try {
-    await autoSyncDonationsToLibrarySales();
-
     const { libraryId } = req.query;
     const where = { isArchived: false };
     if (libraryId) {
@@ -111,8 +48,6 @@ router.get('/api/admin/library-sales', verifyToken, isAdmin, async (req, res) =>
 // Get all active libraries with total sales metrics
 router.get('/api/admin/library-sales/libraries', verifyToken, isAdmin, async (req, res) => {
   try {
-    await autoSyncDonationsToLibrarySales();
-
     const libraries = await prisma.library.findMany({
       where: { isArchived: false },
       include: {
@@ -307,8 +242,6 @@ async function getAuthorFromReq(req) {
 // Fetch library sales for the logged-in author
 router.get('/api/author/library-sales', verifyToken, async (req, res) => {
   try {
-    await autoSyncDonationsToLibrarySales();
-
     const author = await getAuthorFromReq(req);
     if (!author) {
       return res.status(404).json({ error: 'Author profile not found' });

@@ -96,7 +96,7 @@ export function LibrarySalesTab() {
   const [newAuthorId, setNewAuthorId] = useState<string>('');
   const [selectedBookIds, setSelectedBookIds] = useState<number[]>([]);
   const [bookQuantities, setBookQuantities] = useState<Record<number, number>>({});
-  const [defaultQuantity, setDefaultQuantity] = useState<number>(10);
+  const [defaultQuantity, setDefaultQuantity] = useState<number>(0);
 
   // Add / Edit Library modal state
   const [showAddLibraryModal, setShowAddLibraryModal] = useState(false);
@@ -614,11 +614,9 @@ export function LibrarySalesTab() {
           'Book Title',
           'MRP (₹)',
           'Author Name',
-          'Copies Placed',
+          'Books Placed',
           'Copies Sold',
-          'Revenue (₹)',
-          'Stock Remaining',
-          'Notes'
+          'Revenue (₹)'
         ];
 
         const headerRow = worksheet.addRow(headers);
@@ -646,7 +644,6 @@ export function LibrarySalesTab() {
           const placed = s.copiesPlaced || 0;
           const sold = s.soldStock || 0;
           const revenue = sold * mrp;
-          const remaining = Math.max(0, placed - sold);
 
           const row = worksheet.addRow([
             sNo++,
@@ -655,9 +652,7 @@ export function LibrarySalesTab() {
             s.author?.name || 'Unknown Author',
             placed,
             sold,
-            revenue,
-            remaining,
-            s.notes || ''
+            revenue
           ]);
 
           row.getCell(1).alignment = { horizontal: 'center' };
@@ -665,7 +660,6 @@ export function LibrarySalesTab() {
           row.getCell(5).alignment = { horizontal: 'center' };
           row.getCell(6).alignment = { horizontal: 'center' };
           row.getCell(7).alignment = { horizontal: 'center' };
-          row.getCell(8).alignment = { horizontal: 'center' };
 
           // Styling
           row.getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00FFFF' } }; // Cyan author cell
@@ -689,9 +683,7 @@ export function LibrarySalesTab() {
           '',
           libraryMetrics.totalPlaced,
           libraryMetrics.totalSold,
-          libraryMetrics.totalRevenue,
-          libraryMetrics.totalRemaining,
-          ''
+          libraryMetrics.totalRevenue
         ]);
 
         worksheet.mergeCells(`A${grandTotalRow.number}:D${grandTotalRow.number}`);
@@ -725,7 +717,7 @@ export function LibrarySalesTab() {
         const worksheet = workbook.addWorksheet('All Libraries Summary');
 
         // Banner
-        worksheet.mergeCells('A1:I1');
+        worksheet.mergeCells('A1:H1');
         const titleCell = worksheet.getCell('A1');
         titleCell.value = 'ALL LIBRARIES & FLYBRARIES SALES OVERVIEW REPORT';
         titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FF000000' } };
@@ -741,7 +733,7 @@ export function LibrarySalesTab() {
         worksheet.addRow(['Report Date:', new Date().toLocaleDateString('en-GB')]);
         worksheet.addRow(['Total Active Libraries:', overallMetrics.activeLibraries, '', 'Total Authors Participating:', overallMetrics.uniqueAuthors]);
         worksheet.addRow(['Total Copies Placed:', overallMetrics.totalPlaced, '', 'Total Books Sold:', overallMetrics.totalSold]);
-        worksheet.addRow(['Total Revenue (₹):', `₹${overallMetrics.totalRevenue.toLocaleString()}`, '', 'Stock Remaining:', overallMetrics.totalRemaining]);
+        worksheet.addRow(['Total Revenue (₹):', `₹${overallMetrics.totalRevenue.toLocaleString()}`]);
         worksheet.addRow([]);
 
         for (let r = 3; r <= 6; r++) {
@@ -758,7 +750,6 @@ export function LibrarySalesTab() {
           'Total Placed',
           'Total Sold',
           'Revenue (₹)',
-          'Remaining Stock',
           'Status'
         ];
 
@@ -782,7 +773,6 @@ export function LibrarySalesTab() {
             lib.totalPlaced || 0,
             lib.totalSold || 0,
             lib.totalRevenue || 0,
-            Math.max(0, (lib.totalPlaced || 0) - (lib.totalSold || 0)),
             lib.status || 'Active'
           ]);
 
@@ -794,7 +784,6 @@ export function LibrarySalesTab() {
           row.getCell(8).alignment = { horizontal: 'center' };
           row.getCell(9).alignment = { horizontal: 'center' };
           row.getCell(10).alignment = { horizontal: 'center' };
-          row.getCell(11).alignment = { horizontal: 'center' };
 
           row.eachCell(cell => {
             cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
@@ -1051,18 +1040,16 @@ export function LibrarySalesTab() {
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-56 text-left px-2 font-black text-black">Book Title</th>
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-20 text-center font-black text-black">MRP (₹)</th>
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-40 text-left px-2 font-black text-black">Author Name</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Suggested /<br/>Placed Copies</th>
+                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Books Placed</th>
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Actual<br/>Copies Sold</th>
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Revenue (₹)</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center font-black text-black">Stock<br/>Remaining</th>
-                  <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-32 text-left px-2 font-black text-black">Notes / Shelf</th>
                   <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-28 text-center font-black text-black">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={10} className="p-8 text-center border-[1.5px] border-black">
+                    <td colSpan={8} className="p-8 text-center border-[1.5px] border-black">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <RefreshCw className="w-6 h-6 animate-spin text-gray-500" />
                         <span className="text-xs font-bold text-gray-500">Loading library sales records...</span>
@@ -1071,7 +1058,7 @@ export function LibrarySalesTab() {
                   </tr>
                 ) : filteredLibrarySales.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="p-8 text-center text-gray-500 italic border-[1.5px] border-black">
+                    <td colSpan={8} className="p-8 text-center text-gray-500 italic border-[1.5px] border-black">
                       No book placements found for this library. Click "+ Add Participant / Book" to add authors and books.
                     </td>
                   </tr>
@@ -1084,7 +1071,6 @@ export function LibrarySalesTab() {
                       const placed = sale.copiesPlaced || 0;
                       const sold = sale.soldStock || 0;
                       const revenue = sold * mrp;
-                      const remaining = Math.max(0, placed - sold);
 
                       let previousCount = 0;
                       for (let i = 0; i < gIdx; i++) {
@@ -1127,7 +1113,7 @@ export function LibrarySalesTab() {
                             </span>
                           </td>
 
-                          {/* Copies Placed / Suggested (Editable only when isEditing is true) */}
+                          {/* Copies Placed (Editable only when isEditing is true) */}
                           <td className={`border-[1.5px] border-black text-center font-bold ${isEditing ? 'bg-white p-0' : 'bg-[#ffddaa] p-1 text-black'}`}>
                             {isEditing ? (
                               <input
@@ -1160,28 +1146,6 @@ export function LibrarySalesTab() {
                           {/* Revenue */}
                           <td className="border-[1.5px] border-black bg-[#e6f4ea] text-black text-center font-black p-1">
                             ₹{revenue.toLocaleString()}
-                          </td>
-
-                          {/* Stock Remaining */}
-                          <td className="border-[1.5px] border-black bg-white text-center font-bold p-1 text-gray-900">
-                            {remaining}
-                          </td>
-
-                          {/* Notes / Remarks (Editable only when isEditing is true) */}
-                          <td className="border-[1.5px] border-black bg-white p-1 px-2 text-left">
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                value={editNotes}
-                                onChange={e => setEditNotes(e.target.value)}
-                                placeholder="Notes / Shelf location..."
-                                className="w-full p-1 text-xs outline-none bg-white text-gray-900 font-medium border border-indigo-300 rounded"
-                              />
-                            ) : (
-                              <span className="text-gray-700 text-xs">
-                                {sale.notes || '-'}
-                              </span>
-                            )}
                           </td>
 
                           {/* Actions */}
@@ -1244,10 +1208,7 @@ export function LibrarySalesTab() {
                     <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-black">
                       ₹{libraryMetrics.totalRevenue.toLocaleString()}
                     </td>
-                    <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-black">
-                      {libraryMetrics.totalRemaining}
-                    </td>
-                    <td colSpan={2} className="border-[1.5px] border-black bg-[#FFE600]"></td>
+                    <td className="border-[1.5px] border-black bg-[#FFE600]"></td>
                   </tr>
                 )}
               </tbody>
@@ -1411,7 +1372,6 @@ export function LibrarySalesTab() {
                 <th className="py-3 px-3 text-center border-r border-black/30">Books Placed</th>
                 <th className="py-3 px-3 text-center border-r border-black/30">Books Sold</th>
                 <th className="py-3 px-3 text-center border-r border-black/30">Revenue (₹)</th>
-                <th className="py-3 px-3 text-center border-r border-black/30">Remaining</th>
                 <th className="py-3 px-3 text-center border-r border-black/30">Status</th>
                 <th className="py-3 px-4 text-center w-48">Actions</th>
               </tr>
@@ -1419,7 +1379,7 @@ export function LibrarySalesTab() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="p-8 text-center border-b border-black/20">
+                  <td colSpan={9} className="p-8 text-center border-b border-black/20">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <RefreshCw className="w-6 h-6 animate-spin text-gray-500" />
                       <span className="text-xs font-bold text-gray-500">Loading libraries...</span>
@@ -1428,7 +1388,7 @@ export function LibrarySalesTab() {
                 </tr>
               ) : filteredLibraries.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="p-8 text-center text-gray-500 italic border-b border-black/20">
+                  <td colSpan={9} className="p-8 text-center text-gray-500 italic border-b border-black/20">
                     No libraries found matching your criteria. Click "+ Add Library" to create one.
                   </td>
                 </tr>
@@ -1437,7 +1397,6 @@ export function LibrarySalesTab() {
                   const placed = lib.totalPlaced || 0;
                   const sold = lib.totalSold || 0;
                   const revenue = lib.totalRevenue || 0;
-                  const remaining = Math.max(0, placed - sold);
                   const authorsCount = lib.totalAuthors || 0;
                   
                   const isEven = idx % 2 === 0;
@@ -1507,11 +1466,6 @@ export function LibrarySalesTab() {
                       {/* Revenue */}
                       <td className="py-3 px-3 text-center font-black text-amber-900 border-r border-gray-200 bg-amber-50">
                         ₹{revenue.toLocaleString()}
-                      </td>
-
-                      {/* Remaining */}
-                      <td className="py-3 px-3 text-center font-black text-gray-800 border-r border-gray-200">
-                        {remaining}
                       </td>
 
                       {/* Status */}

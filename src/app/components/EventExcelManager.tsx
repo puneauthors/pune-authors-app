@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { CheckCircle, XCircle, Edit, Save, X, Trash } from "lucide-react";
+import { CheckCircle, XCircle, Edit, Save, X, Trash, Bell } from "lucide-react";
+import { toast } from "sonner";
 
 export default function EventExcelManager({
   eventBreakdown,
@@ -20,6 +21,7 @@ export default function EventExcelManager({
   const [authors, setAuthors] = useState<any[]>([]);
   const [editingAuthorId, setEditingAuthorId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isReminding, setIsReminding] = useState(false);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [selectedAuthorId, setSelectedAuthorId] = useState("");
   const [globalSold, setGlobalSold] = useState(eventBreakdown.aggSold || "");
@@ -444,6 +446,43 @@ export default function EventExcelManager({
     }
   });
 
+  const unpaidApprovedAuthors = authors.filter(author => {
+    const paymentInfo = getAuthorPaymentInfo(author);
+    const isApproved = author.optInStatus === 'Approved' || author.optInStatus === 'Registered';
+    return isApproved && !paymentInfo.isExempt && !paymentInfo.isVerified && !author.paymentScreenshot && (eventBreakdown?.registrationFee > 0);
+  });
+
+  const handleRemindUnpaidAuthors = async () => {
+    if (unpaidApprovedAuthors.length === 0) {
+      toast.info("No approved unpaid authors to remind.");
+      return;
+    }
+    if (!confirm(`Send payment reminder emails (with QR Code & UPI details) to all ${unpaidApprovedAuthors.length} unpaid authors?`)) return;
+
+    setIsReminding(true);
+    try {
+      const res = await axios.post(`${API}/api/admin/events/${eventBreakdown.id}/remind-unpaid`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      toast.success(res.data.message || `Payment reminders sent!`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to send reminders");
+    } finally {
+      setIsReminding(false);
+    }
+  };
+
+  const handleRemindSingleAuthor = async (authorId: string, authorName: string) => {
+    try {
+      await axios.post(`${API}/api/admin/events/${eventBreakdown.id}/author/${authorId}/remind-payment`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      toast.success(`Payment reminder email sent to ${authorName}!`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to send reminder");
+    }
+  };
+
   return (
     <div className="flex flex-col mt-8 border-[1.5px] border-black shadow-sm overflow-hidden bg-white">
       <div className="flex justify-between items-center bg-[#00D8F5] p-2 border-b-[1.5px] border-black font-bold">
@@ -451,6 +490,16 @@ export default function EventExcelManager({
           LIST OF BOOKS FOR {eventBreakdown.name} ({startDate.toLocaleDateString()}) - {registrations.length} REGISTERED AUTHORS
         </h2>
         <div className="flex gap-2 items-center">
+          {eventBreakdown?.registrationFee > 0 && (
+            <button 
+              onClick={handleRemindUnpaidAuthors}
+              disabled={isReminding || unpaidApprovedAuthors.length === 0}
+              className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 text-xs font-bold uppercase tracking-widest border-[1.5px] border-black disabled:opacity-50 flex items-center gap-1 shadow-sm transition-all"
+              title="Send payment reminder email with UPI & QR code to all unpaid approved authors"
+            >
+              <Bell size={12} /> {isReminding ? "SENDING..." : `REMIND UNPAID (${unpaidApprovedAuthors.length})`}
+            </button>
+          )}
           {showAddParticipant ? (
             <div className="flex gap-1 items-center bg-white p-1 rounded border-[1.5px] border-black">
               <select 
@@ -650,6 +699,15 @@ export default function EventExcelManager({
                                     <button onClick={() => handleRejectPayment(author.authorId)} className="bg-red-600 hover:bg-red-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors">✗ Reject</button>
                                   </div>
                                 )}
+                                {!paymentInfo.isExempt && !paymentInfo.isVerified && !author.paymentScreenshot && (eventBreakdown?.registrationFee > 0) && (author.optInStatus === 'Approved' || author.optInStatus === 'Registered') && (
+                                  <button
+                                    onClick={() => handleRemindSingleAuthor(author.authorId, author.authorName)}
+                                    className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-[9px] font-bold shadow-sm transition-colors flex items-center gap-1 w-full justify-center mt-1"
+                                    title="Send Payment Reminder Email"
+                                  >
+                                    <Bell size={10} /> Remind Payment
+                                  </button>
+                                )}
                               </div>
                             </div>
                           )}
@@ -836,6 +894,15 @@ export default function EventExcelManager({
                                   <button onClick={() => handleVerifyPayment(author.authorId)} className="bg-green-600 hover:bg-green-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors">✓ Verify</button>
                                   <button onClick={() => handleRejectPayment(author.authorId)} className="bg-red-600 hover:bg-red-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors">✗ Reject</button>
                                 </div>
+                              )}
+                              {!paymentInfo.isExempt && !paymentInfo.isVerified && !author.paymentScreenshot && (eventBreakdown?.registrationFee > 0) && (author.optInStatus === 'Approved' || author.optInStatus === 'Registered') && (
+                                <button
+                                  onClick={() => handleRemindSingleAuthor(author.authorId, author.authorName)}
+                                  className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-[9px] font-bold shadow-sm transition-colors flex items-center gap-1 w-full justify-center mt-1"
+                                  title="Send Payment Reminder Email"
+                                >
+                                  <Bell size={10} /> Remind Payment
+                                </button>
                               )}
                               
                               {author.paymentScreenshot && (
