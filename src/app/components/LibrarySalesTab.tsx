@@ -18,7 +18,11 @@ import {
   CheckCircle2, 
   Filter,
   RefreshCw,
-  Library as LibraryIcon
+  Library as LibraryIcon,
+  MapPin,
+  Phone,
+  User,
+  Settings
 } from 'lucide-react';
 
 interface LibrarySaleItem {
@@ -64,14 +68,14 @@ export function LibrarySalesTab() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
-  // Editing state
+  // Single Row Editing state
   const [editingSaleId, setEditingSaleId] = useState<number | null>(null);
   const [editPlaced, setEditPlaced] = useState<number>(0);
   const [editSold, setEditSold] = useState<number>(0);
   const [editMrp, setEditMrp] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Add modal state
+  // Add Book modal state
   const [showAddModal, setShowAddModal] = useState(false);
   const [newLibraryId, setNewLibraryId] = useState<string>('');
   const [newAuthorId, setNewAuthorId] = useState<string>('');
@@ -80,6 +84,25 @@ export function LibrarySalesTab() {
   const [newSold, setNewSold] = useState<number>(0);
   const [newOverrideMrp, setNewOverrideMrp] = useState<string>('');
   const [newNotes, setNewNotes] = useState<string>('');
+
+  // Add Library modal state
+  const [showAddLibraryModal, setShowAddLibraryModal] = useState(false);
+  const [libFormName, setLibFormName] = useState('');
+  const [libFormType, setLibFormType] = useState('Airport Library');
+  const [libFormCity, setLibFormCity] = useState('');
+  const [libFormState, setLibFormState] = useState('');
+  const [libFormAirportCode, setLibFormAirportCode] = useState('');
+  const [libFormAirportName, setLibFormAirportName] = useState('');
+  const [libFormContactPerson, setLibFormContactPerson] = useState('');
+  const [libFormContactNumber, setLibFormContactNumber] = useState('');
+  const [libFormEmail, setLibFormEmail] = useState('');
+  const [libFormShippingAddress, setLibFormShippingAddress] = useState('');
+  const [libFormStatus, setLibFormStatus] = useState('Active');
+  const [isCreatingLib, setIsCreatingLib] = useState(false);
+
+  // Edit Library modal state
+  const [showEditLibraryModal, setShowEditLibraryModal] = useState(false);
+  const [editingLibId, setEditingLibId] = useState<number | null>(null);
 
   const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -101,8 +124,9 @@ export function LibrarySalesTab() {
       if (libsRes.data.success) {
         setLibraries(libsRes.data.libraries || []);
       }
-      const rawAuthors = authorsRes.data.authors || authorsRes.data || [];
-      setPlatformAuthors(Array.isArray(rawAuthors) ? rawAuthors : []);
+      if (authorsRes.data.authors) {
+        setPlatformAuthors(authorsRes.data.authors || []);
+      }
     } catch (err: any) {
       console.error('Error fetching library sales data:', err);
       toast.error('Failed to load library sales data');
@@ -116,20 +140,34 @@ export function LibrarySalesTab() {
     fetchData();
   }, []);
 
-  // Filtered sales
+  // Filtered sales list
   const filteredSales = useMemo(() => {
     return sales.filter(item => {
-      const matchLib = selectedLibraryId === 'all' || item.libraryId.toString() === selectedLibraryId;
-      const matchType = typeFilter === 'all' || item.library?.type === typeFilter;
-      
-      const q = searchQuery.toLowerCase().trim();
-      const matchQuery = !q || 
-        item.book?.title?.toLowerCase().includes(q) ||
-        item.author?.name?.toLowerCase().includes(q) ||
-        item.library?.name?.toLowerCase().includes(q) ||
-        item.library?.city?.toLowerCase().includes(q);
-
-      return matchLib && matchType && matchQuery;
+      // Library filter
+      if (selectedLibraryId !== 'all' && item.libraryId.toString() !== selectedLibraryId) {
+        return false;
+      }
+      // Library Type filter
+      if (typeFilter !== 'all' && item.library?.type !== typeFilter) {
+        return false;
+      }
+      // Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const bookTitle = item.book?.title?.toLowerCase() || '';
+        const authorName = item.author?.name?.toLowerCase() || '';
+        const authorPen = item.author?.penName?.toLowerCase() || '';
+        const libName = item.library?.name?.toLowerCase() || '';
+        const libCity = item.library?.city?.toLowerCase() || '';
+        return (
+          bookTitle.includes(q) ||
+          authorName.includes(q) ||
+          authorPen.includes(q) ||
+          libName.includes(q) ||
+          libCity.includes(q)
+        );
+      }
+      return true;
     });
   }, [sales, selectedLibraryId, typeFilter, searchQuery]);
 
@@ -139,7 +177,6 @@ export function LibrarySalesTab() {
     let totalSold = 0;
     let totalRevenue = 0;
     const authorSet = new Set<number>();
-    const titleSet = new Set<number>();
     const librarySet = new Set<number>();
 
     filteredSales.forEach(s => {
@@ -151,7 +188,6 @@ export function LibrarySalesTab() {
       totalRevenue += (sold * mrp);
 
       if (s.authorId) authorSet.add(s.authorId);
-      if (s.bookId) titleSet.add(s.bookId);
       if (s.libraryId) librarySet.add(s.libraryId);
     });
 
@@ -161,65 +197,76 @@ export function LibrarySalesTab() {
       totalRevenue,
       totalRemaining: Math.max(0, totalPlaced - totalSold),
       uniqueAuthors: authorSet.size,
-      uniqueTitles: titleSet.size,
       uniqueLibraries: librarySet.size
     };
   }, [filteredSales]);
 
-  // Start Editing Row
+  // Selected author books for the Add Book modal
+  const selectedAuthorBooks = useMemo(() => {
+    if (!newAuthorId) return [];
+    const author = platformAuthors.find(a => a.id.toString() === newAuthorId);
+    return author?.books?.filter((b: any) => !b.isArchived) || [];
+  }, [newAuthorId, platformAuthors]);
+
+  // Start editing a row
   const startEdit = (sale: LibrarySaleItem) => {
     setEditingSaleId(sale.id);
     setEditPlaced(sale.copiesPlaced || 0);
     setEditSold(sale.soldStock || 0);
-    setEditMrp(sale.overrideMrp !== null && sale.overrideMrp !== undefined ? sale.overrideMrp.toString() : '');
+    setEditMrp(sale.overrideMrp?.toString() || '');
   };
 
   const cancelEdit = () => {
     setEditingSaleId(null);
   };
 
-  // Save Single Row
-  const handleSaveRow = async (id: number) => {
+  // Save single row edit
+  const handleSaveRow = async (saleId: number) => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put(
-        `${API}/api/admin/library-sales/${id}`,
-        {
-          copiesPlaced: editPlaced,
-          soldStock: editSold,
-          overrideMrp: editMrp !== '' ? parseFloat(editMrp) : null
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const payload: any = {
+        copiesPlaced: editPlaced,
+        soldStock: editSold,
+        overrideMrp: editMrp ? parseFloat(editMrp) : null
+      };
+
+      await axios.put(`${API}/api/admin/library-sales/${saleId}`, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
       toast.success('Library sale updated successfully');
       setEditingSaleId(null);
       fetchData();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Failed to update library sale');
+      toast.error(err.response?.data?.error || 'Failed to update record');
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Delete Row
-  const handleDeleteRow = async (id: number) => {
-    if (!window.confirm('Are you sure you want to remove this book from the library sales sheet?')) return;
+  // Delete a sale record
+  const handleDeleteRow = async (saleId: number) => {
+    if (!window.confirm('Are you sure you want to remove this book from this library sales sheet?')) {
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${API}/api/admin/library-sales/${id}`, {
+      await axios.delete(`${API}/api/admin/library-sales/${saleId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success('Book removed from library sheet');
-      fetchData();
-    } catch (err) {
+
+      toast.success('Book removed from library sales sheet');
+      setSales(prev => prev.filter(s => s.id !== saleId));
+    } catch (err: any) {
       console.error(err);
-      toast.error('Failed to remove book');
+      toast.error('Failed to remove record');
     }
   };
 
-  // Add New Book to Library
+  // Add Book to Library
   const handleAddBookToLibrary = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLibraryId || !newAuthorId || !newBookId) {
@@ -238,13 +285,13 @@ export function LibrarySalesTab() {
           bookId: parseInt(newBookId),
           copiesPlaced: parseInt(newPlaced.toString()) || 0,
           soldStock: parseInt(newSold.toString()) || 0,
-          overrideMrp: newOverrideMrp !== '' ? parseFloat(newOverrideMrp) : null,
+          overrideMrp: newOverrideMrp ? parseFloat(newOverrideMrp) : null,
           notes: newNotes || null
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success('Book added to library sales sheet successfully');
+      toast.success('Book successfully added to library sales sheet');
       setShowAddModal(false);
       setNewBookId('');
       setNewNotes('');
@@ -257,30 +304,104 @@ export function LibrarySalesTab() {
     }
   };
 
-  // Selected Author's Books for modal
-  const selectedAuthorBooks = useMemo(() => {
-    if (!newAuthorId) return [];
-    const author = platformAuthors.find(a => a.id === parseInt(newAuthorId));
-    return author?.books || [];
-  }, [newAuthorId, platformAuthors]);
+  // Create or Update Library
+  const handleSaveLibrary = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!libFormName || !libFormCity || !libFormState) {
+      toast.error('Please enter library name, city, and state');
+      return;
+    }
 
-  // Export Excel Sheet
+    setIsCreatingLib(true);
+    try {
+      const token = localStorage.getItem('token');
+      const payload = {
+        name: libFormName,
+        type: libFormType,
+        city: libFormCity,
+        state: libFormState,
+        country: 'India',
+        airportCode: libFormAirportCode || null,
+        airportName: libFormAirportName || null,
+        contactPerson: libFormContactPerson || 'Airport Manager',
+        contactNumber: libFormContactNumber || 'N/A',
+        email: libFormEmail || null,
+        shippingAddress: libFormShippingAddress || `${libFormName}, ${libFormCity}`,
+        status: libFormStatus
+      };
+
+      if (editingLibId) {
+        await axios.put(`${API}/api/admin/libraries/${editingLibId}`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Library updated successfully!');
+      } else {
+        await axios.post(`${API}/api/admin/libraries`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('New library added successfully!');
+      }
+
+      setShowAddLibraryModal(false);
+      setShowEditLibraryModal(false);
+      setEditingLibId(null);
+      resetLibForm();
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to save library');
+    } finally {
+      setIsCreatingLib(false);
+    }
+  };
+
+  const resetLibForm = () => {
+    setLibFormName('');
+    setLibFormType('Airport Library');
+    setLibFormCity('');
+    setLibFormState('');
+    setLibFormAirportCode('');
+    setLibFormAirportName('');
+    setLibFormContactPerson('');
+    setLibFormContactNumber('');
+    setLibFormEmail('');
+    setLibFormShippingAddress('');
+    setLibFormStatus('Active');
+  };
+
+  const openEditLibrary = (lib: any) => {
+    setEditingLibId(lib.id);
+    setLibFormName(lib.name || '');
+    setLibFormType(lib.type || 'Airport Library');
+    setLibFormCity(lib.city || '');
+    setLibFormState(lib.state || '');
+    setLibFormAirportCode(lib.airportCode || '');
+    setLibFormAirportName(lib.airportName || '');
+    setLibFormContactPerson(lib.contactPerson || '');
+    setLibFormContactNumber(lib.contactNumber || '');
+    setLibFormEmail(lib.email || '');
+    setLibFormShippingAddress(lib.shippingAddress || '');
+    setLibFormStatus(lib.status || 'Active');
+    setShowEditLibraryModal(true);
+  };
+
+  // Export Excel
   const handleDownloadExcel = async () => {
     try {
       const ExcelJS = (await import('exceljs')).default;
       const { saveAs } = await import('file-saver');
 
       const workbook = new ExcelJS.Workbook();
-      const currentLibName = selectedLibraryId === 'all' 
-        ? 'All Libraries' 
-        : (libraries.find(l => l.id.toString() === selectedLibraryId)?.name || 'Library');
-      
       const worksheet = workbook.addWorksheet('Library Book Sales');
+
+      const libTitle = selectedLibraryId === 'all' 
+        ? 'ALL LIBRARIES' 
+        : (libraries.find(l => l.id.toString() === selectedLibraryId)?.name || 'LIBRARY').toUpperCase();
 
       // Title header
       worksheet.mergeCells('A1:I1');
       const titleCell = worksheet.getCell('A1');
-      titleCell.value = `PUNE AUTHORS' ASSOCIATION - LIBRARY SALES REPORT (${currentLibName.toUpperCase()})`;
+      titleCell.value = `LIST OF BOOKS FOR ${libTitle} - LIBRARY BOOK SALES REPORT`;
       titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FF000000' } };
       titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
       titleCell.fill = {
@@ -290,26 +411,24 @@ export function LibrarySalesTab() {
       };
       worksheet.getRow(1).height = 30;
 
-      // Summary Info
+      // Summary rows
       worksheet.addRow([]);
-      worksheet.addRow(['Report Generated:', new Date().toLocaleDateString('en-GB')]);
+      worksheet.addRow(['Report Date:', new Date().toLocaleDateString('en-GB')]);
       worksheet.addRow(['Total Books Placed:', metrics.totalPlaced, '', 'Total Books Sold:', metrics.totalSold]);
-      worksheet.addRow(['Total Sales Revenue (₹):', `₹${metrics.totalRevenue}`, '', 'Stock Remaining:', metrics.totalRemaining]);
+      worksheet.addRow(['Total Revenue (₹):', `₹${metrics.totalRevenue}`, '', 'Stock Remaining:', metrics.totalRemaining]);
       worksheet.addRow([]);
 
-      // Style summary rows
       for (let r = 3; r <= 5; r++) {
         worksheet.getRow(r).font = { bold: true };
       }
 
-      // Column Headers
+      // Headers
       const headers = [
         'S.No',
         'Book Title',
-        'Author Name',
-        'Library Name',
-        'City / Type',
         'MRP (₹)',
+        'Author Name',
+        'Library & City',
         'Copies Placed',
         'Copies Sold',
         'Revenue (₹)',
@@ -324,7 +443,7 @@ export function LibrarySalesTab() {
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FFFFE600' } // Yellow
+          fgColor: { argb: 'FFFFE600' } // Yellow header
         };
         cell.border = {
           top: { style: 'thin' },
@@ -345,10 +464,9 @@ export function LibrarySalesTab() {
         const row = worksheet.addRow([
           index + 1,
           sale.book?.title || 'Unknown Title',
-          sale.author?.name || 'Unknown Author',
-          sale.library?.name || 'Library',
-          `${sale.library?.city || ''} (${sale.library?.type || ''})`,
           mrp,
+          sale.author?.name || 'Unknown Author',
+          `${sale.library?.name || ''} (${sale.library?.city || ''})`,
           placed,
           sold,
           revenue,
@@ -362,7 +480,7 @@ export function LibrarySalesTab() {
             bottom: { style: 'thin' },
             right: { style: 'thin' }
           };
-          if (colNumber === 1 || colNumber >= 6) {
+          if (colNumber === 1 || colNumber === 3 || colNumber >= 6) {
             cell.alignment = { horizontal: 'center', vertical: 'middle' };
           } else {
             cell.alignment = { horizontal: 'left', vertical: 'middle' };
@@ -374,7 +492,6 @@ export function LibrarySalesTab() {
       const grandTotalRow = worksheet.addRow([
         '',
         'GRAND TOTAL',
-        '',
         '',
         '',
         '',
@@ -393,9 +510,7 @@ export function LibrarySalesTab() {
           bottom: { style: 'medium' },
           right: { style: 'thin' }
         };
-        if (colNumber === 2) {
-          cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        } else if (colNumber >= 6) {
+        if (colNumber === 2 || colNumber >= 6) {
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         }
         cell.fill = {
@@ -405,9 +520,9 @@ export function LibrarySalesTab() {
         };
       });
 
-      // Auto-fit column widths
-      worksheet.columns.forEach((col: any, idx: number) => {
-        let maxLen = 12;
+      // Auto width
+      worksheet.columns.forEach((col: any) => {
+        let maxLen = 14;
         col.eachCell({ includeEmpty: true }, (cell: any) => {
           const val = cell.value ? cell.value.toString() : '';
           if (val.length > maxLen) maxLen = Math.min(val.length + 3, 35);
@@ -416,7 +531,7 @@ export function LibrarySalesTab() {
       });
 
       const buffer = await workbook.xlsx.writeBuffer();
-      const fileName = `PAA_Library_Sales_${currentLibName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const fileName = `Library_Sales_${libTitle.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
       saveAs(new Blob([buffer]), fileName);
       toast.success('Excel sheet downloaded successfully!');
     } catch (err) {
@@ -428,22 +543,22 @@ export function LibrarySalesTab() {
   const selectedLibObj = libraries.find(l => l.id.toString() === selectedLibraryId);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       {/* Top Banner / Title */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-paa-navy/5 shadow-premium">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-amber-500/10 text-amber-600 rounded-xl flex items-center justify-center font-black">
-            <LibraryIcon className="w-6 h-6" />
+            <Building2 className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+            <h1 className="text-xl font-black text-paa-navy tracking-tight flex items-center gap-2">
               Library Book Sales Management
-              <span className="text-xs bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full font-bold">
-                Direct Sales Sheet
+              <span className="text-xs bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">
+                Direct Sales & Donations Sheet
               </span>
             </h1>
             <p className="text-xs text-gray-500 font-medium">
-              Manage, track, and record book sales across Airport Flybraries and Public/Institutional Libraries.
+              Manage, track, and record book copies placed and sales across Airport Flybraries and Public/Institutional Libraries.
             </p>
           </div>
         </div>
@@ -452,75 +567,94 @@ export function LibrarySalesTab() {
           <button
             onClick={fetchData}
             disabled={isRefreshing}
-            className="p-2 text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
             title="Refresh Data"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
 
+          {/* ADD LIBRARY BUTTON */}
           <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all"
+            onClick={() => {
+              resetLibForm();
+              setEditingLibId(null);
+              setShowAddLibraryModal(true);
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all"
           >
-            <Plus className="w-4 h-4" /> Add Book to Library
+            <Plus className="w-4 h-4" /> Add Library
           </button>
 
+          {/* ADD PARTICIPANT / BOOK BUTTON */}
+          <button
+            onClick={() => {
+              if (selectedLibraryId !== 'all') {
+                setNewLibraryId(selectedLibraryId);
+              }
+              setShowAddModal(true);
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#b44d28] hover:bg-[#963c1e] text-white rounded-xl text-xs font-bold shadow-sm transition-all"
+          >
+            <Plus className="w-4 h-4" /> Add Participant / Book
+          </button>
+
+          {/* DOWNLOAD REPORT */}
           <button
             onClick={handleDownloadExcel}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all"
           >
-            <Download className="w-4 h-4" /> Download Excel Sheet
+            <Download className="w-4 h-4" /> Download Report
           </button>
         </div>
       </div>
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+        <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Libraries Active</div>
-            <div className="text-xl font-black text-gray-900">{metrics.uniqueLibraries}</div>
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Libraries Active</div>
+            <div className="text-xl font-black text-paa-navy">{metrics.uniqueLibraries}</div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center">
+        <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
             <Package className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Copies Placed</div>
-            <div className="text-xl font-black text-gray-900">{metrics.totalPlaced}</div>
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Copies Placed</div>
+            <div className="text-xl font-black text-paa-navy">{metrics.totalPlaced}</div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center">
+        <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Copies Sold</div>
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Copies Sold</div>
             <div className="text-xl font-black text-emerald-600">{metrics.totalSold}</div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">
+        <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
             <IndianRupee className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Revenue</div>
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Revenue</div>
             <div className="text-xl font-black text-amber-600">₹{metrics.totalRevenue.toLocaleString()}</div>
           </div>
         </div>
       </div>
 
       {/* Library Selector / Filters Bar */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-4">
+      <div className="bg-white p-4 rounded-2xl border border-paa-navy/5 shadow-sm space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Library Select Dropdown */}
+          {/* Library Select & Type Filter */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <label className="text-xs font-bold text-gray-700 whitespace-nowrap">Select Library:</label>
@@ -529,21 +663,23 @@ export function LibrarySalesTab() {
                 onChange={e => setSelectedLibraryId(e.target.value)}
                 className="border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-bold bg-white text-gray-900 outline-none focus:ring-2 focus:ring-amber-500"
               >
-                <option value="all">🌟 All Libraries (Consolidated)</option>
-                <optgroup label="Airport Flybraries">
-                  {libraries.filter(l => l.type === 'Airport Flybrary' || l.type === 'Airport').map(l => (
-                    <option key={l.id} value={l.id.toString()}>{l.name} ({l.city})</option>
-                  ))}
-                </optgroup>
-                <optgroup label="Public & Other Libraries">
-                  {libraries.filter(l => l.type !== 'Airport Flybrary' && l.type !== 'Airport').map(l => (
-                    <option key={l.id} value={l.id.toString()}>{l.name} ({l.city})</option>
-                  ))}
-                </optgroup>
+                <option value="all">All Libraries ({libraries.length})</option>
+                {libraries.map(l => (
+                  <option key={l.id} value={l.id.toString()}>{l.name} - {l.city} ({l.type})</option>
+                ))}
               </select>
             </div>
 
-            {/* Type Filter */}
+            {selectedLibObj && (
+              <button
+                onClick={() => openEditLibrary(selectedLibObj)}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition-colors"
+                title="Edit this library's info"
+              >
+                <Edit className="w-3.5 h-3.5" /> Edit Library Info
+              </button>
+            )}
+
             <div className="flex items-center gap-2">
               <label className="text-xs font-bold text-gray-700">Type:</label>
               <select
@@ -552,10 +688,10 @@ export function LibrarySalesTab() {
                 className="border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium bg-white text-gray-900 outline-none"
               >
                 <option value="all">All Types</option>
-                <option value="Airport Flybrary">Airport Flybrary</option>
+                <option value="Airport Library">Airport Library</option>
+                <option value="Institutional Library">Institutional Library</option>
+                <option value="Military Library">Military Library</option>
                 <option value="Public Library">Public Library</option>
-                <option value="Institutional">Institutional</option>
-                <option value="Other">Other</option>
               </select>
             </div>
           </div>
@@ -573,21 +709,30 @@ export function LibrarySalesTab() {
           </div>
         </div>
 
-        {/* Selected Library Header Info if a specific library is selected */}
+        {/* Selected Library Header Info Banner */}
         {selectedLibObj && (
-          <div className="bg-amber-50/60 border border-amber-200/80 rounded-lg p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="font-black text-amber-900">{selectedLibObj.name}</span>
-              <span className="bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded text-[10px] font-bold">
+          <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="font-black text-amber-950 text-sm">{selectedLibObj.name}</span>
+              <span className="bg-amber-200/90 text-amber-900 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase">
                 {selectedLibObj.type}
               </span>
-              <span className="text-gray-600 font-medium">📍 {selectedLibObj.city}, {selectedLibObj.state}</span>
+              <span className="text-gray-600 font-bold flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-amber-700" /> {selectedLibObj.city}, {selectedLibObj.state}
+              </span>
             </div>
-            {selectedLibObj.contactPerson && (
-              <div className="text-gray-600">
-                Contact: <span className="font-bold text-gray-800">{selectedLibObj.contactPerson}</span> ({selectedLibObj.contactNumber || 'N/A'})
-              </div>
-            )}
+            <div className="flex items-center gap-4 text-gray-600">
+              {selectedLibObj.contactPerson && (
+                <div>
+                  Contact: <span className="font-bold text-gray-900">{selectedLibObj.contactPerson}</span> {selectedLibObj.contactNumber && `(${selectedLibObj.contactNumber})`}
+                </div>
+              )}
+              {selectedLibObj.shippingAddress && selectedLibObj.shippingAddress !== 'NA' && (
+                <div className="hidden lg:block text-gray-500 truncate max-w-xs" title={selectedLibObj.shippingAddress}>
+                  Address: {selectedLibObj.shippingAddress}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -599,8 +744,10 @@ export function LibrarySalesTab() {
           <h2 className="text-black uppercase text-[13px] m-0 tracking-wide">
             LIST OF BOOKS FOR {selectedLibraryId === 'all' ? 'ALL LIBRARIES' : (selectedLibObj?.name || 'LIBRARY').toUpperCase()} - {filteredSales.length} LISTED TITLES
           </h2>
-          <div className="text-xs text-black font-black uppercase">
-            Total Revenue: ₹{metrics.totalRevenue.toLocaleString()}
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-black font-black uppercase">
+              Total Revenue: ₹{metrics.totalRevenue.toLocaleString()}
+            </span>
           </div>
         </div>
 
@@ -617,7 +764,7 @@ export function LibrarySalesTab() {
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Copies<br/>Sold</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-28 text-center">Revenue (₹)</th>
                 <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Stock<br/>Remaining</th>
-                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-24 text-center">Actions</th>
+                <th className="border-[1.5px] border-black bg-[#FFE600] p-1.5 w-28 text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -633,7 +780,7 @@ export function LibrarySalesTab() {
               ) : filteredSales.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="p-8 text-center text-gray-500 italic border-[1.5px] border-black">
-                    No book sales found matching the current filters. Click "+ Add Book to Library" to add a new record.
+                    No book placements found matching current filters. Click "+ Add Participant / Book" to record a book placement.
                   </td>
                 </tr>
               ) : (
@@ -729,7 +876,7 @@ export function LibrarySalesTab() {
                             <button
                               onClick={() => handleSaveRow(sale.id)}
                               disabled={isSaving}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm disabled:opacity-50"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm disabled:opacity-50"
                             >
                               <Save className="w-3 h-3" /> Save
                             </button>
@@ -738,14 +885,14 @@ export function LibrarySalesTab() {
                               disabled={isSaving}
                               className="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm"
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-3 h-3" /> Cancel
                             </button>
                           </div>
                         ) : (
                           <div className="flex gap-1 justify-center">
                             <button
                               onClick={() => startEdit(sale)}
-                              className="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm"
+                              className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm"
                             >
                               <Edit className="w-3 h-3" /> Edit
                             </button>
@@ -770,16 +917,16 @@ export function LibrarySalesTab() {
                   <td colSpan={5} className="border-[1.5px] border-black text-right p-2 uppercase tracking-widest text-[11px]">
                     GRAND TOTAL
                   </td>
-                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black">
+                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-bold">
                     {metrics.totalPlaced}
                   </td>
-                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-emerald-900">
+                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-emerald-900 font-bold">
                     {metrics.totalSold}
                   </td>
                   <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-black">
                     ₹{metrics.totalRevenue.toLocaleString()}
                   </td>
-                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black">
+                  <td className="border-[1.5px] border-black text-center p-2 text-xs bg-white text-black font-bold">
                     {metrics.totalRemaining}
                   </td>
                   <td className="border-[1.5px] border-black bg-[#FFE600]"></td>
@@ -790,7 +937,7 @@ export function LibrarySalesTab() {
         </div>
       </div>
 
-      {/* ADD BOOK TO LIBRARY MODAL */}
+      {/* ADD PARTICIPANT / BOOK TO LIBRARY MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
@@ -800,7 +947,7 @@ export function LibrarySalesTab() {
                   <Plus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-gray-900">Add Book to Library Sheet</h3>
+                  <h3 className="text-base font-black text-gray-900">Add Participant / Book to Library</h3>
                   <p className="text-xs text-gray-500">Record copies placed and sales at a specific library</p>
                 </div>
               </div>
@@ -932,9 +1079,194 @@ export function LibrarySalesTab() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-[#b44d28] hover:bg-[#963c1e] text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-50"
                 >
                   {isSaving ? 'Saving...' : 'Add to Sheet'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ADD OR EDIT LIBRARY MODAL */}
+      {(showAddLibraryModal || showEditLibraryModal) && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center font-bold">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-gray-900">
+                    {editingLibId ? 'Edit Library Details' : 'Add New Library / Flybrary'}
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    {editingLibId ? 'Update location and contact details' : 'Add a new public or airport flybrary'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowAddLibraryModal(false);
+                  setShowEditLibraryModal(false);
+                  setEditingLibId(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveLibrary} className="space-y-3.5 pt-4">
+              {/* Library Name */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Library / Flybrary Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Pune Airport Flybrary or National Library"
+                  value={libFormName}
+                  onChange={e => setLibFormName(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              {/* Type & Status */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Type *</label>
+                  <select
+                    value={libFormType}
+                    onChange={e => setLibFormType(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="Airport Library">Airport Library</option>
+                    <option value="Institutional Library">Institutional Library</option>
+                    <option value="Military Library">Military Library</option>
+                    <option value="Public Library">Public Library</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Status</label>
+                  <select
+                    value={libFormStatus}
+                    onChange={e => setLibFormStatus(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* City & State */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">City *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Pune"
+                    value={libFormCity}
+                    onChange={e => setLibFormCity(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">State *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Maharashtra"
+                    value={libFormState}
+                    onChange={e => setLibFormState(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {/* Airport Specific fields if Airport Library */}
+              {libFormType === 'Airport Library' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Airport Code (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. PNQ"
+                      value={libFormAirportCode}
+                      onChange={e => setLibFormAirportCode(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Airport Name (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Pune International Airport"
+                      value={libFormAirportName}
+                      onChange={e => setLibFormAirportName(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Person & Phone */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Contact Person</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Airport Manager"
+                    value={libFormContactPerson}
+                    onChange={e => setLibFormContactPerson(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Contact Number</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 9876543210"
+                    value={libFormContactNumber}
+                    onChange={e => setLibFormContactNumber(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {/* Shipping Address */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Shipping / Delivery Address</label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. VIP Lounge, Departure Terminal 1"
+                  value={libFormShippingAddress}
+                  onChange={e => setLibFormShippingAddress(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddLibraryModal(false);
+                    setShowEditLibraryModal(false);
+                    setEditingLibId(null);
+                  }}
+                  className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingLib}
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-50"
+                >
+                  {isCreatingLib ? 'Saving...' : editingLibId ? 'Update Library' : 'Create Library'}
                 </button>
               </div>
             </form>
