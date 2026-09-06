@@ -5174,7 +5174,14 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
             
             <div className="bg-rose-500/85 p-3 rounded-xl border-none shadow-premium flex flex-col justify-center cursor-pointer hover:shadow-md transition-all group text-gray-900" onClick={() => navigate('/dashboard/payments')}>
               <div className="text-[10px] font-bold text-gray-900 uppercase tracking-widest mb-1.5 flex items-center gap-2 group-hover:text-black transition-colors"><CheckCircle2 className="w-4 h-4 text-gray-800" /> Total Payments Done</div>
-              <div className="text-3xl font-black text-gray-900 tracking-tight">₹{validParticipations.reduce((sum: number, evt: any) => sum + (evt.amountPaid || 0), 0).toLocaleString()}</div>
+              <div className="text-3xl font-black text-gray-900 tracking-tight">₹{validParticipations.reduce((sum: number, evt: any) => {
+                const paidValue = Number(evt.amountPaid) || 0;
+                const isFeeWaived = Boolean(evt.isFeeExempt && paidValue === 0);
+                const paymentStatus = String(evt.paymentStatus || '').trim().toLowerCase();
+                const optInStatus = String(evt.optInStatus || '').trim().toLowerCase();
+                const isPending = ['pending', 'pending approval', 'pending payment', 'pending verification'].includes(optInStatus) || ['pending', 'pending approval', 'pending payment', 'pending verification', 'rejected', 'declined'].includes(paymentStatus);
+                return sum + ((paidValue > 0 && !isFeeWaived && !isPending) ? paidValue : 0);
+              }, 0).toLocaleString()}</div>
               <div className="text-[10px] text-gray-800 mt-1 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Click to view details &rarr;</div>
             </div>
             
@@ -5193,7 +5200,14 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                        }
                        return acc + rev;
                     }, 0) + (dashboardData?.authorOrders || []).filter((o: any) => ['Pending Verification', 'Completed', 'Processing', 'Delivered', 'Dispatched', 'Accepted', 'Paid'].includes(o.status || o.orderStatus)).reduce((acc: number, curr: any) => acc + (curr.total || curr.amount || 0), 0);
-                    const totalPaid = validParticipations.reduce((sum: number, evt: any) => sum + (evt.amountPaid || 0), 0);
+                    const totalPaid = validParticipations.reduce((sum: number, evt: any) => {
+                       const paidValue = Number(evt.amountPaid) || 0;
+                       const isFeeWaived = Boolean(evt.isFeeExempt && paidValue === 0);
+                       const paymentStatus = String(evt.paymentStatus || '').trim().toLowerCase();
+                       const optInStatus = String(evt.optInStatus || '').trim().toLowerCase();
+                       const isPending = ['pending', 'pending approval', 'pending payment', 'pending verification'].includes(optInStatus) || ['pending', 'pending approval', 'pending payment', 'pending verification', 'rejected', 'declined'].includes(paymentStatus);
+                       return sum + ((paidValue > 0 && !isFeeWaived && !isPending) ? paidValue : 0);
+                    }, 0);
                     const net = totalRev - totalPaid;
                     return <span className={net >= 0 ? "text-gray-900" : "text-red-900"}>{net >= 0 ? '+' : '-'}₹{Math.abs(net).toLocaleString()}</span>;
                  })()}

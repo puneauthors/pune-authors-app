@@ -399,16 +399,16 @@ export default function EventExcelManager({
     }
 
     const isVerified = author.paymentStatus === "Paid" || author.paymentStatus === "Confirmed";
+    let amount = 0;
+    if (author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== "" && !isNaN(parseFloat(author.amountPaid))) {
+      amount = parseFloat(author.amountPaid);
+    } else if (eventBreakdown?.registrationFee) {
+      amount = eventBreakdown.feeType === "Per Title"
+        ? (eventBreakdown.registrationFee || 0) * (author.books?.length || 0)
+        : (eventBreakdown.registrationFee || 0);
+    }
 
     if (isVerified) {
-      let amount = 0;
-      if (author.amountPaid !== null && author.amountPaid !== undefined && author.amountPaid !== "" && !isNaN(parseFloat(author.amountPaid))) {
-        amount = parseFloat(author.amountPaid);
-      } else if (eventBreakdown?.registrationFee) {
-        amount = eventBreakdown.feeType === "Per Title"
-          ? (eventBreakdown.registrationFee || 0) * (author.books?.length || 0)
-          : (eventBreakdown.registrationFee || 0);
-      }
       return {
         isExempt: false,
         isVerified: true,
@@ -421,7 +421,7 @@ export default function EventExcelManager({
       isExempt: false,
       isVerified: false,
       amountPaid: 0,
-      displayStr: "₹0"
+      displayStr: amount > 0 ? `₹${amount}` : "₹0"
     };
   };
 

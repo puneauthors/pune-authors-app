@@ -4109,14 +4109,14 @@ const totalAuthorsBase = eventRegistrations.length;
             : totalSaleBase;
       const totalPaymentsBase = eventRegistrations.reduce(
         (acc: number, a: any) => {
-          const isExempt = Boolean(
-            a.isFeeExempt ||
-            a.feeWaived ||
-            selectedEventBreakdown?.isFeeExempt ||
-            (selectedEventBreakdown?.exemptAuthorIds && Array.isArray(selectedEventBreakdown.exemptAuthorIds) && (
-              selectedEventBreakdown.exemptAuthorIds.includes(a.authorId || a.id || a.author?.id)
-            ))
-          );
+          const exemptList = selectedEventBreakdown?.exemptAuthorIds;
+          let isExempt = Boolean(a.isFeeExempt || a.feeWaived || selectedEventBreakdown?.isFeeExempt);
+          if (!isExempt && exemptList) {
+            const list = Array.isArray(exemptList) ? exemptList : (typeof exemptList === 'string' ? JSON.parse(exemptList || '[]') : []);
+            if (list.map(Number).includes(Number(a.authorId || a.id || a.author?.id))) {
+              isExempt = true;
+            }
+          }
           if (isExempt) return acc;
           const isVerified = a.paymentStatus === "Paid" || a.paymentStatus === "Confirmed";
           if (!isVerified) return acc;
@@ -5239,11 +5239,14 @@ const totalAuthorsBase = eventRegistrations.length;
           ? (m.books?.length || 0) *
             (selectedEventBreakdown.registrationFee || 0)
           : selectedEventBreakdown?.registrationFee || 0;
+      const isFeeWaived = Boolean(m.isFeeExempt);
       setManageAmountPaid(
-        m.amountPaid ||
-          (m.paymentStatus === "Paid" || m.optInStatus?.startsWith("Registered")
-            ? expectedFee
-            : 0),
+        isFeeWaived
+          ? 0
+          : (m.amountPaid ??
+              (m.paymentStatus === "Paid" || m.optInStatus?.startsWith("Registered")
+                ? expectedFee
+                : 0)),
       );
       const isLegacyEvent =
         selectedEventBreakdown?.status === "Legacy Archive" ||
@@ -5433,14 +5436,14 @@ const totalAuthorsBase = eventRegistrations.length;
       );
       const totalFeesReceived = eventRegistrations.reduce(
         (acc: number, a: any) => {
-          const isExempt = Boolean(
-            a.isFeeExempt ||
-            a.feeWaived ||
-            selectedEventBreakdown?.isFeeExempt ||
-            (selectedEventBreakdown?.exemptAuthorIds && Array.isArray(selectedEventBreakdown.exemptAuthorIds) && (
-              selectedEventBreakdown.exemptAuthorIds.includes(a.authorId || a.id || a.author?.id)
-            ))
-          );
+          const exemptList = selectedEventBreakdown?.exemptAuthorIds;
+          let isExempt = Boolean(a.isFeeExempt || a.feeWaived || selectedEventBreakdown?.isFeeExempt);
+          if (!isExempt && exemptList) {
+            const list = Array.isArray(exemptList) ? exemptList : (typeof exemptList === 'string' ? JSON.parse(exemptList || '[]') : []);
+            if (list.map(Number).includes(Number(a.authorId || a.id || a.author?.id))) {
+              isExempt = true;
+            }
+          }
           if (isExempt) return acc;
           const isPaid = a.paymentStatus === "Paid" || a.paymentStatus === "Confirmed";
           if (!isPaid) return acc;

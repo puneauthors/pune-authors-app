@@ -5157,6 +5157,14 @@ router.post('/api/admin/events/registration', verifyToken, isAdmin, async (req, 
     const existingAuthor = await prisma.eventAuthor.findFirst({
       where: { eventId, authorId }
     });
+    const event = await prisma.event.findUnique({ where: { id: eventId } });
+    const isFeeExempt = Boolean(
+      existingAuthor?.isFeeExempt ||
+      (event?.exemptAuthorIds && Array.isArray(event.exemptAuthorIds) && event.exemptAuthorIds.includes(authorId))
+    );
+    const normalizedAmountPaid = isFeeExempt ? 0 : (
+      amountPaid !== undefined && amountPaid !== "" && amountPaid !== null ? parseFloat(amountPaid) : existingAuthor?.amountPaid ?? null
+    );
 
     if (existingAuthor) {
       await prisma.eventAuthor.update({
@@ -5165,7 +5173,8 @@ router.post('/api/admin/events/registration', verifyToken, isAdmin, async (req, 
           optInStatus: optInStatus || undefined,
           manualTotalSold: manualTotalSold !== null ? manualTotalSold : undefined,
           manualTotalRevenue: manualTotalRevenue !== null ? manualTotalRevenue : undefined,
-          amountPaid: amountPaid !== undefined && amountPaid !== "" && amountPaid !== null ? parseFloat(amountPaid) : existingAuthor.amountPaid
+          isFeeExempt,
+          amountPaid: normalizedAmountPaid
         }
       });
     } else {
@@ -5174,9 +5183,10 @@ router.post('/api/admin/events/registration', verifyToken, isAdmin, async (req, 
           eventId,
           authorId,
           optInStatus: optInStatus || "Registered",
+          isFeeExempt,
           manualTotalSold: manualTotalSold !== null ? manualTotalSold : null,
           manualTotalRevenue: manualTotalRevenue !== null ? manualTotalRevenue : null,
-          amountPaid: amountPaid !== undefined && amountPaid !== "" && amountPaid !== null ? parseFloat(amountPaid) : null
+          amountPaid: normalizedAmountPaid
         }
       });
     }
@@ -5343,7 +5353,7 @@ router.post('/api/admin/events/:eventId/author/:authorId/approve', verifyToken, 
         data: {
           optInStatus: 'Approved',
           isFeeExempt: isExempt,
-          ...(isExempt ? { paymentStatus: 'Paid' } : {})
+          ...(isExempt ? { paymentStatus: 'Paid', amountPaid: 0 } : {})
         }
       });
     } else {
@@ -5353,7 +5363,8 @@ router.post('/api/admin/events/:eventId/author/:authorId/approve', verifyToken, 
           authorId,
           optInStatus: 'Approved',
           isFeeExempt: isExempt,
-          paymentStatus: isExempt ? 'Paid' : 'Unpaid'
+          paymentStatus: isExempt ? 'Paid' : 'Unpaid',
+          amountPaid: isExempt ? 0 : null
         }
       });
     }
@@ -5412,6 +5423,7 @@ router.post('/api/admin/events/:eventId/author/:authorId/verify-payment', verify
     });
 
     if (existingRegistration) {
+      const isFeeWaived = Boolean(existingRegistration.isFeeExempt || (existingRegistration.event?.exemptAuthorIds && Array.isArray(existingRegistration.event.exemptAuthorIds) && existingRegistration.event.exemptAuthorIds.includes(authorId)));
       let calcPaid = existingRegistration.amountPaid || 0;
       if (!calcPaid && existingRegistration.event) {
         if (existingRegistration.event.feeType === 'Per Title') {
@@ -5427,7 +5439,7 @@ router.post('/api/admin/events/:eventId/author/:authorId/verify-payment', verify
         data: {
           optInStatus: 'Registered',
           paymentStatus: 'Paid',
-          amountPaid: calcPaid
+          amountPaid: isFeeWaived ? 0 : calcPaid
         }
       });
 
