@@ -81,17 +81,13 @@ export function LibrarySalesTab() {
   // Specific Library Sales Table Search
   const [detailSearch, setDetailSearch] = useState('');
 
-  // Single Row Editing state
+  // Row Editing state (Admin must click Edit to make row editable, then Save to commit)
   const [editingSaleId, setEditingSaleId] = useState<number | null>(null);
   const [editPlaced, setEditPlaced] = useState<number>(0);
   const [editSold, setEditSold] = useState<number>(0);
   const [editMrp, setEditMrp] = useState<string>('');
   const [editNotes, setEditNotes] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
-
-  // Bulk Edit / Live Edit State for Specific Library
-  const [localSalesState, setLocalSalesState] = useState<Record<number, { copiesPlaced: number; soldStock: number; overrideMrp: string; notes: string }>>({});
-  const [isSavingAll, setIsSavingAll] = useState(false);
 
   // Add Book modal state (Only for specific library)
   const [showAddModal, setShowAddModal] = useState(false);
@@ -164,23 +160,6 @@ export function LibrarySalesTab() {
     fetchData();
   }, []);
 
-  // Sync local sales state when sales or selectedLibrary changes
-  useEffect(() => {
-    if (selectedLibrary) {
-      const currentLibSales = sales.filter(s => s.libraryId === selectedLibrary.id);
-      const stateMap: Record<number, { copiesPlaced: number; soldStock: number; overrideMrp: string; notes: string }> = {};
-      currentLibSales.forEach(s => {
-        stateMap[s.id] = {
-          copiesPlaced: s.copiesPlaced || 0,
-          soldStock: s.soldStock || 0,
-          overrideMrp: s.overrideMrp !== null && s.overrideMrp !== undefined ? s.overrideMrp.toString() : (s.book?.mrp?.toString() || ''),
-          notes: s.notes || ''
-        };
-      });
-      setLocalSalesState(stateMap);
-    }
-  }, [sales, selectedLibrary?.id]);
-
   // Overall metrics across all libraries
   const overallMetrics = useMemo(() => {
     let totalPlaced = 0;
@@ -245,8 +224,7 @@ export function LibrarySalesTab() {
         const q = detailSearch.toLowerCase().trim();
         const bookTitle = item.book?.title?.toLowerCase() || '';
         const authorName = item.author?.name?.toLowerCase() || '';
-        const authorPen = item.author?.penName?.toLowerCase() || '';
-        return bookTitle.includes(q) || authorName.includes(q) || authorPen.includes(q);
+        return bookTitle.includes(q) || authorName.includes(q);
       }
       return true;
     });
@@ -263,14 +241,13 @@ export function LibrarySalesTab() {
     const bookSet = new Set<number>();
 
     currentLibrarySales.forEach(s => {
-      const local = localSalesState[s.id];
-      const mrp = local?.overrideMrp ? parseFloat(local.overrideMrp) : (s.overrideMrp || s.book?.mrp || 0);
-      const placed = local ? local.copiesPlaced : (s.copiesPlaced || 0);
-      const sold = local ? local.soldStock : (s.soldStock || 0);
+      const mrp = s.overrideMrp || s.book?.mrp || 0;
+      const placed = s.copiesPlaced || 0;
+      const sold = s.soldStock || 0;
 
       totalPlaced += placed;
       totalSold += sold;
-      totalRevenue += (sold * (isNaN(mrp) ? 0 : mrp));
+      totalRevenue += (sold * mrp);
 
       if (s.authorId) authorSet.add(s.authorId);
       if (s.bookId) bookSet.add(s.bookId);
@@ -284,7 +261,7 @@ export function LibrarySalesTab() {
       uniqueAuthors: authorSet.size,
       totalTitles: bookSet.size
     };
-  }, [currentLibrarySales, localSalesState, selectedLibrary]);
+  }, [currentLibrarySales, selectedLibrary]);
 
   // Grouped sales by author for the Event-like table structure
   const authorGroupedSales = useMemo(() => {
@@ -313,35 +290,20 @@ export function LibrarySalesTab() {
     return author?.books?.filter((b: any) => !b.isArchived) || [];
   }, [newAuthorId, platformAuthors]);
 
-  // Handle cell changes in the Live Excel table
-  const handleCellChange = (saleId: number, field: 'copiesPlaced' | 'soldStock' | 'overrideMrp' | 'notes', value: any) => {
-    setLocalSalesState(prev => {
-      const current = prev[saleId] || { copiesPlaced: 0, soldStock: 0, overrideMrp: '', notes: '' };
-      return {
-        ...prev,
-        [saleId]: {
-          ...current,
-          [field]: field === 'copiesPlaced' || field === 'soldStock' ? (parseInt(value) || 0) : value
-        }
-      };
-    });
-  };
-
-  // Start single row edit
+  // Start single row edit (only this row becomes editable)
   const startEdit = (sale: LibrarySaleItem) => {
     setEditingSaleId(sale.id);
-    const local = localSalesState[sale.id];
-    setEditPlaced(local ? local.copiesPlaced : (sale.copiesPlaced || 0));
-    setEditSold(local ? local.soldStock : (sale.soldStock || 0));
-    setEditMrp(local ? local.overrideMrp : (sale.overrideMrp?.toString() || sale.book?.mrp?.toString() || ''));
-    setEditNotes(local ? local.notes : (sale.notes || ''));
+    setEditPlaced(sale.copiesPlaced || 0);
+    setEditSold(sale.soldStock || 0);
+    setEditMrp(sale.overrideMrp !== null && sale.overrideMrp !== undefined ? sale.overrideMrp.toString() : (sale.book?.mrp?.toString() || ''));
+    setEditNotes(sale.notes || '');
   };
 
   const cancelEdit = () => {
     setEditingSaleId(null);
   };
 
-  // Save single row edit
+  // Save single row edit (commited to database)
   const handleSaveRow = async (saleId: number) => {
     setIsSaving(true);
     try {
@@ -357,7 +319,7 @@ export function LibrarySalesTab() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      toast.success('Record updated successfully');
+      toast.success('Library sale updated successfully');
       setEditingSaleId(null);
       fetchData();
     } catch (err: any) {
@@ -365,48 +327,6 @@ export function LibrarySalesTab() {
       toast.error(err.response?.data?.error || 'Failed to update record');
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  // Save All Changes for this specific library (Bulk Save)
-  const handleSaveAllChanges = async () => {
-    if (!selectedLibrary) return;
-    setIsSavingAll(true);
-    try {
-      const token = localStorage.getItem('token');
-      const itemsToSave = currentLibrarySales.map(s => {
-        const local = localSalesState[s.id] || {
-          copiesPlaced: s.copiesPlaced || 0,
-          soldStock: s.soldStock || 0,
-          overrideMrp: s.overrideMrp?.toString() || '',
-          notes: s.notes || ''
-        };
-
-        return {
-          libraryId: selectedLibrary.id,
-          bookId: s.bookId,
-          authorId: s.authorId,
-          copiesPlaced: local.copiesPlaced,
-          soldStock: local.soldStock,
-          overrideMrp: local.overrideMrp ? parseFloat(local.overrideMrp) : null,
-          notes: local.notes || null
-        };
-      });
-
-      await axios.post(
-        `${API}/api/admin/library-sales`,
-        { sales: itemsToSave, libraryId: selectedLibrary.id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      toast.success('All changes saved successfully!');
-      setEditingSaleId(null);
-      fetchData();
-    } catch (err: any) {
-      console.error('Error saving all changes:', err);
-      toast.error(err.response?.data?.error || 'Failed to save all changes');
-    } finally {
-      setIsSavingAll(false);
     }
   };
 
@@ -588,7 +508,7 @@ export function LibrarySalesTab() {
         const libTitle = currentLib.name.toUpperCase();
 
         // Title header
-        worksheet.mergeCells('A1:J1');
+        worksheet.mergeCells('A1:I1');
         const titleCell = worksheet.getCell('A1');
         titleCell.value = `LIST OF BOOKS FOR ${libTitle} - LIBRARY BOOK SALES REPORT`;
         titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FF000000' } };
@@ -617,7 +537,6 @@ export function LibrarySalesTab() {
           'Book Title',
           'MRP (₹)',
           'Author Name',
-          'Pen Name',
           'Copies Placed',
           'Copies Sold',
           'Revenue (₹)',
@@ -657,7 +576,6 @@ export function LibrarySalesTab() {
             s.book?.title || 'Unknown Title',
             mrp,
             s.author?.name || 'Unknown Author',
-            s.author?.penName || '-',
             placed,
             sold,
             revenue,
@@ -667,14 +585,14 @@ export function LibrarySalesTab() {
 
           row.getCell(1).alignment = { horizontal: 'center' };
           row.getCell(3).alignment = { horizontal: 'center' };
+          row.getCell(5).alignment = { horizontal: 'center' };
           row.getCell(6).alignment = { horizontal: 'center' };
           row.getCell(7).alignment = { horizontal: 'center' };
           row.getCell(8).alignment = { horizontal: 'center' };
-          row.getCell(9).alignment = { horizontal: 'center' };
 
           // Styling
           row.getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00FFFF' } }; // Cyan author cell
-          row.getCell(7).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F4EA' } }; // Light green sold cell
+          row.getCell(6).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F4EA' } }; // Light green sold cell
 
           row.eachCell(cell => {
             cell.border = {
@@ -692,7 +610,6 @@ export function LibrarySalesTab() {
           '',
           '',
           '',
-          '',
           libraryMetrics.totalPlaced,
           libraryMetrics.totalSold,
           libraryMetrics.totalRevenue,
@@ -700,7 +617,7 @@ export function LibrarySalesTab() {
           ''
         ]);
 
-        worksheet.mergeCells(`A${grandTotalRow.number}:E${grandTotalRow.number}`);
+        worksheet.mergeCells(`A${grandTotalRow.number}:D${grandTotalRow.number}`);
         grandTotalRow.height = 24;
         grandTotalRow.eachCell((cell) => {
           cell.font = { bold: true };
@@ -895,16 +812,6 @@ export function LibrarySalesTab() {
               <Plus className="w-4 h-4" /> Add Participant / Book
             </button>
 
-            {/* SAVE ALL CHANGES */}
-            <button
-              onClick={handleSaveAllChanges}
-              disabled={isSavingAll || currentLibrarySales.length === 0}
-              className="flex items-center gap-1.5 px-4 py-2 bg-black hover:bg-gray-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
-            >
-              <Save className="w-3.5 h-3.5" />
-              {isSavingAll ? 'Saving...' : 'Save All Changes'}
-            </button>
-
             {/* DOWNLOAD EXCEL */}
             <button
               onClick={() => handleDownloadExcel(selectedLibrary)}
@@ -917,7 +824,7 @@ export function LibrarySalesTab() {
 
         {/* BRIGHT COLORFUL KPI METRICS & LIBRARY INFO */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Library Details Card (Colorful amber/gold gradient theme) */}
+          {/* Library Details Card */}
           <div className="bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-amber-200/40 border-2 border-amber-300 rounded-2xl p-4 flex flex-col justify-between shadow-sm">
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
@@ -956,7 +863,7 @@ export function LibrarySalesTab() {
 
           {/* BRIGHT COLORFUL KPI CARDS */}
           <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {/* Authors: Bright Indigo/Violet Gradient */}
+            {/* Authors */}
             <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between relative overflow-hidden">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-wider text-indigo-100">Authors</span>
@@ -970,7 +877,7 @@ export function LibrarySalesTab() {
               </div>
             </div>
 
-            {/* Placed: Bright Cyan/Blue Gradient */}
+            {/* Placed */}
             <div className="bg-gradient-to-br from-cyan-500 via-blue-500 to-blue-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between relative overflow-hidden">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-wider text-cyan-100">Placed</span>
@@ -984,7 +891,7 @@ export function LibrarySalesTab() {
               </div>
             </div>
 
-            {/* Sold: Bright Emerald/Teal Gradient */}
+            {/* Sold */}
             <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between relative overflow-hidden">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-wider text-emerald-100">Sold</span>
@@ -998,7 +905,7 @@ export function LibrarySalesTab() {
               </div>
             </div>
 
-            {/* Revenue: Bright Amber/Orange Gradient */}
+            {/* Revenue */}
             <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white p-4 rounded-2xl shadow-md flex flex-col justify-between relative overflow-hidden">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-wider text-amber-100">Revenue</span>
@@ -1020,7 +927,7 @@ export function LibrarySalesTab() {
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search author, pen name, or book title in this library..."
+              placeholder="Search author or book title in this library..."
               value={detailSearch}
               onChange={e => setDetailSearch(e.target.value)}
               className="w-full pl-9 pr-3 py-1.5 text-xs border border-gray-300 rounded-lg outline-none focus:border-amber-500 font-medium"
@@ -1050,13 +957,6 @@ export function LibrarySalesTab() {
                 className="bg-white text-black px-3.5 py-1 text-xs font-black uppercase tracking-wider border-[1.5px] border-black hover:bg-gray-100 transition-colors shadow-xs"
               >
                 + ADD PARTICIPANT
-              </button>
-              <button
-                onClick={handleSaveAllChanges}
-                disabled={isSavingAll}
-                className="bg-black text-white px-3.5 py-1 text-xs font-black uppercase tracking-wider hover:bg-gray-800 transition-colors disabled:opacity-50 shadow-xs"
-              >
-                {isSavingAll ? 'SAVING...' : 'SAVE ALL CHANGES'}
               </button>
             </div>
           </div>
@@ -1098,19 +998,12 @@ export function LibrarySalesTab() {
                   authorGroupedSales.map((group, gIdx) => {
                     return group.items.map((sale, itemIdx) => {
                       const isEditing = editingSaleId === sale.id;
-                      const local = localSalesState[sale.id] || {
-                        copiesPlaced: sale.copiesPlaced || 0,
-                        soldStock: sale.soldStock || 0,
-                        overrideMrp: sale.overrideMrp?.toString() || sale.book?.mrp?.toString() || '0',
-                        notes: sale.notes || ''
-                      };
 
-                      const currentPlaced = isEditing ? editPlaced : local.copiesPlaced;
-                      const currentSold = isEditing ? editSold : local.soldStock;
-                      const rawMrp = isEditing ? editMrp : local.overrideMrp;
-                      const currentMrp = parseFloat(rawMrp) || sale.book?.mrp || 0;
-                      const revenue = currentSold * currentMrp;
-                      const remaining = Math.max(0, currentPlaced - currentSold);
+                      const mrp = sale.overrideMrp || sale.book?.mrp || 0;
+                      const placed = sale.copiesPlaced || 0;
+                      const sold = sale.soldStock || 0;
+                      const revenue = sold * mrp;
+                      const remaining = Math.max(0, placed - sold);
 
                       let previousCount = 0;
                       for (let i = 0; i < gIdx; i++) {
@@ -1130,7 +1023,7 @@ export function LibrarySalesTab() {
                             {sale.book?.title || 'Unknown Title'}
                           </td>
 
-                          {/* MRP */}
+                          {/* MRP (Editable only when isEditing is true) */}
                           <td className={`border-[1.5px] border-black text-center font-mono font-bold ${isEditing ? 'bg-white p-0' : 'bg-[#ffddaa] p-1 text-black'}`}>
                             {isEditing ? (
                               <input
@@ -1138,31 +1031,22 @@ export function LibrarySalesTab() {
                                 value={editMrp}
                                 onChange={e => setEditMrp(e.target.value)}
                                 placeholder={sale.book?.mrp?.toString() || '0'}
-                                className="w-full h-full p-1 text-center outline-none font-bold bg-white text-black"
+                                className="w-full h-full p-1 text-center outline-none font-bold bg-white text-black border-2 border-indigo-500"
+                                autoFocus
                               />
                             ) : (
-                              <input
-                                type="number"
-                                value={local.overrideMrp}
-                                onChange={e => handleCellChange(sale.id, 'overrideMrp', e.target.value)}
-                                className="w-full bg-transparent text-center font-bold outline-none text-black cursor-text"
-                              />
+                              mrp
                             )}
                           </td>
 
-                          {/* Author Name */}
+                          {/* Author Name (Primary name only, no nickname) */}
                           <td className="border-[1.5px] border-black bg-[#00ffff] text-black font-bold p-1 px-2 truncate max-w-[160px] text-left" title={group.author.name}>
-                            <div className="flex flex-col">
-                              <span>{group.author.name || 'Unknown Author'}</span>
-                              {group.author.penName && (
-                                <span className="text-[10px] text-gray-700 font-semibold italic">
-                                  ({group.author.penName})
-                                </span>
-                              )}
-                            </div>
+                            <span className="font-black text-black">
+                              {group.author.name || sale.author?.name || 'Unknown Author'}
+                            </span>
                           </td>
 
-                          {/* Copies Placed / Suggested */}
+                          {/* Copies Placed / Suggested (Editable only when isEditing is true) */}
                           <td className={`border-[1.5px] border-black text-center font-bold ${isEditing ? 'bg-white p-0' : 'bg-[#ffddaa] p-1 text-black'}`}>
                             {isEditing ? (
                               <input
@@ -1170,37 +1054,25 @@ export function LibrarySalesTab() {
                                 min="0"
                                 value={editPlaced}
                                 onChange={e => setEditPlaced(parseInt(e.target.value) || 0)}
-                                className="w-full h-full p-1 text-center outline-none font-bold bg-white text-black"
+                                className="w-full h-full p-1 text-center outline-none font-bold bg-white text-black border-2 border-indigo-500"
                               />
                             ) : (
-                              <input
-                                type="number"
-                                min="0"
-                                value={local.copiesPlaced}
-                                onChange={e => handleCellChange(sale.id, 'copiesPlaced', e.target.value)}
-                                className="w-full bg-transparent text-center font-bold outline-none text-black cursor-text"
-                              />
+                              placed
                             )}
                           </td>
 
-                          {/* Copies Sold */}
-                          <td className={`border-[1.5px] border-black text-center font-bold ${isEditing ? 'bg-white p-0' : 'bg-emerald-100 p-1 text-emerald-900'}`}>
+                          {/* Copies Sold (Editable only when isEditing is true) */}
+                          <td className={`border-[1.5px] border-black text-center font-bold ${isEditing ? 'bg-white p-0' : 'bg-emerald-100 p-1 text-emerald-900 font-black'}`}>
                             {isEditing ? (
                               <input
                                 type="number"
                                 min="0"
                                 value={editSold}
                                 onChange={e => setEditSold(parseInt(e.target.value) || 0)}
-                                className="w-full h-full p-1 text-center outline-none font-bold bg-white text-black"
+                                className="w-full h-full p-1 text-center outline-none font-bold bg-white text-emerald-900 border-2 border-emerald-500"
                               />
                             ) : (
-                              <input
-                                type="number"
-                                min="0"
-                                value={local.soldStock}
-                                onChange={e => handleCellChange(sale.id, 'soldStock', e.target.value)}
-                                className="w-full bg-transparent text-center font-black outline-none text-emerald-900 cursor-text"
-                              />
+                              sold
                             )}
                           </td>
 
@@ -1214,52 +1086,49 @@ export function LibrarySalesTab() {
                             {remaining}
                           </td>
 
-                          {/* Notes / Remarks */}
+                          {/* Notes / Remarks (Editable only when isEditing is true) */}
                           <td className="border-[1.5px] border-black bg-white p-1 px-2 text-left">
                             {isEditing ? (
                               <input
                                 type="text"
                                 value={editNotes}
                                 onChange={e => setEditNotes(e.target.value)}
-                                placeholder="Notes..."
-                                className="w-full p-1 text-xs outline-none bg-white text-gray-900 font-medium"
+                                placeholder="Notes / Shelf location..."
+                                className="w-full p-1 text-xs outline-none bg-white text-gray-900 font-medium border border-indigo-300 rounded"
                               />
                             ) : (
-                              <input
-                                type="text"
-                                value={local.notes}
-                                onChange={e => handleCellChange(sale.id, 'notes', e.target.value)}
-                                placeholder="-"
-                                className="w-full bg-transparent text-xs text-gray-700 outline-none truncate"
-                              />
+                              <span className="text-gray-700 text-xs">
+                                {sale.notes || '-'}
+                              </span>
                             )}
                           </td>
 
                           {/* Actions */}
                           <td className="border-[1.5px] border-black bg-gray-50 p-1 text-center">
                             {isEditing ? (
-                              <div className="flex gap-1 justify-center">
+                              <div className="flex gap-1 justify-center px-1">
                                 <button
                                   onClick={() => handleSaveRow(sale.id)}
                                   disabled={isSaving}
-                                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm disabled:opacity-50"
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-[10px] font-black flex items-center gap-1 shadow-sm disabled:opacity-50"
                                 >
-                                  <Save className="w-3 h-3" /> Save
+                                  <Save className="w-3.5 h-3.5" /> Save
                                 </button>
                                 <button
                                   onClick={cancelEdit}
                                   disabled={isSaving}
                                   className="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm"
+                                  title="Cancel"
                                 >
-                                  <X className="w-3 h-3" />
+                                  <X className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             ) : (
                               <div className="flex gap-1 justify-center">
                                 <button
                                   onClick={() => startEdit(sale)}
-                                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm"
-                                  title="Edit single row"
+                                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm"
+                                  title="Edit row"
                                 >
                                   <Edit className="w-3 h-3" /> Edit
                                 </button>
@@ -1512,7 +1381,6 @@ export function LibrarySalesTab() {
                   const remaining = Math.max(0, placed - sold);
                   const authorsCount = lib.totalAuthors || 0;
                   
-                  // Vibrant alternating background for crisp excel aesthetics
                   const isEven = idx % 2 === 0;
                   const rowBg = isEven ? 'bg-white' : 'bg-[#fcf8e8]/60';
 
@@ -1559,7 +1427,7 @@ export function LibrarySalesTab() {
                         )}
                       </td>
 
-                      {/* No. of Authors (Cyan accent block) */}
+                      {/* No. of Authors */}
                       <td className="py-3 px-3 text-center border-r border-gray-200">
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-black bg-[#00ffff]/30 text-blue-950 border border-cyan-400">
                           <Users className="w-3 h-3" />
@@ -1698,7 +1566,7 @@ export function LibrarySalesTab() {
                   >
                     <option value="">Select Author...</option>
                     {platformAuthors.map(a => (
-                      <option key={a.id} value={a.id.toString()}>{a.name} {a.penName ? `(${a.penName})` : ''}</option>
+                      <option key={a.id} value={a.id.toString()}>{a.name}</option>
                     ))}
                   </select>
                 </div>
