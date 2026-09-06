@@ -46,6 +46,7 @@ import {
   Loader2,
   FileText,
   AlertCircle,
+  Building2,
   LayoutDashboard,
   LayoutGrid,
   CheckCircle,
@@ -148,6 +149,11 @@ const AuthorRegistrationPage = lazy(() =>
 const LibraryDonationsTab = lazy(() =>
   import("./LibraryDonationsTab").then((m) => ({
     default: m.LibraryDonationsTab,
+  })),
+);
+const LibrarySalesTab = lazy(() =>
+  import("./LibrarySalesTab").then((m) => ({
+    default: m.LibrarySalesTab,
   })),
 );
 const AdminInventoryTab = lazy(() =>
@@ -985,6 +991,7 @@ export function OperationsDashboardPage() {
     | "helpdesk"
     | "settings"
     | "library_donations"
+    | "library_sales"
     | "broadcasts"
     | "event-requests"
     | "documents"
@@ -9166,6 +9173,11 @@ const totalAuthorsBase = eventRegistrations.length;
               label: "Library Donations",
               icon: BookOpen,
             },
+            {
+              id: "library_sales",
+              label: "Library Sales",
+              icon: Building2,
+            },
             { id: "reviews", label: "Reviews & Feedback", icon: MessageSquare },
             { id: "gallery", label: "Gallery Management", icon: ImageIcon },
             {
@@ -10078,6 +10090,7 @@ const totalAuthorsBase = eventRegistrations.length;
               <EventRequestsTab refreshTrigger={lastRefreshTime} />
             )}
             {activeTab === "library_donations" && <LibraryDonationsTab />}
+            {activeTab === "library_sales" && <LibrarySalesTab />}
             {activeTab === "settings" && (
               <SettingsTabComponent books={books} API={API} />
             )}

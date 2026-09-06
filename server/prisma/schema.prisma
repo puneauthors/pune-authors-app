@@ -92,6 +92,7 @@ model Author {
   formResponses         FormResponse[]
   posOrders             PosOrder[]
   queries               Query[]
+  libraryBookSales      LibraryBookSale[]
   isArchived            Boolean                @default(false)
 }
 
@@ -144,6 +145,7 @@ model Book {
   orderItems      OrderItem[]
   posOrderItems   PosOrderItem[]
   stockHistory    StockHistory[]
+  libraryBookSales LibraryBookSale[]
   isArchived      Boolean        @default(false)
 }
 
@@ -430,6 +432,7 @@ model Library {
   announcements   DonationAnnouncement[]
   logs            DonationLog[]
   galleryEvent    GalleryEvent?
+  bookSales       LibraryBookSale[]
 }
 
 model DonationAnnouncement {
@@ -560,3 +563,24 @@ model AuthorInvitation {
   updatedAt        DateTime @updatedAt
   author           Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
+
+model LibraryBookSale {
+  id               Int      @id @default(autoincrement())
+  libraryId        Int
+  bookId           Int
+  authorId         Int
+  copiesPlaced     Int      @default(0)
+  soldStock        Int      @default(0)
+  overrideMrp      Float?
+  notes            String?
+  manualDailySales Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  isArchived       Boolean  @default(false)
+  library          Library  @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+  book             Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  author           Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([libraryId, bookId, authorId])
+}
+

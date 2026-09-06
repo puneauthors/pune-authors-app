@@ -568,13 +568,27 @@ export default function EventExcelManager({
                       </td>
                       <td className="border-[1.5px] border-black text-gray-400 p-1" colSpan={4 + dayColumns.length}></td>
                       <td className="border-[1.5px] border-black bg-white text-center p-1 font-bold">
-                        {author.paymentScreenshot && author.optInStatus === 'Approved' ? (
-                          <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Verify Payment</span>
-                        ) : (!author.paymentScreenshot && author.optInStatus === 'Approved' && author.paymentStatus !== 'Paid' && eventBreakdown?.registrationFee > 0 && !isExempt) ? (
-                          <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Pending Payment</span>
+                        {isExempt ? (
+                          <span className="px-2 py-0.5 text-[9px] rounded-full text-purple-900 bg-purple-200 whitespace-nowrap font-bold">
+                            Exempt (₹0)
+                          </span>
+                        ) : author.optInStatus === 'Rejected' ? (
+                          <span className="px-2 py-0.5 text-[9px] rounded-full text-red-900 bg-red-300 whitespace-nowrap font-bold">
+                            Rejected
+                          </span>
+                        ) : (author.optInStatus === 'Pending Approval' || author.optInStatus === 'Pending') ? (
+                          <span className="px-2 py-0.5 text-[9px] rounded-full text-yellow-900 bg-yellow-300 animate-pulse whitespace-nowrap font-bold">
+                            Pending Approval
+                          </span>
+                        ) : (eventBreakdown?.registrationFee > 0 && author.paymentStatus !== 'Paid' && author.paymentStatus !== 'Confirmed') ? (
+                          author.paymentScreenshot ? (
+                            <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Verify Payment</span>
+                          ) : (
+                            <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Pending Payment</span>
+                          )
                         ) : (
-                          <span className={`px-2 py-0.5 text-[9px] rounded-full text-black whitespace-nowrap font-bold ${isExempt ? 'bg-purple-200 text-purple-900' : author.optInStatus === 'Pending Approval' ? 'bg-yellow-300 animate-pulse' : author.optInStatus === 'Rejected' ? 'bg-red-300' : 'bg-green-300'}`}>
-                            {isExempt ? "Exempt (₹0)" : (author.optInStatus || "Registered")}
+                          <span className="px-2 py-0.5 text-[9px] rounded-full text-green-900 bg-green-300 whitespace-nowrap font-bold">
+                            {author.optInStatus || "Registered"}
                           </span>
                         )}
                       </td>
@@ -630,7 +644,7 @@ export default function EventExcelManager({
                                     <button onClick={() => handleReject(author.authorId)} className="bg-red-600 text-white w-full py-1 text-[9px] font-bold rounded hover:bg-red-700">✗ Reject</button>
                                   </div>
                                 )}
-                                {author.paymentScreenshot && author.optInStatus === 'Approved' && (
+                                {author.paymentScreenshot && author.paymentStatus !== 'Paid' && (
                                   <div className="flex gap-1 mt-1 w-full">
                                     <button onClick={() => handleVerifyPayment(author.authorId)} className="bg-green-600 hover:bg-green-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors">✓ Verify</button>
                                     <button onClick={() => handleRejectPayment(author.authorId)} className="bg-red-600 hover:bg-red-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors">✗ Reject</button>
@@ -754,13 +768,27 @@ export default function EventExcelManager({
 
                       {isFirstBook && (
                         <td rowSpan={rowSpan} className="border-[1.5px] border-black bg-white p-1 text-center font-bold">
-                          {author.paymentScreenshot && author.optInStatus === 'Approved' ? (
-                            <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Verify Payment</span>
-                          ) : (!author.paymentScreenshot && author.optInStatus === 'Approved' && author.paymentStatus !== 'Paid' && eventBreakdown?.registrationFee > 0 && !isExempt) ? (
-                            <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Pending Payment</span>
+                          {isExempt ? (
+                            <span className="px-2 py-0.5 text-[9px] rounded-full text-purple-900 bg-purple-200 whitespace-nowrap font-bold">
+                              Exempt (₹0)
+                            </span>
+                          ) : author.optInStatus === 'Rejected' ? (
+                            <span className="px-2 py-0.5 text-[9px] rounded-full text-red-900 bg-red-300 whitespace-nowrap font-bold">
+                              Rejected
+                            </span>
+                          ) : (author.optInStatus === 'Pending Approval' || author.optInStatus === 'Pending') ? (
+                            <span className="px-2 py-0.5 text-[9px] rounded-full text-yellow-900 bg-yellow-300 animate-pulse whitespace-nowrap font-bold">
+                              Pending Approval
+                            </span>
+                          ) : (eventBreakdown?.registrationFee > 0 && author.paymentStatus !== 'Paid' && author.paymentStatus !== 'Confirmed') ? (
+                            author.paymentScreenshot ? (
+                              <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Verify Payment</span>
+                            ) : (
+                              <span className="text-yellow-600 animate-pulse uppercase tracking-widest text-[9px] font-bold">Pending Payment</span>
+                            )
                           ) : (
-                            <span className={`px-2 py-0.5 text-[9px] rounded-full text-black whitespace-nowrap font-bold ${isExempt ? 'bg-purple-200 text-purple-900' : author.optInStatus === 'Pending Approval' ? 'bg-yellow-300 animate-pulse' : author.optInStatus === 'Rejected' ? 'bg-red-300' : 'bg-green-300'}`}>
-                              {isExempt ? "Exempt (₹0)" : (author.optInStatus || "Registered")}
+                            <span className="px-2 py-0.5 text-[9px] rounded-full text-green-900 bg-green-300 whitespace-nowrap font-bold">
+                              {author.optInStatus || "Registered"}
                             </span>
                           )}
                         </td>
@@ -803,7 +831,7 @@ export default function EventExcelManager({
                                   <button onClick={() => handleReject(author.authorId)} className="bg-red-600 text-white w-full py-1 text-[9px] font-bold rounded hover:bg-red-700">✗</button>
                                 </div>
                               )}
-                              {author.paymentScreenshot && author.optInStatus === 'Approved' && (
+                              {author.paymentScreenshot && author.paymentStatus !== 'Paid' && (
                                 <div className="flex gap-1 mt-1 w-full">
                                   <button onClick={() => handleVerifyPayment(author.authorId)} className="bg-green-600 hover:bg-green-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors">✓ Verify</button>
                                   <button onClick={() => handleRejectPayment(author.authorId)} className="bg-red-600 hover:bg-red-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors">✗ Reject</button>

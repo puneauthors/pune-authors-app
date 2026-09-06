@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router';
-import { Home, Check, AlertCircle, Upload, Download, Loader2, LogOut, User, Bell, Search, ShoppingCart, BookOpen, CalendarIcon, BarChart3, Package, TrendingUp, TrendingDown, X, MapPin, Menu, ChevronDown, ChevronUp, DollarSign, CheckCircle2, FileText, Image as ImageIcon, Star, Plus, Minus, Eye, Edit2, Mail, Phone, Clock, Trash2, MessageSquare, ExternalLink, Send, ChevronLeft, ChevronRight, RefreshCw, Users, Megaphone, Archive, Sparkles } from 'lucide-react';
+import { Home, Check, AlertCircle, Upload, Download, Loader2, LogOut, User, Bell, Search, ShoppingCart, BookOpen, CalendarIcon, BarChart3, Package, TrendingUp, TrendingDown, X, MapPin, Menu, ChevronDown, ChevronUp, DollarSign, CheckCircle2, FileText, Image as ImageIcon, Star, Plus, Minus, Eye, Edit2, Mail, Phone, Clock, Trash2, MessageSquare, ExternalLink, Send, ChevronLeft, ChevronRight, RefreshCw, Users, Megaphone, Archive, Sparkles, Building2 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell , AreaChart, Area, LabelList, Legend, ScatterChart, Scatter, ZAxis, Label } from 'recharts';
 import axios from 'axios';
 // exceljs and file-saver are dynamically imported inside export handlers to reduce initial bundle size
@@ -16,6 +16,7 @@ import { NavBar } from './NavBar';
 import { Footer } from './Footer';
 import { QueryThreadDisplay } from './QueryThreadDisplay';
 import { AuthorDonationsTab } from './AuthorDonationsTab';
+import { AuthorLibrarySalesTab } from './AuthorLibrarySalesTab';
 import { AuthorInvitationsView } from './AuthorInvitationsView';
 import { checkIsPastEvent } from '../utils/eventUtils';
 import BookPerformance from './BookPerformance';
@@ -586,6 +587,7 @@ export function AuthorDashboardPage() {
           <Link onClick={() => setIsMobileMenuOpen(false)} to="/dashboard/payments" className={`author-profile-nav-btn flex items-center gap-3 ${location.pathname.includes('/payments') ? 'active' : ''}`}><CheckCircle2 className="w-4 h-4 shrink-0" /> <span className="flex-1 truncate">Payments History</span></Link>
           <Link onClick={() => setIsMobileMenuOpen(false)} to="/dashboard/invitations" className={`author-profile-nav-btn flex items-center gap-3 ${location.pathname.includes('/invitations') ? 'active' : ''}`}><CalendarIcon className="w-4 h-4 shrink-0" /> <span className="flex-1 truncate">Invitations</span></Link>
           <Link onClick={() => setIsMobileMenuOpen(false)} to="/dashboard/donations" className={`author-profile-nav-btn flex items-center gap-3 ${location.pathname.includes('/donations') ? 'active' : ''}`}><MapPin className="w-4 h-4 shrink-0" /> <span className="flex-1 truncate">Library Donations</span></Link>
+          <Link onClick={() => setIsMobileMenuOpen(false)} to="/dashboard/library-sales" className={`author-profile-nav-btn flex items-center gap-3 ${location.pathname.includes('/library-sales') ? 'active' : ''}`}><Building2 className="w-4 h-4 shrink-0" /> <span className="flex-1 truncate">Library Sales</span></Link>
           <Link onClick={() => setIsMobileMenuOpen(false)} to="/dashboard/reviews" className={`author-profile-nav-btn flex items-center gap-3 ${location.pathname.includes('/reviews') ? 'active' : ''}`}><Star className="w-4 h-4 shrink-0" /> <span className="flex-1 truncate">Reviews & Ratings</span></Link>
           <Link onClick={() => setIsMobileMenuOpen(false)} to="/dashboard/queries" className={`author-profile-nav-btn flex items-center gap-3 relative ${location.pathname.includes('/queries') ? 'active' : ''}`}><MessageSquare className="w-4 h-4 shrink-0" /> <span className="flex-1 truncate">Queries & Issues</span>{hasNewQueries && <span className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-sm"></span>}</Link>
           <Link onClick={() => setIsMobileMenuOpen(false)} to="/dashboard/gallery" className={`author-profile-nav-btn flex items-center gap-3 ${location.pathname.includes('/gallery') ? 'active' : ''}`}><ImageIcon className="w-4 h-4 shrink-0" /> <span className="flex-1 truncate">Event Gallery</span></Link>
@@ -782,6 +784,7 @@ export function AuthorDashboardPage() {
             <Route path="/payments" element={<EventsDashboard initialView="payments" registrations={dashboardData.authorProfile.eventRegistrations} dashboardData={dashboardData} />} />
             <Route path="/invitations" element={<AuthorInvitationsView />} />
             <Route path="/donations" element={<AuthorDonationsTab dashboardData={dashboardData} onRefresh={() => fetchDashboardData(true)} />} />
+            <Route path="/library-sales" element={<AuthorLibrarySalesTab />} />
             <Route path="/reviews" element={<AuthorReviews books={dashboardData.authorProfile.books} orders={dashboardData.authorOrders || []} />} />
             <Route path="/gallery" element={<AuthorGallery dashboardData={dashboardData} />} />
             <Route path="/profile" element={<AuthorProfile data={dashboardData} onRefresh={() => fetchDashboardData(true)} buttonStates={buttonStates} setButtonStates={setButtonStates} />} />
