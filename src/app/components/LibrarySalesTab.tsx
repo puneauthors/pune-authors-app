@@ -1332,7 +1332,7 @@ export function LibrarySalesTab() {
       </div>
 
       {/* BRIGHT COLORFUL METRIC CARDS */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Libraries Active: Vibrant Blue/Sky */}
         <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white p-4 rounded-2xl shadow-md flex items-center gap-3.5 relative overflow-hidden">
           <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
@@ -1344,41 +1344,19 @@ export function LibrarySalesTab() {
           </div>
         </div>
 
-        {/* Authors Enrolled: Vibrant Indigo/Purple */}
-        <div className="bg-gradient-to-br from-indigo-500 via-purple-600 to-purple-700 text-white p-4 rounded-2xl shadow-md flex items-center gap-3.5 relative overflow-hidden">
-          <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
-            <Users className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <div className="text-[10px] font-black text-purple-100 uppercase tracking-wider">Authors Enrolled</div>
-            <div className="text-2xl font-black text-white">{overallMetrics.uniqueAuthors}</div>
-          </div>
-        </div>
-
-        {/* Copies Placed: Vibrant Cyan/Blue */}
-        <div className="bg-gradient-to-br from-cyan-500 via-teal-600 to-blue-600 text-white p-4 rounded-2xl shadow-md flex items-center gap-3.5 relative overflow-hidden">
-          <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
-            <Package className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <div className="text-[10px] font-black text-cyan-100 uppercase tracking-wider">Copies Placed</div>
-            <div className="text-2xl font-black text-white">{overallMetrics.totalPlaced}</div>
-          </div>
-        </div>
-
-        {/* Copies Sold: Vibrant Emerald/Teal */}
+        {/* Total Books Sold: Vibrant Emerald/Teal */}
         <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 text-white p-4 rounded-2xl shadow-md flex items-center gap-3.5 relative overflow-hidden">
           <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
             <CheckCircle2 className="w-6 h-6 text-white" />
           </div>
           <div>
-            <div className="text-[10px] font-black text-emerald-100 uppercase tracking-wider">Copies Sold</div>
+            <div className="text-[10px] font-black text-emerald-100 uppercase tracking-wider">Total Books Sold</div>
             <div className="text-2xl font-black text-white">{overallMetrics.totalSold}</div>
           </div>
         </div>
 
         {/* Total Revenue: Vibrant Amber/Orange */}
-        <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white p-4 rounded-2xl shadow-md flex items-center gap-3.5 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white p-4 rounded-2xl shadow-md flex items-center gap-3.5 relative overflow-hidden">
           <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
             <IndianRupee className="w-6 h-6 text-white" />
           </div>
