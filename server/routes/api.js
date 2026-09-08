@@ -5216,7 +5216,7 @@ async function sendEventApprovalOrReminderEmail(eventId, authorId, isReminder = 
       : `Action Required: Event Registration Approved - ${event.name}`;
 
     const upiId = "info@puneauthorsassociation.com";
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi://pay?pa=${encodeURIComponent(upiId)}%26pn=Pune%20Authors%20Association%26am=${expectedFee}%26cu=INR`;
+    const qrUrl = `https://puneauthorsassociation.com/uploads/qr_code.jpeg`;
 
     const emailBody = `
       <div style="font-size: 15px; color: #222; line-height: 1.6;">
