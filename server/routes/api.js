@@ -7704,7 +7704,15 @@ router.get('/api/gallery/events', async (req, res) => {
     // Filter out Future (Upcoming), Pending Approval, and Rejected events, as well as any future dates
     const now = new Date();
     events = events.filter(e => {
-      if (e.library) return true; // Libraries always show
+      // Exclude 'Proposed Event'
+      if (e.event && e.event.eventType === 'Proposed Event') return false;
+      
+      if (e.library) {
+        // Only allow Airport Library / Flybrary in the gallery
+        if (e.library.type !== 'Airport Library' && e.library.type !== 'Flybrary') return false;
+        return true; 
+      }
+      
       if (new Date(e.date) > now) return false;
       if (!e.event) return true;
       return !['Upcoming', 'Pending Approval', 'Rejected'].includes(e.event.status);
@@ -7725,6 +7733,7 @@ router.get('/api/gallery/events', async (req, res) => {
     const extraEvents = await prisma.event.findMany({
       where: {
         id: { notIn: existingEventIds },
+        eventType: { not: 'Proposed Event' },
         bannerUrl: { not: null, not: "" },
         status: { notIn: ['Upcoming', 'Pending Approval', 'Rejected'] }
       }
@@ -7733,6 +7742,7 @@ router.get('/api/gallery/events', async (req, res) => {
     const extraLibraries = await prisma.library.findMany({
       where: {
         id: { notIn: existingLibraryIds },
+        type: { in: ['Airport Library', 'Flybrary'] },
         bannerUrl: { not: null, not: "" }
       },
       include: {

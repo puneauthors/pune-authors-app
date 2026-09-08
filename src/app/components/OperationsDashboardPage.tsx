@@ -8385,6 +8385,9 @@ const totalAuthorsBase = eventRegistrations.length;
 
     const filteredEvents = combinedGalleryItems
       .filter((e: any) => {
+        if (e.eventType === 'Proposed Event') return false;
+        if (e.itemType === 'Library' && e.eventType !== 'Airport Library' && e.eventType !== 'Flybrary') return false;
+
         const matchSearch =
           (e.name?.toLowerCase() || "").includes(
             galleryTabSearchTerm.toLowerCase(),

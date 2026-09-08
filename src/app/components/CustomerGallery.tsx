@@ -217,6 +217,10 @@ export function CustomerGallery({ eventId }: { eventId?: string }) {
       }));
 
   const filteredEvents = events.filter(e => {
+    if (e.eventType === 'Proposed Event' || e.type === 'Proposed Event') return false;
+    if (e.itemType === 'Library' && e.type !== 'Airport Library' && e.type !== 'Flybrary') return false;
+    if (e.library && e.library.type !== 'Airport Library' && e.library.type !== 'Flybrary') return false;
+    
     if (!e.images || e.images.length === 0) return false;
 
     const matchSearch = (e.type?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || 
