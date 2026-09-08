@@ -3367,7 +3367,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
 
     <!-- Print Button -->
     <div class="no-print" style="text-align:right;margin-bottom:20px">
-      <button onclick="window.print()" style="background:#1a1a2e;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">ðŸ–¨ Print / Save as PDF</button>
+      <button onclick="window.print()" style="background:#1a1a2e;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">🖨 Print / Save as PDF</button>
     </div>
 
     <!-- INVOICE HEADER -->
@@ -3493,7 +3493,7 @@ function AuthorOrders({ orders, onRefresh, dashboardData }: { orders: any[], onR
     </div>
 
     <div class="footer">
-      Pune Authors' Association &nbsp;Â·&nbsp; puneauthors.com &nbsp;Â·&nbsp;
+      Pune Authors' Association &nbsp;·&nbsp; puneauthorsassociation.com &nbsp;·&nbsp;
       This document is system-generated and serves as proof of order.
     </div>
   </div>
