@@ -25,6 +25,9 @@ export default function EventExcelManager({
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [selectedAuthorId, setSelectedAuthorId] = useState("");
   const [selectedBooksForParticipant, setSelectedBooksForParticipant] = useState<number[]>([]);
+  const [showRemoveParticipant, setShowRemoveParticipant] = useState(false);
+  const [removeSelectedAuthorId, setRemoveSelectedAuthorId] = useState("");
+  const [removeSelectedBooks, setRemoveSelectedBooks] = useState<number[]>([]);
   const [globalSold, setGlobalSold] = useState(eventBreakdown.aggSold || "");
   const [globalRevenue, setGlobalRevenue] = useState(eventBreakdown.aggRevenue || "");
   const [globalAuthors, setGlobalAuthors] = useState(eventBreakdown.aggAuthors || "");
@@ -95,6 +98,31 @@ export default function EventExcelManager({
     } catch (err) {
       console.error(err);
       alert("Failed to add participant");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRemoveParticipant = async () => {
+    if (!removeSelectedAuthorId) return;
+    setIsSaving(true);
+    try {
+      await axios.delete(`${API}/api/admin/events/registration`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        data: {
+          eventId: eventBreakdown.id,
+          authorId: removeSelectedAuthorId,
+          books: removeSelectedBooks
+        }
+      });
+      alert("Participant removed successfully");
+      setShowRemoveParticipant(false);
+      setRemoveSelectedAuthorId("");
+      setRemoveSelectedBooks([]);
+      onRefresh();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to remove participant");
     } finally {
       setIsSaving(false);
     }
@@ -592,63 +620,133 @@ export default function EventExcelManager({
               <Bell size={12} /> {isReminding ? "SENDING..." : `REMIND UNPAID (${unpaidApprovedAuthors.length})`}
             </button>
           )}
-          {showAddParticipant ? (
-            <div className="flex flex-col gap-2 bg-white p-2 rounded border-[1.5px] border-black shadow-lg relative z-50">
-              <div className="flex gap-1 items-center">
+          <div className="flex items-center gap-2 relative">
+            {showAddParticipant ? (
+              <div className="flex flex-col gap-2 relative bg-white border border-black p-2 rounded w-64 z-50">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Add Participant</span>
+                  <button onClick={() => setShowAddParticipant(false)} className="text-red-500 font-bold hover:text-red-700">✕</button>
+                </div>
                 <select 
-                  className="text-xs p-1 outline-none font-normal border border-gray-300 rounded" 
-                  value={selectedAuthorId} 
+                  className="dash-input text-xs w-full"
+                  value={selectedAuthorId}
                   onChange={(e) => {
-                    const authorId = e.target.value;
-                    setSelectedAuthorId(authorId);
-                    const author = platformAuthors?.find((a: any) => a.id.toString() === authorId);
+                    setSelectedAuthorId(e.target.value);
+                    const author = platformAuthors?.find(a => a.id.toString() === e.target.value);
                     if (author && author.books) {
-                      setSelectedBooksForParticipant(author.books.map((b: any) => b.id));
+                      setSelectedBooksForParticipant(author.books.map((b:any) => b.id));
                     } else {
                       setSelectedBooksForParticipant([]);
                     }
                   }}
                 >
-                  <option value="">Select Author...</option>
-                  {(platformAuthors || []).filter((a: any) => !authors.find(reg => reg.authorId === a.id)).map((a: any) => (
-                    <option key={a.id} value={a.id}>{a.name} {a.penName ? `(${a.penName})` : ''}</option>
+                  <option value="">-- Select Author --</option>
+                  {platformAuthors?.map((a: any) => (
+                    <option key={a.id} value={a.id}>{a.name}</option>
                   ))}
                 </select>
-                <button onClick={handleAddParticipant} disabled={!selectedAuthorId || selectedBooksForParticipant.length === 0} className="bg-green-500 text-black font-bold px-3 py-1 text-xs border-[1.5px] border-black hover:bg-green-400 disabled:opacity-50">ADD</button>
-                <button onClick={() => { setShowAddParticipant(false); setSelectedAuthorId(""); setSelectedBooksForParticipant([]); }} className="bg-red-500 text-white font-bold px-3 py-1 text-xs border-[1.5px] border-black hover:bg-red-600">X</button>
+                {selectedAuthorId && (
+                  <div className="flex flex-col gap-1 max-h-40 overflow-y-auto border border-gray-200 p-1">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1 block">Include Books</span>
+                    {platformAuthors?.find((a: any) => a.id.toString() === selectedAuthorId)?.books?.map((book: any) => (
+                      <label key={book.id} className="flex items-center gap-2 text-[11px] cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          className="accent-black w-3 h-3"
+                          checked={selectedBooksForParticipant.includes(book.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedBooksForParticipant(prev => [...prev, book.id]);
+                            } else {
+                              setSelectedBooksForParticipant(prev => prev.filter(id => id !== book.id));
+                            }
+                          }}
+                        />
+                        <span className="truncate max-w-[200px]" title={book.title}>{book.title}</span>
+                      </label>
+                    ))}
+                    {platformAuthors?.find((a: any) => a.id.toString() === selectedAuthorId)?.books?.length === 0 && (
+                      <span className="text-[11px] text-red-500 italic">This author has no listed books.</span>
+                    )}
+                  </div>
+                )}
+                <button 
+                  onClick={handleAddParticipant}
+                  disabled={isSaving || !selectedAuthorId || selectedBooksForParticipant.length === 0}
+                  className="bg-black text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+                >
+                  {isSaving ? "Adding..." : "Confirm Add"}
+                </button>
               </div>
-              
-              {selectedAuthorId && (
-                <div className="flex flex-col gap-1 mt-1 border-t border-dashed border-gray-300 pt-2 max-h-[150px] overflow-y-auto">
-                  <span className="text-[10px] font-bold text-gray-500 uppercase">Select Books for Event:</span>
-                  {platformAuthors?.find((a: any) => a.id.toString() === selectedAuthorId)?.books?.map((book: any) => (
-                    <label key={book.id} className="flex items-center gap-2 text-[11px] cursor-pointer hover:bg-gray-50 p-1 rounded">
-                      <input 
-                        type="checkbox" 
-                        className="accent-paa-navy"
-                        checked={selectedBooksForParticipant.includes(book.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedBooksForParticipant(prev => [...prev, book.id]);
-                          } else {
-                            setSelectedBooksForParticipant(prev => prev.filter(id => id !== book.id));
-                          }
-                        }}
-                      />
-                      <span className="truncate max-w-[200px]" title={book.title}>{book.title}</span>
-                    </label>
-                  ))}
-                  {platformAuthors?.find((a: any) => a.id.toString() === selectedAuthorId)?.books?.length === 0 && (
-                    <span className="text-[11px] text-red-500 italic">This author has no listed books.</span>
-                  )}
+            ) : showRemoveParticipant ? (
+              <div className="flex flex-col gap-2 relative bg-white border border-black p-2 rounded w-64 z-50">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Remove Participant</span>
+                  <button onClick={() => setShowRemoveParticipant(false)} className="text-red-500 font-bold hover:text-red-700">✕</button>
                 </div>
-              )}
-            </div>
-          ) : (
-            <button onClick={() => setShowAddParticipant(true)} className="bg-white text-black px-4 py-1.5 text-xs font-bold uppercase tracking-widest border-[1.5px] border-black hover:bg-gray-100">
-              + ADD PARTICIPANT
-            </button>
-          )}
+                <select 
+                  className="dash-input text-xs w-full"
+                  value={removeSelectedAuthorId}
+                  onChange={(e) => {
+                    setRemoveSelectedAuthorId(e.target.value);
+                    const author = authors.find(a => a.authorId.toString() === e.target.value);
+                    if (author && author.books) {
+                      setRemoveSelectedBooks(author.books.map((b:any) => b.bookId || b.book?.id));
+                    } else {
+                      setRemoveSelectedBooks([]);
+                    }
+                  }}
+                >
+                  <option value="">-- Select Author --</option>
+                  {authors.map((a: any) => (
+                    <option key={a.authorId} value={a.authorId}>{a.authorName}</option>
+                  ))}
+                </select>
+                {removeSelectedAuthorId && (
+                  <div className="flex flex-col gap-1 max-h-40 overflow-y-auto border border-gray-200 p-1">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1 block">Books to Remove</span>
+                    {authors.find((a: any) => a.authorId.toString() === removeSelectedAuthorId)?.books?.map((book: any) => (
+                      <label key={book.bookId || book.book?.id} className="flex items-center gap-2 text-[11px] cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          className="accent-black w-3 h-3"
+                          checked={removeSelectedBooks.includes(book.bookId || book.book?.id)}
+                          onChange={(e) => {
+                            const bId = book.bookId || book.book?.id;
+                            if (e.target.checked) {
+                              setRemoveSelectedBooks(prev => [...prev, bId]);
+                            } else {
+                              setRemoveSelectedBooks(prev => prev.filter(id => id !== bId));
+                            }
+                          }}
+                        />
+                        <span className="truncate max-w-[200px]" title={book.title || book.book?.title}>{book.title || book.book?.title}</span>
+                      </label>
+                    ))}
+                    {authors.find((a: any) => a.authorId.toString() === removeSelectedAuthorId)?.books?.length === 0 && (
+                      <span className="text-[11px] text-red-500 italic">No books listed. Removing will remove author.</span>
+                    )}
+                  </div>
+                )}
+                <button 
+                  onClick={handleRemoveParticipant}
+                  disabled={isSaving || !removeSelectedAuthorId || ((authors.find((a: any) => a.authorId.toString() === removeSelectedAuthorId)?.books?.length || 0) > 0 && removeSelectedBooks.length === 0)}
+                  className="bg-red-600 text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+                >
+                  {isSaving ? "Removing..." : "Confirm Remove"}
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <button onClick={() => setShowRemoveParticipant(true)} className="bg-white text-black px-4 py-1.5 text-xs font-bold uppercase tracking-widest border-[1.5px] border-black hover:bg-gray-100">
+                  - REMOVE PARTICIPANT
+                </button>
+                <button onClick={() => setShowAddParticipant(true)} className="bg-white text-black px-4 py-1.5 text-xs font-bold uppercase tracking-widest border-[1.5px] border-black hover:bg-gray-100">
+                  + ADD PARTICIPANT
+                </button>
+              </div>
+            )}
+          </div>
           <button 
             onClick={saveAllAuthorsData}
           disabled={isSaving}

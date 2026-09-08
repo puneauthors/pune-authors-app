@@ -5363,6 +5363,55 @@ router.post('/api/admin/events/registration', verifyToken, isAdmin, async (req, 
     res.status(500).json({ error: 'Failed to update registration' });
   }
 });
+
+router.delete('/api/admin/events/registration', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const eventId = parseInt(req.body.eventId);
+    const authorId = parseInt(req.body.authorId);
+    const { books } = req.body; // array of book ids to remove
+
+    if (!eventId || !authorId) {
+      return res.status(400).json({ error: "Missing eventId or authorId" });
+    }
+
+    if (books && Array.isArray(books) && books.length > 0) {
+      // Delete specific books
+      await prisma.eventBook.deleteMany({
+        where: {
+          eventId,
+          authorId,
+          bookId: { in: books.map(id => parseInt(id)) }
+        }
+      });
+
+      // Check if any books remain for this author in this event
+      const remainingBooks = await prisma.eventBook.count({
+        where: { eventId, authorId }
+      });
+
+      if (remainingBooks === 0) {
+        // No books left, remove the author completely
+        await prisma.eventAuthor.deleteMany({
+          where: { eventId, authorId }
+        });
+      }
+    } else {
+      // No books specified, completely remove author and all their books from this event
+      await prisma.eventBook.deleteMany({
+        where: { eventId, authorId }
+      });
+      await prisma.eventAuthor.deleteMany({
+        where: { eventId, authorId }
+      });
+    }
+
+    invalidateCache('admin:dashboard-stats');
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error removing participant:", error);
+    res.status(500).json({ error: 'Failed to remove participant' });
+  }
+});
 router.get('/api/admin/events/:id/registrations', verifyToken, isAdmin, async (req, res) => {
   try {
     const eventId = parseInt(req.params.id);
