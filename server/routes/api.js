@@ -8391,26 +8391,6 @@ const fireStockAlert = async (bookId, bookTitle, author) => {
     await prisma.notification.create({
       data: { message: alertMsg, target: author.name }
     });
-    // In-app notification for admin
-    await prisma.notification.create({
-      data: { message: alertMsg, target: 'ADMIN' }
-    });
-
-    // Email to author
-    await sendNotificationEmail(
-      author.email,
-      `⚠️ Low Stock Alert — "${bookTitle}"`,
-      emailWrap(`Low Inventory Warning`, `
-        <p>Hi <strong>${author.name}</strong>, this is an automated alert from the PAA platform.</p>
-        <p>Your book <strong>"${bookTitle}"</strong> has dropped below <strong>10 copies</strong> in your inventory.</p>
-        <p>Please log in to your Author Dashboard and use the <strong>Update Stock</strong> feature to replenish your inventory before accepting new orders or registering for events.</p>
-        <table>
-          <tr><td><strong>Book</strong></td><td>${bookTitle}</td></tr>
-          <tr><td><strong>Threshold</strong></td><td>Below 10 copies</td></tr>
-        </table>
-        <p style="color:#b44d28;font-weight:bold;">Action required: Update your master stock to ensure continued operations.</p>
-      `)
-    );
   } catch (err) {
     console.error('[fireStockAlert] Failed:', err.message);
   }
@@ -8817,7 +8797,7 @@ router.put('/api/admin/inventory/approve/:historyId', verifyToken, isAdmin, asyn
     } else if (newStock >= 10) {
       const tag = `[LOW_STOCK:${history.bookId}]`;
       await prisma.notification.deleteMany({
-        where: { message: { contains: tag }, target: 'ADMIN' }
+        where: { message: { contains: tag } }
       }).catch(() => { });
     }
 

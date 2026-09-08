@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 let mailTransporter;
 if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-  const isGmail = process.env.EMAIL_USER.includes('@gmail.com') || process.env.EMAIL_USER.includes('@nitj.ac.in');
+  const isGmail = process.env.EMAIL_USER.includes('@gmail.com');
   
   if (isGmail) {
     mailTransporter = nodemailer.createTransport({

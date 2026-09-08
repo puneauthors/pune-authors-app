@@ -28,6 +28,8 @@ export default function EventExcelManager({
   const [globalRevenue, setGlobalRevenue] = useState(eventBreakdown.aggRevenue || "");
   const [globalAuthors, setGlobalAuthors] = useState(eventBreakdown.aggAuthors || "");
   const [isSavingGlobals, setIsSavingGlobals] = useState(false);
+  // Per-author in-flight tracking: Set of "authorId:action" strings
+  const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
 
   // Admin Upload Payment Proof Modal State
   const [uploadModalAuthor, setUploadModalAuthor] = useState<any | null>(null);
@@ -36,6 +38,13 @@ export default function EventExcelManager({
   const [uploadAmount, setUploadAmount] = useState("");
   const [uploadAutoConfirm, setUploadAutoConfirm] = useState(true);
   const [isUploadingProof, setIsUploadingProof] = useState(false);
+
+  const startAction = (authorId: string, action: string) =>
+    setLoadingActions(prev => new Set(prev).add(`${authorId}:${action}`));
+  const endAction = (authorId: string, action: string) =>
+    setLoadingActions(prev => { const next = new Set(prev); next.delete(`${authorId}:${action}`); return next; });
+  const isActionLoading = (authorId: string, action: string) =>
+    loadingActions.has(`${authorId}:${action}`);
   
   useEffect(() => {
     setGlobalSold(eventBreakdown.aggSold || "");
@@ -293,57 +302,73 @@ export default function EventExcelManager({
   };
 
   const handleApprove = async (authorId: string) => {
+    if (isActionLoading(authorId, 'approve')) return;
+    startAction(authorId, 'approve');
     try {
       await axios.post(`${API}/api/admin/events/${eventBreakdown.id}/author/${authorId}/approve`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
-      alert("Author approved successfully.");
+      toast.success("Author approved!");
       onRefresh();
     } catch (err) {
       console.error(err);
-      alert("Failed to approve author.");
+      toast.error("Failed to approve author.");
+    } finally {
+      endAction(authorId, 'approve');
     }
   };
 
   const handleReject = async (authorId: string) => {
+    if (isActionLoading(authorId, 'reject')) return;
     const reason = prompt("Enter reason for rejection (optional):");
-    if (reason === null) return; // cancelled
+    if (reason === null) return;
+    startAction(authorId, 'reject');
     try {
       await axios.post(`${API}/api/admin/events/${eventBreakdown.id}/author/${authorId}/reject`, { reason }, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
-      alert("Author rejected successfully.");
+      toast.success("Author rejected.");
       onRefresh();
     } catch (err) {
       console.error(err);
-      alert("Failed to reject author.");
+      toast.error("Failed to reject author.");
+    } finally {
+      endAction(authorId, 'reject');
     }
   };
 
   const handleVerifyPayment = async (authorId: string) => {
+    if (isActionLoading(authorId, 'verify')) return;
+    startAction(authorId, 'verify');
     try {
       await axios.post(`${API}/api/admin/events/${eventBreakdown.id}/author/${authorId}/verify-payment`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
-      alert("Payment verified successfully. Status updated to Registered.");
+      toast.success("Payment verified! Status updated to Registered.");
       onRefresh();
     } catch (err) {
       console.error(err);
-      alert("Failed to verify payment.");
+      toast.error("Failed to verify payment.");
+    } finally {
+      endAction(authorId, 'verify');
     }
   };
 
   const handleRejectPayment = async (authorId: string) => {
+    if (isActionLoading(authorId, 'rejectpay')) return;
     if (!window.confirm("Are you sure you want to reject this payment? The author will be notified to re-upload.")) return;
+    startAction(authorId, 'rejectpay');
     try {
       await axios.post(`${API}/api/admin/events/${eventBreakdown.id}/author/${authorId}/reject-payment`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
-      alert("Payment rejected. The author has been notified.");
+      toast.success("Payment rejected. The author has been notified.");
       onRefresh();
     } catch (err) {
       console.error(err);
-      alert("Failed to reject payment.");
+      toast.error("Failed to reject payment.");
+    } finally {
+      endAction(authorId, 'rejectpay');
     }
   };
 
@@ -528,13 +553,17 @@ export default function EventExcelManager({
   };
 
   const handleRemindSingleAuthor = async (authorId: string, authorName: string) => {
+    if (isActionLoading(authorId, 'remind')) return;
+    startAction(authorId, 'remind');
     try {
       await axios.post(`${API}/api/admin/events/${eventBreakdown.id}/author/${authorId}/remind-payment`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
-      toast.success(`Payment reminder email sent to ${authorName}!`);
+      toast.success(`Payment reminder sent to ${authorName}!`);
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to send reminder");
+    } finally {
+      endAction(authorId, 'remind');
     }
   };
 
@@ -745,23 +774,40 @@ export default function EventExcelManager({
                                 )}
                                 {(author.optInStatus === "Pending Approval" || author.optInStatus === "Pending") && (
                                   <div className="flex gap-1 w-full">
-                                    <button onClick={() => handleApprove(author.authorId)} className="bg-green-600 text-white w-full py-1 text-[9px] font-bold rounded hover:bg-green-700">✓ Approve</button>
-                                    <button onClick={() => handleReject(author.authorId)} className="bg-red-600 text-white w-full py-1 text-[9px] font-bold rounded hover:bg-red-700">✗ Reject</button>
+                                    <button
+                                      onClick={() => handleApprove(author.authorId)}
+                                      disabled={isActionLoading(author.authorId, 'approve')}
+                                      className="bg-green-600 text-white w-full py-1 text-[9px] font-bold rounded hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >{isActionLoading(author.authorId, 'approve') ? '...' : '✓ Approve'}</button>
+                                    <button
+                                      onClick={() => handleReject(author.authorId)}
+                                      disabled={isActionLoading(author.authorId, 'reject')}
+                                      className="bg-red-600 text-white w-full py-1 text-[9px] font-bold rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >{isActionLoading(author.authorId, 'reject') ? '...' : '✗ Reject'}</button>
                                   </div>
                                 )}
                                 {author.paymentScreenshot && author.paymentStatus !== 'Paid' && (
                                   <div className="flex gap-1 mt-1 w-full">
-                                    <button onClick={() => handleVerifyPayment(author.authorId)} className="bg-green-600 hover:bg-green-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors">✓ Verify</button>
-                                    <button onClick={() => handleRejectPayment(author.authorId)} className="bg-red-600 hover:bg-red-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors">✗ Reject</button>
+                                    <button
+                                      onClick={() => handleVerifyPayment(author.authorId)}
+                                      disabled={isActionLoading(author.authorId, 'verify')}
+                                      className="bg-green-600 hover:bg-green-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >{isActionLoading(author.authorId, 'verify') ? 'Verifying…' : '✓ Verify'}</button>
+                                    <button
+                                      onClick={() => handleRejectPayment(author.authorId)}
+                                      disabled={isActionLoading(author.authorId, 'rejectpay')}
+                                      className="bg-red-600 hover:bg-red-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >{isActionLoading(author.authorId, 'rejectpay') ? '...' : '✗ Reject'}</button>
                                   </div>
                                 )}
                                 {!paymentInfo.isExempt && !paymentInfo.isVerified && !author.paymentScreenshot && (eventBreakdown?.registrationFee > 0) && (author.optInStatus === 'Approved' || author.optInStatus === 'Registered') && (
                                   <button
                                     onClick={() => handleRemindSingleAuthor(author.authorId, author.authorName)}
-                                    className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-[9px] font-bold shadow-sm transition-colors flex items-center gap-1 w-full justify-center mt-1"
+                                    disabled={isActionLoading(author.authorId, 'remind')}
+                                    className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-[9px] font-bold shadow-sm transition-colors flex items-center gap-1 w-full justify-center mt-1 disabled:opacity-60 disabled:cursor-not-allowed"
                                     title="Send Payment Reminder Email"
                                   >
-                                    <Bell size={10} /> Remind Payment
+                                    <Bell size={10} /> {isActionLoading(author.authorId, 'remind') ? 'Reminding…' : 'Remind Payment'}
                                   </button>
                                 )}
                                 {!paymentInfo.isExempt && (
@@ -957,23 +1003,40 @@ export default function EventExcelManager({
                               
                               {(author.optInStatus === "Pending Approval" || author.optInStatus === "Pending") && (
                                 <div className="flex gap-1 mt-1 w-full">
-                                  <button onClick={() => handleApprove(author.authorId)} className="bg-green-600 text-white w-full py-1 text-[9px] font-bold rounded hover:bg-green-700">✓</button>
-                                  <button onClick={() => handleReject(author.authorId)} className="bg-red-600 text-white w-full py-1 text-[9px] font-bold rounded hover:bg-red-700">✗</button>
+                                  <button
+                                    onClick={() => handleApprove(author.authorId)}
+                                    disabled={isActionLoading(author.authorId, 'approve')}
+                                    className="bg-green-600 text-white w-full py-1 text-[9px] font-bold rounded hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                                  >{isActionLoading(author.authorId, 'approve') ? '...' : '✓'}</button>
+                                  <button
+                                    onClick={() => handleReject(author.authorId)}
+                                    disabled={isActionLoading(author.authorId, 'reject')}
+                                    className="bg-red-600 text-white w-full py-1 text-[9px] font-bold rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                                  >{isActionLoading(author.authorId, 'reject') ? '...' : '✗'}</button>
                                 </div>
                               )}
                               {author.paymentScreenshot && author.paymentStatus !== 'Paid' && (
                                 <div className="flex gap-1 mt-1 w-full">
-                                  <button onClick={() => handleVerifyPayment(author.authorId)} className="bg-green-600 hover:bg-green-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors">✓ Verify</button>
-                                  <button onClick={() => handleRejectPayment(author.authorId)} className="bg-red-600 hover:bg-red-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors">✗ Reject</button>
+                                  <button
+                                    onClick={() => handleVerifyPayment(author.authorId)}
+                                    disabled={isActionLoading(author.authorId, 'verify')}
+                                    className="bg-green-600 hover:bg-green-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                  >{isActionLoading(author.authorId, 'verify') ? 'Verifying…' : '✓ Verify'}</button>
+                                  <button
+                                    onClick={() => handleRejectPayment(author.authorId)}
+                                    disabled={isActionLoading(author.authorId, 'rejectpay')}
+                                    className="bg-red-600 hover:bg-red-700 text-white w-full py-1 text-[9px] font-bold rounded shadow transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                  >{isActionLoading(author.authorId, 'rejectpay') ? '...' : '✗ Reject'}</button>
                                 </div>
                               )}
                               {!paymentInfo.isExempt && !paymentInfo.isVerified && !author.paymentScreenshot && (eventBreakdown?.registrationFee > 0) && (author.optInStatus === 'Approved' || author.optInStatus === 'Registered') && (
                                 <button
                                   onClick={() => handleRemindSingleAuthor(author.authorId, author.authorName)}
-                                  className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-[9px] font-bold shadow-sm transition-colors flex items-center gap-1 w-full justify-center mt-1"
+                                  disabled={isActionLoading(author.authorId, 'remind')}
+                                  className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-[9px] font-bold shadow-sm transition-colors flex items-center gap-1 w-full justify-center mt-1 disabled:opacity-60 disabled:cursor-not-allowed"
                                   title="Send Payment Reminder Email"
                                 >
-                                  <Bell size={10} /> Remind Payment
+                                  <Bell size={10} /> {isActionLoading(author.authorId, 'remind') ? 'Reminding…' : 'Remind Payment'}
                                 </button>
                               )}
                               {!paymentInfo.isExempt && (

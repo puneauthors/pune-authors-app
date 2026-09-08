@@ -240,6 +240,57 @@ setInterval(async () => {
       }
     }
 
+    // Weekly Low Stock Alert for Authors (runs on Monday at 10 AM)
+    if (now.getDay() === 1 && now.getHours() === 10 && (!global.lastLowStockEmailSent || global.lastLowStockEmailSent.getDate() !== now.getDate())) {
+      global.lastLowStockEmailSent = now;
+      const lowStockBooks = await prisma.book.findMany({
+        where: {
+          stock: { lt: 10 },
+          isArchived: false
+        },
+        include: { author: true }
+      });
+
+      if (lowStockBooks.length > 0) {
+        console.log(`Sending weekly low stock emails to ${lowStockBooks.length} authors...`);
+        const { sendNotificationEmail, emailWrap } = require('./utils/email');
+        
+        // Group by author to avoid sending multiple emails if they have multiple low stock books
+        const authorStockMap = {};
+        for (const book of lowStockBooks) {
+           if (!book.author || !book.author.email) continue;
+           if (!authorStockMap[book.author.email]) {
+               authorStockMap[book.author.email] = {
+                   authorName: book.author.name,
+                   books: []
+               };
+           }
+           authorStockMap[book.author.email].books.push(book);
+        }
+
+        for (const email of Object.keys(authorStockMap)) {
+           const data = authorStockMap[email];
+           let bookListHtml = '<ul>';
+           data.books.forEach(b => {
+               bookListHtml += `<li><strong>${b.title}</strong>: ${b.stock} copies remaining</li>`;
+           });
+           bookListHtml += '</ul>';
+
+           const emailContent = `
+             <p>Hi <strong>${data.authorName}</strong>, this is an automated weekly alert from the PAA platform.</p>
+             <p>The following books have dropped below our recommended stock levels (fewer than 10 copies):</p>
+             ${bookListHtml}
+             <p>Please log in to your Author Dashboard and use the <strong>Update Stock</strong> feature to replenish your inventory before accepting new orders or registering for events.</p>
+           `;
+           await sendNotificationEmail(
+             email,
+             'Weekly Low Stock Alert',
+             emailWrap('Low Inventory Warning', emailContent, { showDashboard: true })
+           ).catch(e => console.error('Failed to send weekly low stock email', e));
+        }
+      }
+    }
+
     // Daily Admin Report for Late Authors (runs at 9 AM)
     if (now.getHours() === 9 && (!global.lastLateReportSent || global.lastLateReportSent.getDate() !== now.getDate())) {
       global.lastLateReportSent = now;
