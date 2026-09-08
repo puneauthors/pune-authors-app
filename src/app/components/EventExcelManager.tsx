@@ -24,6 +24,7 @@ export default function EventExcelManager({
   const [isReminding, setIsReminding] = useState(false);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [selectedAuthorId, setSelectedAuthorId] = useState("");
+  const [selectedBooksForParticipant, setSelectedBooksForParticipant] = useState<number[]>([]);
   const [globalSold, setGlobalSold] = useState(eventBreakdown.aggSold || "");
   const [globalRevenue, setGlobalRevenue] = useState(eventBreakdown.aggRevenue || "");
   const [globalAuthors, setGlobalAuthors] = useState(eventBreakdown.aggAuthors || "");
@@ -69,10 +70,15 @@ export default function EventExcelManager({
     if (!selectedAuthorId) return;
     setIsSaving(true);
     try {
+      const author = platformAuthors.find((a: any) => a.id.toString() === selectedAuthorId);
+      const booksToRegister = author?.books
+        ?.filter((b: any) => selectedBooksForParticipant.includes(b.id))
+        .map((b: any) => ({ bookId: b.id, listedStock: 0 })) || [];
+
       const payload = {
         eventId: eventBreakdown.id,
         authorId: selectedAuthorId,
-        books: [],
+        books: booksToRegister.length > 0 ? booksToRegister : [], // if empty, backend creates no books, frontend defaults to all
         optInStatus: "Registered",
         manualTotalSold: null,
         manualTotalRevenue: null,
@@ -84,6 +90,7 @@ export default function EventExcelManager({
       alert("Participant added successfully");
       setShowAddParticipant(false);
       setSelectedAuthorId("");
+      setSelectedBooksForParticipant([]);
       onRefresh();
     } catch (err) {
       console.error(err);
@@ -586,19 +593,56 @@ export default function EventExcelManager({
             </button>
           )}
           {showAddParticipant ? (
-            <div className="flex gap-1 items-center bg-white p-1 rounded border-[1.5px] border-black">
-              <select 
-                className="text-xs p-1 outline-none font-normal" 
-                value={selectedAuthorId} 
-                onChange={(e) => setSelectedAuthorId(e.target.value)}
-              >
-                <option value="">Select Author...</option>
-                {(platformAuthors || []).filter((a: any) => !authors.find(reg => reg.authorId === a.id)).map((a: any) => (
-                  <option key={a.id} value={a.id}>{a.name} {a.penName ? `(${a.penName})` : ''}</option>
-                ))}
-              </select>
-              <button onClick={handleAddParticipant} className="bg-green-500 text-black font-bold px-3 py-1 text-xs border-[1.5px] border-black hover:bg-green-400">ADD</button>
-              <button onClick={() => setShowAddParticipant(false)} className="bg-red-500 text-white font-bold px-3 py-1 text-xs border-[1.5px] border-black hover:bg-red-600">X</button>
+            <div className="flex flex-col gap-2 bg-white p-2 rounded border-[1.5px] border-black shadow-lg relative z-50">
+              <div className="flex gap-1 items-center">
+                <select 
+                  className="text-xs p-1 outline-none font-normal border border-gray-300 rounded" 
+                  value={selectedAuthorId} 
+                  onChange={(e) => {
+                    const authorId = e.target.value;
+                    setSelectedAuthorId(authorId);
+                    const author = platformAuthors?.find((a: any) => a.id.toString() === authorId);
+                    if (author && author.books) {
+                      setSelectedBooksForParticipant(author.books.map((b: any) => b.id));
+                    } else {
+                      setSelectedBooksForParticipant([]);
+                    }
+                  }}
+                >
+                  <option value="">Select Author...</option>
+                  {(platformAuthors || []).filter((a: any) => !authors.find(reg => reg.authorId === a.id)).map((a: any) => (
+                    <option key={a.id} value={a.id}>{a.name} {a.penName ? `(${a.penName})` : ''}</option>
+                  ))}
+                </select>
+                <button onClick={handleAddParticipant} disabled={!selectedAuthorId || selectedBooksForParticipant.length === 0} className="bg-green-500 text-black font-bold px-3 py-1 text-xs border-[1.5px] border-black hover:bg-green-400 disabled:opacity-50">ADD</button>
+                <button onClick={() => { setShowAddParticipant(false); setSelectedAuthorId(""); setSelectedBooksForParticipant([]); }} className="bg-red-500 text-white font-bold px-3 py-1 text-xs border-[1.5px] border-black hover:bg-red-600">X</button>
+              </div>
+              
+              {selectedAuthorId && (
+                <div className="flex flex-col gap-1 mt-1 border-t border-dashed border-gray-300 pt-2 max-h-[150px] overflow-y-auto">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase">Select Books for Event:</span>
+                  {platformAuthors?.find((a: any) => a.id.toString() === selectedAuthorId)?.books?.map((book: any) => (
+                    <label key={book.id} className="flex items-center gap-2 text-[11px] cursor-pointer hover:bg-gray-50 p-1 rounded">
+                      <input 
+                        type="checkbox" 
+                        className="accent-paa-navy"
+                        checked={selectedBooksForParticipant.includes(book.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedBooksForParticipant(prev => [...prev, book.id]);
+                          } else {
+                            setSelectedBooksForParticipant(prev => prev.filter(id => id !== book.id));
+                          }
+                        }}
+                      />
+                      <span className="truncate max-w-[200px]" title={book.title}>{book.title}</span>
+                    </label>
+                  ))}
+                  {platformAuthors?.find((a: any) => a.id.toString() === selectedAuthorId)?.books?.length === 0 && (
+                    <span className="text-[11px] text-red-500 italic">This author has no listed books.</span>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <button onClick={() => setShowAddParticipant(true)} className="bg-white text-black px-4 py-1.5 text-xs font-bold uppercase tracking-widest border-[1.5px] border-black hover:bg-gray-100">
