@@ -32,9 +32,11 @@ server/.env
 server/.env.*
 server/uploads/
 
-# Python debug/patch scripts (not part of the app)
+# Debug/patch scripts (not part of the app)
 *.py
+*.cjs
 scratch/*.py
+scratch/*.cjs
 
 # Debug artifacts
 commit_list.txt
