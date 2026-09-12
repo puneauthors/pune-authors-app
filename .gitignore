@@ -38,5 +38,19 @@ server/uploads/
 scratch/*.py
 scratch/*.cjs
 
-# Debug artifacts
+# Debug artifacts & temp files
 commit_list.txt
+*.txt
+*.csv
+*.xlsx
+*.html
+*.webp
+fix_*.js
+fix_*.tsx
+hack_*.js
+test_manual.js
+temp_*.tsx
+new_overview_tab*.tsx
+temp_dashboard.tsx
+scratch/
+scripts/
