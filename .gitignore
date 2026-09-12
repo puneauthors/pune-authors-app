@@ -31,3 +31,10 @@ dist-ssr
 server/.env
 server/.env.*
 server/uploads/
+
+# Python debug/patch scripts (not part of the app)
+*.py
+scratch/*.py
+
+# Debug artifacts
+commit_list.txt
