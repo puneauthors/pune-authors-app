@@ -4750,6 +4750,10 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
     setSelectedInvite(evt);
     setExpandedEventId(evt.id);
 
+    setTimeout(() => {
+        document.getElementById('event-row-' + evt.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+
     if (isReapply) {
         const previousEventBooks = getEventBooks(evt.id);
         const hasPreviousBooks = previousEventBooks && previousEventBooks.length > 0;
@@ -5629,7 +5633,7 @@ function EventsDashboard({ registrations, dashboardData, initialView = 'events' 
                                    </div>
                                 </div>
                                 <div className="w-px bg-gray-100 hidden xl:block"></div>
-                                {((evt.isInvite && evt.registration === 'Pending' && !evt.isPast) || evt.registration === 'Rejected' || evt.registration === 'Declined') ? (
+                                {((evt.isInvite && (!evt.registration || evt.registration === 'Unpublished' || evt.registration === 'Pending') && !evt.isPast) || evt.registration === 'Rejected' || evt.registration === 'Declined') ? (
                                     <div className="flex-1 min-w-[300px] flex flex-col animate-fade-in-up">
                                         <h4 className="font-bold text-sm text-gray-700 mb-2 border-b pb-2 flex items-center gap-2">
                                           <BookOpen className="w-4 h-4"/> 
