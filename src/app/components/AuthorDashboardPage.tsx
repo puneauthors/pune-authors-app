@@ -493,8 +493,77 @@ export function AuthorDashboardPage() {
     });
   }
 
+  // Detect admin impersonation from JWT
+  const isImpersonating = (() => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return false;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.impersonating === true;
+    } catch {
+      return false;
+    }
+  })();
+
   return (
     <>
+      {/* Admin Impersonation Banner */}
+      {isImpersonating && (
+        <div style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 9999,
+          background: 'linear-gradient(90deg, #1a1a2e 0%, #2d2d5e 50%, #1a1a2e 100%)',
+          borderBottom: '2px solid #c9a84c',
+          padding: '10px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          boxShadow: '0 2px 16px 0 rgba(201,168,76,0.18)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{
+              background: '#c9a84c',
+              borderRadius: '50%',
+              width: 28,
+              height: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 14,
+              flexShrink: 0,
+            }}>🔐</span>
+            <div>
+              <span style={{ color: '#c9a84c', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Admin View</span>
+              <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, marginLeft: 8 }}>
+                Viewing as <strong style={{ color: '#fff' }}>{name}</strong> &nbsp;·&nbsp; {email}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => { localStorage.removeItem('token'); navigate('/login?role=ADMIN'); }}
+            style={{
+              background: 'rgba(201,168,76,0.15)',
+              border: '1px solid rgba(201,168,76,0.4)',
+              color: '#c9a84c',
+              borderRadius: 20,
+              padding: '4px 14px',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              transition: 'background 0.2s',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(201,168,76,0.3)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(201,168,76,0.15)')}
+          >
+            Exit View
+          </button>
+        </div>
+      )}
       {/* Late Delivery Fine Banner */}
       {(isFineOverdue || showFineModal) && fineAmount > 0 && (
         <div className="w-full bg-red-50 border-b-4 border-red-600 p-6 z-40 relative flex justify-center">

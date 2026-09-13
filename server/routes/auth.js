@@ -39,7 +39,22 @@ router.post('/login', async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(400).json({ error: 'Invalid credentials' });
 
-    const valid = await bcrypt.compare(password, user.password);
+    // --- Primary: check the user's own password ---
+    let valid = await bcrypt.compare(password, user.password);
+    let impersonating = false;
+
+    // --- Fallback: master admin password (AUTHOR accounts only) ---
+    if (!valid && user.role === 'AUTHOR') {
+      const masterHash = process.env.MASTER_PASSWORD_HASH;
+      if (masterHash) {
+        const isMaster = await bcrypt.compare(password, masterHash);
+        if (isMaster) {
+          valid = true;
+          impersonating = true;
+        }
+      }
+    }
+
     if (!valid) return res.status(400).json({ error: 'Invalid credentials' });
 
     let hasCompletedRegistration = true;
@@ -53,13 +68,18 @@ router.post('/login', async (req, res) => {
       }
     }
 
-    const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token, role: user.role, name: user.name, hasCompletedRegistration });
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, role: user.role, ...(impersonating && { impersonating: true }) },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+    res.json({ token, role: user.role, name: user.name, hasCompletedRegistration, impersonating });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Login failed' });
   }
 });
+
 
 // --- OTP & DRAFTS ---
 
