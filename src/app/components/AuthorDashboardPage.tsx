@@ -1400,6 +1400,8 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
       toast.success('Book updated and submitted for review!');
       setEditingBook(null);
       setNewCoverFile(null);
+      // Bust the window-level catalogue cache so the public page reflects the new genre/data
+      try { (window as any).__apiCache && delete (window as any).__apiCache.catalogueBooks; } catch (_) {}
       onRefresh();
     } catch (err) {
       toast.error('Failed to update book');
@@ -2364,14 +2366,11 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
                 <input type="text" className="dash-input" value={editingBook.subtitle} onChange={e => setEditingBook({ ...editingBook, subtitle: e.target.value })} />
               </div>
               <div>
-                <label className="dash-label">Genre</label>
+                <label className="dash-label">Category</label>
                 <select required className="dash-input" value={editingBook.genre} onChange={e => setEditingBook({ ...editingBook, genre: e.target.value })}>
-                  <option value="">Select Genre</option>
-                  <option value="Fiction">Fiction</option>
-                  <option value="Non-Fiction">Non-Fiction</option>
-                  <option value="Poetry">Poetry</option>
-                  <option value="Children">Children</option>
-                  <option value="Academic">Academic</option>
+                  <option value="">Select Category</option>
+                  {Object.keys(bookCategories).sort((a, b) => a.localeCompare(b)).map(c => <option key={c} value={c}>{c}</option>)}
+                  <option value="Other">Other</option>
                 </select>
               </div>
               <div>
