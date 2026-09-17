@@ -125,6 +125,9 @@
 .dash-kpi-card.purple { background: #a855f7; border: none; color: white !important; }
 .dash-kpi-card.teal { background: #14b8a6; border: none; color: white !important; }
 .dash-kpi-card.cyan { background: #06b6d4; border: none; color: white !important; }
+.dash-kpi-card.indigo { background: #6366f1; border: none; color: white !important; }
+.dash-kpi-card.emerald { background: #10b981; border: none; color: white !important; }
+.dash-kpi-card.violet { background: #8b5cf6; border: none; color: white !important; }
 
 /* Force text colors inside colored cards to be white */
 .dash-kpi-card p, .dash-kpi-card h3, .dash-kpi-card span {

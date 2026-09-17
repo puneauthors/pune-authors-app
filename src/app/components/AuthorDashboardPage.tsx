@@ -1056,6 +1056,9 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
   });
 
   const grossSales = webSalesAmount + posSalesAmount;
+  const totalBooksSold = titlesData.reduce((acc: number, t: any) => acc + (t.sold?.total || 0), 0);
+  const totalEventBooksSold = titlesData.reduce((acc: number, t: any) => acc + (t.sold?.events || 0), 0);
+  const totalWebBooksSold = titlesData.reduce((acc: number, t: any) => acc + (t.sold?.web || 0), 0);
 
   const lowStockCount = authorBooks.filter((b: any) => b.stock < 5).length;
 
@@ -1756,7 +1759,7 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
       )}
 
       {/* ── KPI Cards ── */}
-      <div className="flex flex-wrap justify-center lg:grid lg:grid-cols-7 gap-2 mb-5">
+      <div className="flex flex-wrap justify-center lg:grid lg:grid-cols-8 gap-2 mb-5">
         <div className="dash-kpi-card green px-3 py-4 text-center items-center flex flex-col justify-center">
           <p className="text-[9px] font-bold tracking-widest uppercase text-white/80 mb-1">Event Participation</p>
           <h3 className="text-lg font-black text-white leading-none">{`${data?.authorProfile?.aggParticipatedEvents || 0}/${data?.authorProfile?.aggEligibleEvents || 0}`}</h3>
@@ -1765,10 +1768,14 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
           <p className="text-[9px] font-bold tracking-widest uppercase text-white/80 mb-1">Total Titles</p>
           <h3 className="text-lg font-black text-white leading-none">{authorBooks.length}</h3>
         </div>
-        <div className="dash-kpi-card amber px-3 py-4 text-center items-center flex flex-col justify-center">
+        <button onClick={() => navigate('/dashboard/sales')} className="dash-kpi-card indigo px-3 py-4 text-center items-center flex flex-col justify-center cursor-pointer hover:-translate-y-1 transition-transform border-none">
+          <p className="text-[9px] font-bold tracking-widest uppercase text-white/80 mb-1">Total Books Sold</p>
+          <h3 className="text-lg font-black text-white leading-none">{totalBooksSold}</h3>
+        </button>
+        <button onClick={() => navigate('/dashboard/sales')} className="dash-kpi-card amber px-3 py-4 text-center items-center flex flex-col justify-center cursor-pointer hover:-translate-y-1 transition-transform border-none">
           <p className="text-[9px] font-bold tracking-widest uppercase text-white/80 mb-1">Total Sales</p>
           <h3 className="text-lg font-black text-white leading-none">₹{grossSales.toFixed(0)}</h3>
-        </div>
+        </button>
         <button onClick={() => navigate('/dashboard/payments')} className="dash-kpi-card red px-3 py-4 text-center items-center flex flex-col justify-center cursor-pointer hover:-translate-y-1 transition-transform border-none">
           <p className="text-[9px] font-bold tracking-widest uppercase text-white/80 mb-1">Total Fees Paid</p>
           <h3 className="text-lg font-black text-white leading-none">₹{totalFeesPaid}</h3>
