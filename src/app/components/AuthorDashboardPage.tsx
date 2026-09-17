@@ -982,9 +982,82 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
   const authorBooks = authorProfile.books;
   const authorOrders = data.authorOrders;
 
+  // Confirmed orders matching Sales Intelligence logic
+  const validWebOrders = (data.authorOrders || []).filter((o: any) => {
+    return o.paymentVerified || o.status === 'Completed' || o.status === 'Delivered' || o.status === 'Dispatched' || o.status === 'Paid';
+  });
+  const webSalesAmount = validWebOrders.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
+  const webBooksSold = validWebOrders.reduce((acc: number, curr: any) => acc + (curr.quantity || 1), 0);
+
+  const validPosOrders = (data.posOrders || []).filter((po: any) => po.paymentStatus === 'CONFIRMED');
+  let posSalesAmount = 0;
+  let posBooksSold = 0;
+  validPosOrders.forEach((po: any) => {
+    (po.items || []).forEach((i: any) => {
+      const qty = i.quantity || 0;
+      const price = i.price || 0;
+      posBooksSold += qty;
+      posSalesAmount += (qty * price);
+    });
+  });
+
+  let eventsWithoutPosRevenue = 0;
+  let eventsWithoutPosBooks = 0;
+  (data.eventInvites || []).forEach((ea: any) => {
+    if (ea.optInStatus === 'Registered' || ea.optInStatus === 'Approved') {
+      const hasPosData = validPosOrders.some((po: any) => po.eventId === ea.eventId);
+      if (!hasPosData) {
+        if (ea.manualTotalSold > 0 || ea.manualTotalRevenue > 0) {
+          eventsWithoutPosBooks += (ea.manualTotalSold || 0);
+          eventsWithoutPosRevenue += (ea.manualTotalRevenue || 0);
+        } else {
+          const eventBooks = (data.listedBooks || []).filter((lb: any) => lb.eventId === ea.eventId);
+          eventBooks.forEach((eb: any) => {
+            if (eb.soldStock > 0) {
+              const price = eb.overrideMrp || eb.book?.mrp || authorBooks.find((b: any) => b.id === eb.bookId)?.mrp || 0;
+              eventsWithoutPosBooks += eb.soldStock;
+              eventsWithoutPosRevenue += (eb.soldStock * price);
+            }
+          });
+        }
+      }
+    }
+  });
+
+  const grossSales = webSalesAmount + posSalesAmount + eventsWithoutPosRevenue;
+  const totalBooksSold = webBooksSold + posBooksSold + eventsWithoutPosBooks;
+  const totalEventBooksSold = posBooksSold + eventsWithoutPosBooks;
+  const totalWebBooksSold = webBooksSold;
+
   const titlesData = authorBooks.map((b: any, index: number) => {
-    const webSales = authorOrders.filter((o: any) => (o.bookId === b.id || o.bookTitle === b.title) && ['Pending Verification', 'Completed', 'Processing', 'Delivered', 'Dispatched', 'Accepted', 'Paid'].includes(o.status || o.orderStatus)).reduce((acc: number, curr: any) => acc + (curr.quantity || 1), 0);
-    const eventSales = (data.listedBooks || []).filter((lb: any) => lb.bookId === b.id).reduce((acc: number, curr: any) => acc + (curr.soldStock || 0), 0);
+    const webSales = validWebOrders.filter((o: any) => 
+      o.bookId === b.id || (b.title && o.bookTitle && o.bookTitle.trim().toLowerCase() === b.title.trim().toLowerCase())
+    ).reduce((acc: number, curr: any) => acc + (curr.quantity || 1), 0);
+
+    let posSales = 0;
+    validPosOrders.forEach((po: any) => {
+      (po.items || []).forEach((i: any) => {
+        if (i.bookId === b.id || (i.book?.title && b.title && i.book.title.trim().toLowerCase() === b.title.trim().toLowerCase())) {
+          posSales += (i.quantity || 0);
+        }
+      });
+    });
+
+    let eventListedSales = 0;
+    (data.eventInvites || []).forEach((ea: any) => {
+      if (ea.optInStatus === 'Registered' || ea.optInStatus === 'Approved') {
+        const hasPosData = validPosOrders.some((po: any) => po.eventId === ea.eventId);
+        if (!hasPosData) {
+          const eventBooks = (data.listedBooks || []).filter((lb: any) => lb.eventId === ea.eventId && lb.bookId === b.id);
+          eventBooks.forEach((eb: any) => {
+            eventListedSales += (eb.soldStock || 0);
+          });
+        }
+      }
+    });
+
+    const eventSales = posSales + eventListedSales;
+
     const libraryDonations = (data?.authorProfile?.donationRegistrations || []).filter((dr: any) => !dr.announcement?.title?.toLowerCase().includes('flybrary') && !dr.announcement?.type?.toLowerCase().includes('flybrary')).reduce((acc: number, dr: any) => {
       const bookDonations = (dr.books || []).filter((db: any) => db.bookId === b.id);
       return acc + bookDonations.reduce((dAcc: number, db: any) => dAcc + (db.quantityDonated || db.qtyReceived || db.qtyDispatched || 0), 0);
@@ -1035,30 +1108,6 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
   ];
 
   const completedOrders = authorOrders.filter((o: any) => o.status === 'Completed' || o.status === 'Delivered' || o.orderStatus === 'Completed' || o.orderStatus === 'Delivered');
-  const webSalesAmount = completedOrders.reduce((acc: number, curr: any) => acc + curr.amount, 0);
-  
-  let posSalesAmount = (data.posOrders || []).reduce((acc: number, o: any) => acc + (o.totalAmount || 0), 0);
-
-  (data.eventInvites || []).forEach((ea: any) => {
-    if (ea.optInStatus === 'Registered' || ea.optInStatus === 'Approved') {
-      if (ea.manualTotalSold > 0 || ea.manualTotalRevenue > 0) {
-        posSalesAmount += (ea.manualTotalRevenue || 0);
-      } else {
-        const eventBooks = (data.listedBooks || []).filter((lb: any) => lb.eventId === ea.eventId);
-        eventBooks.forEach((eb: any) => {
-          if (eb.soldStock > 0) {
-            const price = eb.overrideMrp || authorBooks.find((b: any) => b.id === eb.bookId)?.mrp || 0;
-            posSalesAmount += (eb.soldStock * price);
-          }
-        });
-      }
-    }
-  });
-
-  const grossSales = webSalesAmount + posSalesAmount;
-  const totalBooksSold = titlesData.reduce((acc: number, t: any) => acc + (t.sold?.total || 0), 0);
-  const totalEventBooksSold = titlesData.reduce((acc: number, t: any) => acc + (t.sold?.events || 0), 0);
-  const totalWebBooksSold = titlesData.reduce((acc: number, t: any) => acc + (t.sold?.web || 0), 0);
 
   const lowStockCount = authorBooks.filter((b: any) => b.stock < 5).length;
 
