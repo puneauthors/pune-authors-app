@@ -1645,7 +1645,10 @@ export function AuthorRegistrationPage({ initialData, isReapply = false, onReapp
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div>
                       <label className="dash-label">ISBN Number *</label>
-                      <input type="text" inputMode="numeric" placeholder="10 or 13 digit ISBN" value={form.isbn} onChange={(e) => update("isbn", e.target.value.replace(/\D/g, ''))} maxLength={13} className={`dash-input w-full ${errors.isbn ? '!border-red-500' : ''}`} />
+                      <input type="text" inputMode="numeric" placeholder="13 digit ISBN" value={form.isbn} onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
+                        update("isbn", digits);
+                      }} maxLength={20} className={`dash-input w-full ${errors.isbn ? '!border-red-500' : ''}`} />
                       {errors.isbn && <div className="text-red-500 text-xs mt-1 font-medium">{errors.isbn}</div>}
                       {getBookDiffUi("isbn")}
                     </div>

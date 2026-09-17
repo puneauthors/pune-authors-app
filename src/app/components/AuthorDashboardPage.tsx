@@ -2145,7 +2145,10 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div>
                 <label className="dash-label">ISBN Number *</label>
-                <input required type="text" inputMode="numeric" placeholder="10 or 13 digit ISBN" value={newBook.isbn} onChange={(e) => setNewBook({ ...newBook, isbn: e.target.value.replace(/\D/g, '') })} maxLength={13} className="dash-input w-full" />
+                <input required type="text" inputMode="numeric" placeholder="13 digit ISBN" value={newBook.isbn} onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
+                  setNewBook({ ...newBook, isbn: digits });
+                }} maxLength={20} className="dash-input w-full" />
               </div>
               <div>
                 <label className="dash-label">Edition</label>
@@ -2525,7 +2528,10 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
               </div>
               <div>
                 <label className="dash-label">ISBN *</label>
-                <input required type="text" className="dash-input" value={editingBook.isbn} onChange={e => setEditingBook({ ...editingBook, isbn: e.target.value })} />
+                <input required type="text" inputMode="numeric" placeholder="13 digit ISBN" className="dash-input" value={editingBook.isbn} onChange={e => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
+                  setEditingBook({ ...editingBook, isbn: digits });
+                }} maxLength={20} />
               </div>
               <div>
                 <label className="dash-label">Publisher</label>
