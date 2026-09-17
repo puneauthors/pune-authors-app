@@ -2414,7 +2414,7 @@ router.get('/api/admin/books', verifyToken, isAdmin, async (req, res) => {
       return {
         ...b,
         authorName: b.author.name,
-        isbn: `978-0-00-000${b.id}`, // Mock ISBN
+        isbn: b.isbn || '',
         sales
       };
     });
