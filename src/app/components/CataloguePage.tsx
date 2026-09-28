@@ -907,10 +907,12 @@ export function CataloguePage() {
       if (res.ok) {
         window.open(pdfUrl, '_blank');
       } else {
-        toast.error("Catalogue is currently being prepared by the admin. Please try again later.", { duration: 4000 });
+        toast.info("Preparing catalogue for you... Please wait.", { duration: 3000 });
+        downloadCataloguePDF("Complete", allBooks, setDownloadingType, publicStats, false, false, false, true);
       }
     } catch (err) {
-      toast.error("Catalogue is currently being prepared by the admin. Please try again later.", { duration: 4000 });
+      toast.info("Preparing catalogue for you... Please wait.", { duration: 3000 });
+      downloadCataloguePDF("Complete", allBooks, setDownloadingType, publicStats, false, false, false, true);
     }
   };
 
