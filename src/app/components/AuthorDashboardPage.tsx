@@ -1085,7 +1085,11 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
     };
   });
 
-  const filteredTitles = filter === 'all' ? titlesData : titlesData.filter((t: any) => t.genre === filter);
+  const filteredTitles = (filter === 'all' ? titlesData : titlesData.filter((t: any) => t.genre === filter))
+    .sort((a: any, b: any) => {
+      const order: any = { 'Pending': 1, 'Rejected': 2, 'Approved': 3 };
+      return (order[a.status] || 99) - (order[b.status] || 99);
+    });
 
   const comprehensiveBookData = titlesData.map((t: any) => ({
     name: t.title,
@@ -2319,10 +2323,12 @@ function OverviewTab({ data, onRefresh, buttonStates, setButtonStates }: { data:
               ) : filteredTitles.map((row: any, idx: number) => (
                 <tr key={row.id} className="transition-colors hover:brightness-95 border-b border-gray-200">
                   <td className="text-paa-gray-text font-bold text-center bg-green-100/60">{idx + 1}</td>
-                  <td className="bg-blue-100/60">{authorBooks.find((b: any) => b.id === row.id)?.coverUrl
-                    ? <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${authorBooks.find((b: any) => b.id === row.id)?.coverUrl}${authorBooks.find((b: any) => b.id === row.id)?.updatedAt ? `?t=${new Date(authorBooks.find((b: any) => b.id === row.id).updatedAt).getTime()}` : ''}`} alt="cover" className="w-10 h-14 object-cover rounded-lg shadow-sm" />
-                    : <div className="w-10 h-14 bg-white/50 rounded-lg border flex items-center justify-center text-[10px] font-medium text-gray-500">No cover</div>}
-                  </td>
+                  <td className="bg-blue-100/60">{(() => {
+                    const b = authorBooks.find((bk: any) => bk.id === row.id);
+                    if (!b?.coverUrl) return <div className="w-10 h-14 bg-white/50 rounded-lg border flex items-center justify-center text-[10px] font-medium text-gray-500">No cover</div>;
+                    const src = b.coverUrl.startsWith('http') || b.coverUrl.startsWith('data:') ? b.coverUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${b.coverUrl}${b.updatedAt ? `?t=${new Date(b.updatedAt).getTime()}` : ''}`;
+                    return <img src={src} alt="cover" className="w-10 h-14 object-cover rounded-lg shadow-sm" />;
+                  })()}</td>
                   <td className="font-semibold text-paa-navy bg-amber-100/60">
                     {row.title}
                     {(() => {
