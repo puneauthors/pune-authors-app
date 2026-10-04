@@ -6568,6 +6568,7 @@ router.post('/api/author/events/:eventId/pay', verifyToken, upload.single('payme
 
     const paymentScreenshot = `/uploads/${req.file.filename}`;
     const transactionId = req.body.transactionId || null;
+    if (!transactionId) return res.status(400).json({ error: 'Transaction ID / UTR is required.' });
 
     const existingRecord = await prisma.eventAuthor.findFirst({ where: { eventId, authorId: author.id } });
     if (!existingRecord) return res.status(404).json({ error: 'Registration not found' });
@@ -6596,6 +6597,7 @@ router.post('/api/author/activities/:activityId/pay', verifyToken, upload.single
 
     const paymentScreenshot = `/uploads/${req.file.filename}`;
     const transactionId = req.body.transactionId || null;
+    if (!transactionId) return res.status(400).json({ error: 'Transaction ID / UTR is required.' });
 
     const existingRecord = await prisma.eventRegistration.findFirst({ where: { activityId, authorId: author.id } });
     if (!existingRecord) return res.status(404).json({ error: 'Registration not found' });
