@@ -737,6 +737,7 @@ export function CataloguePage() {
       .then(res => res.json())
       .then(data => {
         const mapped: CatalogueBook[] = data.map((b: any) => ({
+          ...b,
           id: b.id.toString(),
           title: b.title,
           synopsis: b.synopsis || "",
