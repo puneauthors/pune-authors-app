@@ -773,8 +773,9 @@ export function CheckoutPage() {
                         style={{ width: 160, height: 160, objectFit: "contain", margin: "0 auto", display: "block", borderRadius: 4, border: "2px solid #eaeaea" }}
                       />
                     ) : (
-                      <div style={{ width: 160, height: 160, background: "#fff", margin: "0 auto", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #eaeaea", overflow: "hidden" }}>
-                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`upi://pay?pa=puneauthors@upi&pn=PuneAuthors&am=${totalAmount}.00&cu=INR`)}`} alt="UPI QR" style={{ width: "90%", height: "90%" }} />
+                      <div style={{ width: 160, height: 160, background: "#fafafa", margin: "0 auto", borderRadius: 4, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: "2px dashed #eaeaea", color: "#9ca3af", textAlign: "center", padding: "1rem" }}>
+                        <CreditCard size={32} style={{ marginBottom: "0.5rem", opacity: 0.5 }} />
+                        <span style={{ fontSize: 12, fontWeight: 500 }}>No QR Code Provided</span>
                       </div>
                     )}
                     <p style={{ fontSize: 11, color: "#9ca3af", marginTop: "0.5rem" }}>Pay directly to the author using their UPI QR</p>
