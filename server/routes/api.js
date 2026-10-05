@@ -2463,8 +2463,25 @@ router.post('/api/admin/books/:id/approve', verifyToken, isAdmin, async (req, re
   try {
     const book = await prisma.book.update({
       where: { id: parseInt(req.params.id) },
-      data: { status: 'Approved', rejectionReason: null }
+      data: { status: 'Approved', rejectionReason: null },
+      include: { author: true }
     });
+
+    if (book.author && book.author.email) {
+      try {
+        const authorHtml = emailWrap(
+          "Book Approved!",
+          `<p>Dear ${book.author.name || 'Author'},</p>
+           <p>Great news! Your newly added book, <strong>${book.title}</strong>, has been approved.</p>
+           <p>The catalogue is updated and your book is now live on the website.</p>`,
+          { showDashboard: true }
+        );
+        await sendNotificationEmail(book.author.email, "Your Book is Approved & Live", authorHtml);
+      } catch (emailErr) {
+        console.error("Failed to send approval email to author:", emailErr);
+      }
+    }
+
     res.json(book);
   } catch (err) {
     res.status(500).json({ error: 'Failed to approve book' });
@@ -3240,6 +3257,17 @@ router.post('/api/author/books', verifyToken, upload.fields([{ name: 'cover', ma
       where: { id: author.id },
       data: { status: 'Added New Book' }
     });
+
+    try {
+      const adminHtml = emailWrap(
+        "New Book Added for Approval",
+        `<p>Author <strong>${author.name || author.email}</strong> has added a new book: <strong>${title}</strong>.</p>
+         <p>Please log in to the admin panel to review and approve the book.</p>`
+      );
+      await sendNotificationEmail(getAdminEmails(), "New Book Pending Approval", adminHtml);
+    } catch (emailErr) {
+      console.error("Failed to send admin notification for new book:", emailErr);
+    }
 
     res.status(201).json(newBook);
   } catch (err) {
@@ -6540,6 +6568,7 @@ router.post('/api/author/events/:eventId/pay', verifyToken, upload.single('payme
 
     const paymentScreenshot = `/uploads/${req.file.filename}`;
     const transactionId = req.body.transactionId || null;
+    if (!transactionId) return res.status(400).json({ error: 'Transaction ID / UTR is required.' });
 
     const existingRecord = await prisma.eventAuthor.findFirst({ where: { eventId, authorId: author.id } });
     if (!existingRecord) return res.status(404).json({ error: 'Registration not found' });
@@ -6568,6 +6597,7 @@ router.post('/api/author/activities/:activityId/pay', verifyToken, upload.single
 
     const paymentScreenshot = `/uploads/${req.file.filename}`;
     const transactionId = req.body.transactionId || null;
+    if (!transactionId) return res.status(400).json({ error: 'Transaction ID / UTR is required.' });
 
     const existingRecord = await prisma.eventRegistration.findFirst({ where: { activityId, authorId: author.id } });
     if (!existingRecord) return res.status(404).json({ error: 'Registration not found' });

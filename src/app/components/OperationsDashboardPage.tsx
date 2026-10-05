@@ -3906,7 +3906,38 @@ export function OperationsDashboardPage() {
 
                       {/* ISBN */}
                       <td className={cell('bg-[#FAF5FF]', 'bg-[#F3E8FF]', 'text-center font-mono')} style={{ color: '#6B21A8' }}>
-                        {book.isbn || <span className="text-gray-300">—</span>}
+                        {(() => {
+                          const raw = (book.isbn || '').trim();
+                          if (!raw) return <span className="inline-flex items-center text-red-500 bg-red-50 border border-red-200 px-1 py-0.5 rounded text-[9px] font-bold">Missing</span>;
+                          const digits = raw.replace(/[^0-9X]/gi, '');
+                          if ((digits.startsWith('978') || digits.startsWith('979')) && digits.length < 13) {
+                            return (
+                              <div className="flex flex-col items-center">
+                                <span className="font-mono text-amber-900 font-bold">{raw}</span>
+                                <span className="inline-flex items-center text-[9px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded mt-0.5" title="Truncated ISBN">
+                                  ⚠ Incomplete ({digits.length}/13)
+                                </span>
+                              </div>
+                            );
+                          }
+                          if (digits.length === 13) {
+                            return <span className="font-mono font-bold text-purple-900">{raw}</span>;
+                          }
+                          if (digits.length === 10) {
+                            return (
+                              <div className="flex flex-col items-center">
+                                <span className="font-mono font-bold text-purple-900">{raw}</span>
+                                <span className="text-[8px] font-semibold text-gray-500 uppercase">ISBN-10</span>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div className="flex flex-col items-center">
+                              <span className="font-mono text-gray-700">{raw}</span>
+                              <span className="text-[9px] font-bold bg-yellow-100 text-yellow-800 px-1 rounded mt-0.5">Non-standard</span>
+                            </div>
+                          );
+                        })()}
                       </td>
 
                       {/* MRP */}

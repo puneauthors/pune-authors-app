@@ -1514,7 +1514,7 @@ export function AuthorRegistrationPage({ initialData, isReapply = false, onReapp
                           </div>
                           <div className="text-[10px] font-bold uppercase tracking-widest text-paa-gray-text">{b.genre} {b.subcategory && `> ${b.subcategory}`}</div>
                         </div>
-                        {(b.coverFileUrl || b.coverUrl) && <img src={b.coverFileUrl || `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${b.coverUrl}${b.updatedAt ? `?t=${new Date(b.updatedAt).getTime()}` : ''}`} alt="cover" className="h-12 w-9 object-cover rounded shadow-sm border border-paa-navy/10 flex-shrink-0" />}
+                        {(b.coverFileUrl || b.coverUrl) && <img src={b.coverFileUrl || (b.coverUrl.startsWith('http') || b.coverUrl.startsWith('data:') ? b.coverUrl : `${import.meta.env.VITE_API_URL || "http://localhost:3001"}${b.coverUrl}${b.updatedAt ? `?t=${new Date(b.updatedAt).getTime()}` : ''}`)} alt="cover" className="h-12 w-9 object-cover rounded shadow-sm border border-paa-navy/10 flex-shrink-0" />}
                         <button type="button" onClick={() => handleEditAddedBook(idx)} className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-50 hover:bg-[#ebd8c0] text-blue-500 hover:text-blue-700 flex items-center justify-center transition-colors" title="Edit book">
                           <Edit className="w-3.5 h-3.5" />
                         </button>
