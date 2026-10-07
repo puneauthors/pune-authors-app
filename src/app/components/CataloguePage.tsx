@@ -168,20 +168,17 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
   try {
     setDownloading(isPrintable ? "printable" : "standard");
 
-    // Only reject blob:/data: URLs — they can't be rendered cross-origin by html2canvas.
-    // All server-hosted relative/absolute URLs are accepted; broken images are handled
+    // Only reject blob: URLs — they can't be rendered cross-origin by html2canvas.
+    // Server URLs and data: (base64) URLs are accepted and rendered. Broken images are handled
     // gracefully by the onerror attributes in the HTML template.
     const isRenderableUrl = (url: string) => {
       if (!url) return true; // empty = no image, still renderable (shows placeholder)
-      if (url.startsWith('blob:') || url.startsWith('data:')) return false;
+      if (url.startsWith('blob:')) return false;
       return true;
     };
 
-    const validBooks = books.filter(b => {
-      if (b.authorPhotoUrl && !isRenderableUrl(b.authorPhotoUrl)) return false;
-      if (b.id !== 'NO_BOOK' && b.coverUrl && !isRenderableUrl(b.coverUrl)) return false;
-      return true;
-    });
+    // Ensure all books are preserved in the catalogue
+    const validBooks = books;
 
     const { jsPDF, html2canvas } = await loadPdfLibs();
     const bgColor = isPrintable ? '#f0f9ff' : '#0f172a';
@@ -195,7 +192,7 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
     const byAuthor: Record<string, { name: string; bio: string; photoUrl: string; instagram: string; facebook: string; linkedin: string; youtube: string; whatsapp: string; qualification?: string; age?: string; experience?: string; skills?: string; hobbies?: string; books: CatalogueBook[] }> = {};
     validBooks.forEach(b => {
       let safePhoto = b.authorPhotoUrl || "";
-      if (safePhoto.startsWith('blob:') || safePhoto.startsWith('data:')) safePhoto = "";
+      if (safePhoto.startsWith('blob:')) safePhoto = "";
 
       if (!byAuthor[b.authorName]) {
         byAuthor[b.authorName] = {
@@ -218,7 +215,7 @@ export async function downloadCataloguePDF(label: string, books: CatalogueBook[]
       // ignore NO_BOOK stubs
       if (b.id !== 'NO_BOOK') {
         let bClone = { ...b };
-        if (bClone.coverUrl && (bClone.coverUrl.startsWith('blob:') || bClone.coverUrl.startsWith('data:'))) {
+        if (bClone.coverUrl && bClone.coverUrl.startsWith('blob:')) {
           bClone.coverUrl = "";
         }
         byAuthor[bClone.authorName].books.push(bClone);

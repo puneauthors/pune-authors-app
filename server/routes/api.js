@@ -1589,7 +1589,7 @@ router.post('/api/admin/authors/:id/approve', verifyToken, isAdmin, async (req, 
 
   // Check if there are pending books (new book added by active author)
   const pendingBooksCount = await prisma.book.count({ where: { authorId: id, status: 'Pending' } });
-  const isNewBookApproval = pendingBooksCount > 0 && existingAuthor.status === 'Active' && !wasEdited && !wasReapplied;
+  const isNewBookApproval = pendingBooksCount > 0 && (existingAuthor.status === 'Active' || existingAuthor.status === 'Added New Book') && !wasEdited && !wasReapplied;
 
   extraData.hasPendingEdits = false;
   extraData.originalProfileData = {};
@@ -2466,6 +2466,26 @@ router.post('/api/admin/books/:id/approve', verifyToken, isAdmin, async (req, re
       data: { status: 'Approved', rejectionReason: null },
       include: { author: true }
     });
+
+    if (book.authorId) {
+      const remainingPending = await prisma.book.count({
+        where: { authorId: book.authorId, status: 'Pending', id: { not: book.id } }
+      });
+      if (remainingPending === 0 && book.author && book.author.status === 'Added New Book') {
+        await prisma.author.update({
+          where: { id: book.authorId },
+          data: { status: 'Active' }
+        });
+      }
+    }
+
+    if (typeof deleteCatalogueCache === 'function') deleteCatalogueCache();
+    invalidateCache('books');
+    invalidateCache('adminAuthors');
+    invalidateCache('admin:dashboard-stats');
+    if (book.author && book.author.email) {
+      invalidateCache(`author:dashboard:${book.author.email}`);
+    }
 
     if (book.author && book.author.email) {
       try {
@@ -9620,7 +9640,7 @@ router.post('/api/admin/settings', verifyToken, isAdmin, async (req, res) => {
 router.get('/api/public/authors', async (req, res) => {
   try {
     const authors = await prisma.author.findMany({
-      where: { status: 'Active', isArchived: false },
+      where: { status: { in: ['Active', 'Added New Book', 'Edited'] }, isArchived: false },
       include: {
         books: { where: { status: 'Approved', isArchived: false } },
         eventAuthors: { include: { event: true } }
@@ -9645,7 +9665,7 @@ router.get('/api/public/authors/:id', async (req, res) => {
         eventAuthors: { include: { event: true } }
       }
     });
-    if (!author || author.status !== 'Active' || author.isArchived) return res.status(404).json({ error: 'Author not found' });
+    if (!author || !['Active', 'Added New Book', 'Edited'].includes(author.status) || author.isArchived) return res.status(404).json({ error: 'Author not found' });
     res.json(author);
   } catch (error) {
     console.error("Failed to fetch author profile:", error);
