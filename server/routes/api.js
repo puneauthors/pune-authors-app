@@ -5414,14 +5414,19 @@ router.post('/api/admin/events/registration', verifyToken, isAdmin, async (req, 
           where: { eventId, authorId, bookId: targetBookId }
         });
 
+        const rawCopies = b.actualSent !== undefined ? b.actualSent : b.listedStock;
+        const resolvedListedStock = rawCopies !== undefined && rawCopies !== null && rawCopies !== ""
+          ? (parseInt(rawCopies) || 0)
+          : (existingBook ? existingBook.listedStock : 0);
+
         if (existingBook) {
           await prisma.eventBook.update({
             where: { id: existingBook.id },
             data: {
-              listedStock: b.listedStock !== undefined ? parseInt(b.listedStock) || 0 : existingBook.listedStock,
+              listedStock: resolvedListedStock,
               soldStock: b.soldStock !== undefined ? parseInt(b.soldStock) || 0 : existingBook.soldStock,
               returnedStock: b.returnedStock !== undefined ? parseInt(b.returnedStock) : undefined,
-              manualDailySales: b.manualDailySales || undefined,
+              manualDailySales: b.manualDailySales !== undefined ? b.manualDailySales : existingBook.manualDailySales,
               overrideMrp: b.overrideMrp !== undefined ? (b.overrideMrp === "" ? null : parseFloat(b.overrideMrp)) : existingBook.overrideMrp
             }
           });
@@ -5431,7 +5436,7 @@ router.post('/api/admin/events/registration', verifyToken, isAdmin, async (req, 
               eventId,
               authorId,
               bookId: targetBookId,
-              listedStock: parseInt(b.listedStock) || 0,
+              listedStock: resolvedListedStock,
               soldStock: parseInt(b.soldStock) || 0,
               returnedStock: b.returnedStock !== undefined ? parseInt(b.returnedStock) : 0,
               manualDailySales: b.manualDailySales || {},

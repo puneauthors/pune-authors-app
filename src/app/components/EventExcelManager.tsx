@@ -191,11 +191,27 @@ export default function EventExcelManager({
         }
       } else {
         // Deep copy manualDailySales to allow editing for existing books
-        books = books.map((b: any) => ({
-          ...b,
-          manualDailySales: b.manualDailySales ? JSON.parse(JSON.stringify(b.manualDailySales)) : {},
-          actualSent: b.listedStock || 0
-        }));
+        books = books.map((b: any) => {
+          const sales = b.manualDailySales ? JSON.parse(JSON.stringify(b.manualDailySales)) : {};
+          const currentListed = b.listedStock !== undefined ? b.listedStock : 0;
+          const currentSent = b.actualSent !== undefined ? b.actualSent : currentListed;
+          const suggested = sales?._meta?.suggestedCopies !== undefined
+            ? sales._meta.suggestedCopies
+            : (b.suggestedCopies !== undefined ? b.suggestedCopies : (currentListed || 10));
+
+          if (!sales._meta) sales._meta = {};
+          if (sales._meta.suggestedCopies === undefined) {
+            sales._meta.suggestedCopies = suggested;
+          }
+
+          return {
+            ...b,
+            suggestedCopies: suggested,
+            manualDailySales: sales,
+            listedStock: currentSent,
+            actualSent: currentSent
+          };
+        });
       }
 
       return {
@@ -246,7 +262,12 @@ export default function EventExcelManager({
       const aIdx = next.findIndex(a => a.authorId === authorId);
       if (aIdx === -1) return prev;
       const author = { ...next[aIdx] };
-      author.books[bookIdx] = { ...author.books[bookIdx], actualSent: parseInt(value) || 0 };
+      const val = value === "" ? 0 : parseInt(value) || 0;
+      author.books[bookIdx] = { 
+        ...author.books[bookIdx], 
+        actualSent: val,
+        listedStock: val 
+      };
       next[aIdx] = author;
       return next;
     });
@@ -311,10 +332,15 @@ export default function EventExcelManager({
       const payload = {
         eventId: eventBreakdown.id,
         authorId: authorId,
-        books: author.books.map((b: any) => ({
-          ...b,
-          returnedStock: Math.max(0, (b.actualSent || 0) - (b.soldStock || 0))
-        })),
+        books: author.books.map((b: any) => {
+          const actualCopies = b.actualSent !== undefined ? b.actualSent : (b.listedStock || 0);
+          return {
+            ...b,
+            listedStock: actualCopies,
+            actualSent: actualCopies,
+            returnedStock: Math.max(0, actualCopies - (b.soldStock || 0))
+          };
+        }),
         optInStatus: author.optInStatus || "Pending",
         amountPaid: author.amountPaid || null,
         manualTotalSold: null,
@@ -461,10 +487,15 @@ export default function EventExcelManager({
         const payload = {
           eventId: eventBreakdown.id,
           authorId: author.authorId,
-          books: author.books.map((b: any) => ({
-            ...b,
-            returnedStock: Math.max(0, (b.actualSent || 0) - (b.soldStock || 0))
-          })),
+          books: author.books.map((b: any) => {
+            const actualCopies = b.actualSent !== undefined ? b.actualSent : (b.listedStock || 0);
+            return {
+              ...b,
+              listedStock: actualCopies,
+              actualSent: actualCopies,
+              returnedStock: Math.max(0, actualCopies - (b.soldStock || 0))
+            };
+          }),
           optInStatus: author.optInStatus || "Pending",
           amountPaid: author.amountPaid !== undefined ? author.amountPaid : null,
           manualTotalSold: null,
@@ -1036,7 +1067,7 @@ export default function EventExcelManager({
                       )}
                       
                       <td className="border-[1.5px] border-black bg-[#ffddaa] text-black text-center p-1 font-bold">
-                        {book.listedStock || 0}
+                        {book.suggestedCopies !== undefined ? book.suggestedCopies : (book.listedStock || 0)}
                       </td>
                       
                       <td className={`border-[1.5px] border-black text-black ${isEditing ? 'p-0' : 'p-1 text-center font-bold'} bg-white`}>
